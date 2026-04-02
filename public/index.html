@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FBSN - Facts, Beliefs, Signals, Noise</title>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 <style>
   :root {
     --teal-dark: #006B5E;
@@ -806,9 +808,9 @@
 
       <!-- File upload -->
       <div class="upload-area" id="uploadArea">
-        <input type="file" id="fileInput" accept=".txt,.md,.csv,.xlsx,.xls">
+        <input type="file" id="fileInput" accept=".txt,.md,.csv,.xlsx,.xls,.pdf">
         <div class="upload-icon">+</div>
-        <div class="upload-text">Drop a file here (.txt, .csv, .xlsx), or click to browse</div>
+        <div class="upload-text">Drop a file here (.txt, .csv, .xlsx, .pdf), or click to browse</div>
       </div>
 
       <div class="btn-row">
@@ -1138,6 +1140,26 @@ function handleFile(file) {
       });
       document.getElementById('rawTextInput').value = allText.trim();
       uploadArea.querySelector('.upload-text').textContent = `Loaded: ${file.name}`;
+    };
+    reader.readAsArrayBuffer(file);
+  } else if (ext === 'pdf') {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      uploadArea.querySelector('.upload-text').textContent = 'Reading PDF...';
+      try {
+        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(e.target.result) }).promise;
+        let text = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(item => item.str).join(' ') + '\n\n';
+        }
+        document.getElementById('rawTextInput').value = text.trim();
+        uploadArea.querySelector('.upload-text').textContent = `Loaded: ${file.name} (${pdf.numPages} pages)`;
+      } catch (err) {
+        uploadArea.querySelector('.upload-text').textContent = 'Failed to read PDF';
+        alert('PDF reading failed: ' + err.message);
+      }
     };
     reader.readAsArrayBuffer(file);
   } else {

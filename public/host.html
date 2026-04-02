@@ -151,6 +151,8 @@
   .a-empty { font-size: 0.8rem; color: var(--text-secondary); font-style: italic; }
 </style>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase-js.min.js"></script>
 </head>
 <body>
@@ -186,8 +188,8 @@
       <textarea id="rawTextInput" placeholder="Paste raw information here..." style="min-height:80px"></textarea>
     </div>
     <div class="upload-area" id="uploadArea">
-      <input type="file" id="fileInput" accept=".txt,.md,.csv,.xlsx,.xls">
-      <div class="upload-text">Drop a file (.txt, .csv, .xlsx) or click to browse</div>
+      <input type="file" id="fileInput" accept=".txt,.md,.csv,.xlsx,.xls,.pdf">
+      <div class="upload-text">Drop a file (.txt, .csv, .xlsx, .pdf) or click to browse</div>
     </div>
     <div class="btn-row">
       <button class="btn btn-ghost" id="extractBtn" onclick="extractPerspectives()">Extract with AI</button>
@@ -331,6 +333,26 @@ function handleFile(file) {
       wb.SheetNames.forEach(n => { const csv = XLSX.utils.sheet_to_csv(wb.Sheets[n], { blankrows: false }); if (csv.trim()) text += `--- ${n} ---\n${csv}\n\n`; });
       document.getElementById('rawTextInput').value = text.trim();
       uploadArea.querySelector('.upload-text').textContent = `Loaded: ${file.name}`;
+    };
+    reader.readAsArrayBuffer(file);
+  } else if (ext === 'pdf') {
+    const reader = new FileReader();
+    reader.onload = async e => {
+      uploadArea.querySelector('.upload-text').textContent = 'Reading PDF...';
+      try {
+        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(e.target.result) }).promise;
+        let text = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(item => item.str).join(' ') + '\n\n';
+        }
+        document.getElementById('rawTextInput').value = text.trim();
+        uploadArea.querySelector('.upload-text').textContent = `Loaded: ${file.name} (${pdf.numPages} pages)`;
+      } catch (err) {
+        uploadArea.querySelector('.upload-text').textContent = 'Failed to read PDF';
+        alert('PDF reading failed: ' + err.message);
+      }
     };
     reader.readAsArrayBuffer(file);
   } else {
