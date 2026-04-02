@@ -150,7 +150,6 @@
     .perspective-text { font-size: 1.1rem; }
   }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase-js.min.js"></script>
 </head>
 <body>
 
@@ -240,9 +239,11 @@
   <p>Thank you for participating! The facilitator will now review the results.</p>
 </div>
 
-<script src="supabase-config.js"></script>
-<script>
+<script type="module" src="supabase-config.js"></script>
+<script type="module">
 let channel;
+const supabaseClient = window.supabaseClient;
+
 let roomId = '';
 let roomCode = '';
 let participantId = '';
@@ -261,7 +262,7 @@ async function joinRoom() {
   if (!name) { showError('Enter your name.'); return; }
 
   // Look up room by code
-  const { data: room, error } = await supabase.from('rooms').select('*').eq('code', code).single();
+  const { data: room, error } = await supabaseClient.from('rooms').select('*').eq('code', code).single();
   if (error || !room) {
     showError('Room not found. Check the code and try again.');
     return;
@@ -274,7 +275,7 @@ async function joinRoom() {
   totalPerspectives = perspectives.length;
 
   // Add participant
-  const { data: participant, error: pErr } = await supabase.from('participants').insert({
+  const { data: participant, error: pErr } = await supabaseClient.from('participants').insert({
     room_id: roomId,
     name
   }).select().single();
@@ -291,7 +292,7 @@ async function joinRoom() {
   document.getElementById('headerInfo').textContent = `${name} | ${code}`;
 
   // Subscribe to broadcast channel
-  channel = supabase.channel(`room-${roomCode}`);
+  channel = supabaseClient.channel(`room-${roomCode}`);
 
   channel.on('broadcast', { event: 'perspective_changed' }, (msg) => {
     const payload = msg.payload;
@@ -321,7 +322,7 @@ async function joinRoom() {
   if (room.status === 'active' && perspectives.length > 0) {
     const idx = room.current_index || 0;
     // Check for existing vote
-    const { data: existingVote } = await supabase.from('votes').select('*').eq('room_id', roomId).eq('participant_id', participantId).eq('perspective_index', idx).single();
+    const { data: existingVote } = await supabaseClient.from('votes').select('*').eq('room_id', roomId).eq('participant_id', participantId).eq('perspective_index', idx).single();
     showVoteScreen(perspectives[idx], idx, totalPerspectives, existingVote);
   } else if (room.status === 'complete') {
     document.getElementById('completeScreen').classList.add('active');
@@ -358,7 +359,7 @@ async function showVoteScreen(text, idx, total, existingVote) {
 
   // Check for existing vote if not passed in
   if (!existingVote) {
-    const { data } = await supabase.from('votes').select('*').eq('room_id', roomId).eq('participant_id', participantId).eq('perspective_index', idx).single();
+    const { data } = await supabaseClient.from('votes').select('*').eq('room_id', roomId).eq('participant_id', participantId).eq('perspective_index', idx).single();
     existingVote = data;
   }
 
@@ -395,7 +396,7 @@ async function submitVote() {
   if (!myCertainty || !myImportance) return;
 
   // Upsert vote (insert or update if exists)
-  const { error } = await supabase.from('votes').upsert({
+  const { error } = await supabaseClient.from('votes').upsert({
     room_id: roomId,
     participant_id: participantId,
     perspective_index: currentPerspectiveIndex,
@@ -421,6 +422,13 @@ function changeVote() {
   document.getElementById('voteForm').style.display = '';
   document.getElementById('voteConfirmed').classList.remove('active');
 }
+
+// Expose functions for onclick handlers
+window.joinRoom = joinRoom;
+window.pickCertainty = pickCertainty;
+window.pickImportance = pickImportance;
+window.submitVote = submitVote;
+window.changeVote = changeVote;
 
 // Enter key to join
 document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom(); });

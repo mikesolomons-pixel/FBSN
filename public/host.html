@@ -153,7 +153,6 @@
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase-js.min.js"></script>
 </head>
 <body>
 
@@ -288,8 +287,11 @@
   </div>
 </div>
 
-<script src="supabase-config.js"></script>
-<script>
+<script type="module" src="supabase-config.js"></script>
+<script type="module">
+const supabaseClient = window.supabaseClient;
+const generateRoomCode = window.generateRoomCode;
+
 let channel;
 let roomId = '';
 let roomCode = '';
@@ -315,7 +317,7 @@ function renderPerspList() {
   const list = document.getElementById('perspList');
   document.getElementById('perspCount').textContent = `${perspectives.length} perspectives`;
   document.getElementById('startBtn').disabled = perspectives.length === 0;
-  list.innerHTML = perspectives.map((p, i) => `<li class="persp-item"><span class="num">${i+1}</span><span>${esc(p)}</span><button class="rm" onclick="perspectives.splice(${i},1);renderPerspList()">&times;</button></li>`).join('');
+  list.innerHTML = perspectives.map((p, i) => `<li class="persp-item"><span class="num">${i+1}</span><span>${esc(p)}</span><button class="rm" onclick="window.perspectives.splice(${i},1);window.renderPerspList()">&times;</button></li>`).join('');
 }
 
 // File upload
@@ -385,7 +387,7 @@ async function startSession() {
   roomCode = generateRoomCode();
 
   // Insert room into Supabase
-  const { data, error } = await supabase.from('rooms').insert({
+  const { data, error } = await supabaseClient.from('rooms').insert({
     code: roomCode,
     title,
     context,
@@ -413,7 +415,7 @@ async function startSession() {
   document.getElementById('joinUrl').textContent = `${location.origin}/join.html`;
 
   // Subscribe to Supabase Realtime channel
-  channel = supabase.channel(`room-${roomCode}`);
+  channel = supabaseClient.channel(`room-${roomCode}`);
 
   channel.on('broadcast', { event: 'vote' }, () => {
     refreshVoteStatus();
@@ -432,7 +434,7 @@ async function startSession() {
 
 // ========== REFRESH DATA ==========
 async function refreshParticipants() {
-  const { data: parts } = await supabase.from('participants').select('*').eq('room_id', roomId);
+  const { data: parts } = await supabaseClient.from('participants').select('*').eq('room_id', roomId);
   if (!parts) return;
   participantsList = parts;
   if (parts.length > 0) document.getElementById('beginBtn').disabled = false;
@@ -440,11 +442,11 @@ async function refreshParticipants() {
 }
 
 async function refreshVoteStatus() {
-  const { data: parts } = await supabase.from('participants').select('*').eq('room_id', roomId);
+  const { data: parts } = await supabaseClient.from('participants').select('*').eq('room_id', roomId);
   if (!parts) return;
   participantsList = parts;
 
-  const { data: votes } = await supabase.from('votes').select('*').eq('room_id', roomId).eq('perspective_index', currentIndex);
+  const { data: votes } = await supabaseClient.from('votes').select('*').eq('room_id', roomId).eq('perspective_index', currentIndex);
 
   const votedIds = new Set((votes || []).map(v => v.participant_id));
   const totalVoted = votedIds.size;
@@ -463,7 +465,7 @@ async function refreshVoteStatus() {
 
 // ========== PRESENTATION ==========
 async function beginExercise() {
-  await supabase.from('rooms').update({ status: 'active', current_index: 0 }).eq('id', roomId);
+  await supabaseClient.from('rooms').update({ status: 'active', current_index: 0 }).eq('id', roomId);
 
   document.getElementById('waitingView').style.display = 'none';
   document.getElementById('activeView').style.display = '';
@@ -487,7 +489,7 @@ function showPerspective(text, idx, total) {
 }
 
 async function revealVotes() {
-  const { data: votes } = await supabase.from('votes').select('*, participants(name)').eq('room_id', roomId).eq('perspective_index', currentIndex);
+  const { data: votes } = await supabaseClient.from('votes').select('*, participants(name)').eq('room_id', roomId).eq('perspective_index', currentIndex);
 
   // Calculate majority
   const counts = {};
@@ -530,7 +532,7 @@ async function revealVotes() {
   }).join('');
 
   // Update room revealed state
-  await supabase.from('rooms').update({ revealed: true }).eq('id', roomId);
+  await supabaseClient.from('rooms').update({ revealed: true }).eq('id', roomId);
   channel.send({ type: 'broadcast', event: 'votes_revealed', payload: {} });
 }
 
@@ -539,7 +541,7 @@ async function confirmMajority() {
   finalDecisions[currentIndex] = currentMajority;
 
   // Update room with final decision
-  await supabase.from('rooms').update({ final_decisions: finalDecisions }).eq('id', roomId);
+  await supabaseClient.from('rooms').update({ final_decisions: finalDecisions }).eq('id', roomId);
   renderMiniMatrix();
 
   channel.send({ type: 'broadcast', event: 'placement_confirmed', payload: { perspectiveIndex: currentIndex, certainty: currentMajority.certainty, importance: currentMajority.importance } });
@@ -548,14 +550,14 @@ async function confirmMajority() {
 async function nextPerspective() {
   if (currentIndex >= perspectives.length - 1) {
     // Exercise complete
-    await supabase.from('rooms').update({ status: 'complete', final_decisions: finalDecisions }).eq('id', roomId);
+    await supabaseClient.from('rooms').update({ status: 'complete', final_decisions: finalDecisions }).eq('id', roomId);
     channel.send({ type: 'broadcast', event: 'exercise_complete', payload: {} });
     showComplete(perspectives, finalDecisions);
     if (pollInterval) clearInterval(pollInterval);
     return;
   }
   currentIndex++;
-  await supabase.from('rooms').update({ current_index: currentIndex, revealed: false }).eq('id', roomId);
+  await supabaseClient.from('rooms').update({ current_index: currentIndex, revealed: false }).eq('id', roomId);
   showPerspective(perspectives[currentIndex], currentIndex, perspectives.length);
   channel.send({ type: 'broadcast', event: 'perspective_changed', payload: { perspectiveIndex: currentIndex, perspective: perspectives[currentIndex], totalPerspectives: perspectives.length } });
 }
@@ -563,7 +565,7 @@ async function nextPerspective() {
 async function prevPerspective() {
   if (currentIndex <= 0) return;
   currentIndex--;
-  await supabase.from('rooms').update({ current_index: currentIndex, revealed: false }).eq('id', roomId);
+  await supabaseClient.from('rooms').update({ current_index: currentIndex, revealed: false }).eq('id', roomId);
   showPerspective(perspectives[currentIndex], currentIndex, perspectives.length);
   channel.send({ type: 'broadcast', event: 'perspective_changed', payload: { perspectiveIndex: currentIndex, perspective: perspectives[currentIndex], totalPerspectives: perspectives.length } });
 }
@@ -617,6 +619,19 @@ function showComplete(persps, decisions) {
 // ========== UTILS ==========
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// Expose functions and state for onclick handlers
+window.addPersp = addPersp;
+window.extractPerspectives = extractPerspectives;
+window.startSession = startSession;
+window.beginExercise = beginExercise;
+window.revealVotes = revealVotes;
+window.confirmMajority = confirmMajority;
+window.nextPerspective = nextPerspective;
+window.prevPerspective = prevPerspective;
+window.toggleMatrix = toggleMatrix;
+window.perspectives = perspectives;
+window.renderPerspList = renderPerspList;
 
 renderPerspList();
 </script>
