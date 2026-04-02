@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBSN - Join Session</title>
+<style>
+  :root {
+    --teal-dark: #006B5E;
+    --teal: #00897B;
+    --teal-light: #4DB6AC;
+    --teal-pale: #B2DFDB;
+    --teal-bg: #E0F2F1;
+    --bg: #FAFAFA;
+    --card: #FFFFFF;
+    --text: #212121;
+    --text-secondary: #616161;
+    --border: #E0E0E0;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+  .header { background: linear-gradient(135deg, var(--teal-dark), var(--teal)); color: white; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 1px; }
+  .header .info { font-size: 0.8rem; opacity: 0.8; text-align: right; }
+
+  .main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+
+  .join-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 2.5rem;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+  }
+  .join-card h2 { color: var(--teal-dark); margin-bottom: 0.5rem; }
+  .join-card p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .form-group { margin-bottom: 1.25rem; text-align: left; }
+  label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary); }
+  input { width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: inherit; }
+  input:focus { outline: none; border-color: var(--teal); }
+  .code-input { text-align: center; font-size: 1.8rem; font-weight: 800; letter-spacing: 6px; text-transform: uppercase; }
+  .btn { padding: 0.75rem 2rem; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: var(--teal); color: white; width: 100%; }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-primary:disabled { background: #B0BEC5; cursor: not-allowed; }
+  .error-msg { color: #EF5350; font-size: 0.85rem; margin-top: 0.5rem; display: none; }
+
+  .vote-screen { display: none; flex: 1; flex-direction: column; }
+  .vote-screen.active { display: flex; }
+
+  .vote-top { padding: 1rem 1.5rem; background: white; border-bottom: 1px solid var(--border); }
+  .vote-counter { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+  .vote-progress { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .vote-progress-fill { height: 100%; background: var(--teal); border-radius: 3px; transition: width 0.4s; }
+
+  .vote-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; }
+
+  .perspective-text {
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+    padding: 1.25rem;
+    background: var(--teal-bg);
+    border-radius: 12px;
+    border-left: 4px solid var(--teal);
+    max-width: 600px;
+    width: 100%;
+  }
+
+  .vote-axes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    max-width: 500px;
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+  .axis-group { text-align: center; }
+  .axis-label { font-size: 0.9rem; font-weight: 600; color: var(--teal-dark); margin-bottom: 0.5rem; }
+  .axis-options { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .opt-btn {
+    padding: 0.75rem;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .opt-btn:hover { border-color: var(--teal); background: var(--teal-bg); }
+  .opt-btn.selected { border-color: var(--teal); background: var(--teal-bg); }
+  .opt-btn .opt-label { font-size: 1rem; font-weight: 700; display: block; }
+  .opt-btn .opt-desc { font-size: 0.75rem; color: var(--text-secondary); }
+
+  .submit-btn {
+    padding: 0.75rem 2.5rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--teal);
+    color: white;
+    transition: all 0.2s;
+  }
+  .submit-btn:hover { background: var(--teal-dark); }
+  .submit-btn:disabled { background: #B0BEC5; cursor: not-allowed; }
+
+  .vote-confirmed {
+    display: none;
+    text-align: center;
+    padding: 1rem;
+    color: var(--teal-dark);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .vote-confirmed.active { display: block; }
+
+  .change-vote-btn {
+    background: none;
+    border: none;
+    color: var(--teal);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    text-decoration: underline;
+  }
+
+  .waiting-screen { display: none; flex: 1; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
+  .waiting-screen.active { display: flex; flex-direction: column; }
+  .waiting-screen h2 { color: var(--teal-dark); margin-bottom: 0.5rem; }
+  .waiting-screen p { color: var(--text-secondary); }
+
+  .complete-msg { display: none; flex: 1; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
+  .complete-msg.active { display: flex; flex-direction: column; }
+  .complete-msg h2 { color: var(--teal-dark); margin-bottom: 0.5rem; }
+  .complete-msg p { color: var(--text-secondary); }
+
+  @media (max-width: 480px) {
+    .vote-axes { grid-template-columns: 1fr; }
+    .perspective-text { font-size: 1.1rem; }
+  }
+</style>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="header">
+  <h1>FBSN</h1>
+  <div class="info" id="headerInfo"></div>
+</div>
+
+<div class="main" id="joinScreen">
+  <div class="join-card">
+    <h2>Join Session</h2>
+    <p>Enter the room code shown on the facilitator's screen and your name.</p>
+    <div class="form-group">
+      <label>Room Code</label>
+      <input type="text" id="codeInput" class="code-input" placeholder="ABCD" maxlength="4" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>Your Name</label>
+      <input type="text" id="nameInput" placeholder="Enter your name">
+    </div>
+    <button class="btn btn-primary" id="joinBtn" onclick="joinRoom()">Join</button>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+</div>
+
+<!-- Waiting for exercise to start -->
+<div class="waiting-screen" id="waitingScreen">
+  <h2>You're in!</h2>
+  <p>Waiting for the facilitator to start the exercise...</p>
+  <p style="margin-top:1rem;font-size:0.85rem;color:var(--text-secondary)" id="sessionTitle"></p>
+</div>
+
+<!-- Voting screen -->
+<div class="vote-screen" id="voteScreen">
+  <div class="vote-top">
+    <div class="vote-counter" id="voteCounter">Perspective 1 of 10</div>
+    <div class="vote-progress"><div class="vote-progress-fill" id="voteProgressFill"></div></div>
+  </div>
+
+  <div class="vote-body">
+    <div class="perspective-text" id="perspectiveText"></div>
+
+    <div id="voteForm">
+      <div class="vote-axes">
+        <div class="axis-group">
+          <div class="axis-label">Certainty</div>
+          <div class="axis-options">
+            <button class="opt-btn" onclick="pickCertainty('fact')" id="oFact">
+              <span class="opt-label">Fact</span>
+              <span class="opt-desc">True and verifiable</span>
+            </button>
+            <button class="opt-btn" onclick="pickCertainty('belief')" id="oBelief">
+              <span class="opt-label">Belief</span>
+              <span class="opt-desc">Unproven or assumed</span>
+            </button>
+          </div>
+        </div>
+        <div class="axis-group">
+          <div class="axis-label">Importance</div>
+          <div class="axis-options">
+            <button class="opt-btn" onclick="pickImportance('signal')" id="oSignal">
+              <span class="opt-label">Signal</span>
+              <span class="opt-desc">Meaningful, drives focus</span>
+            </button>
+            <button class="opt-btn" onclick="pickImportance('noise')" id="oNoise">
+              <span class="opt-label">Noise</span>
+              <span class="opt-desc">Distracting, off course</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <button class="submit-btn" id="submitBtn" disabled onclick="submitVote()">Submit Vote</button>
+      </div>
+    </div>
+
+    <div class="vote-confirmed" id="voteConfirmed">
+      Your vote has been submitted.
+      <br><button class="change-vote-btn" onclick="changeVote()">Change my vote</button>
+    </div>
+  </div>
+</div>
+
+<!-- Complete -->
+<div class="complete-msg" id="completeScreen">
+  <h2>Exercise Complete</h2>
+  <p>Thank you for participating! The facilitator will now review the results.</p>
+</div>
+
+<script src="supabase-config.js"></script>
+<script>
+let channel;
+let roomId = '';
+let roomCode = '';
+let participantId = '';
+let participantName = '';
+let perspectives = [];
+let totalPerspectives = 0;
+let currentPerspectiveIndex = 0;
+let myCertainty = null;
+let myImportance = null;
+let hasSubmitted = false;
+
+async function joinRoom() {
+  const code = document.getElementById('codeInput').value.trim().toUpperCase();
+  const name = document.getElementById('nameInput').value.trim();
+  if (!code || code.length !== 4) { showError('Enter a 4-character room code.'); return; }
+  if (!name) { showError('Enter your name.'); return; }
+
+  // Look up room by code
+  const { data: room, error } = await supabase.from('rooms').select('*').eq('code', code).single();
+  if (error || !room) {
+    showError('Room not found. Check the code and try again.');
+    return;
+  }
+
+  roomId = room.id;
+  roomCode = code;
+  participantName = name;
+  perspectives = room.perspectives || [];
+  totalPerspectives = perspectives.length;
+
+  // Add participant
+  const { data: participant, error: pErr } = await supabase.from('participants').insert({
+    room_id: roomId,
+    name
+  }).select().single();
+
+  if (pErr) {
+    showError('Failed to join: ' + pErr.message);
+    return;
+  }
+
+  participantId = participant.id;
+
+  // Update header
+  document.getElementById('joinScreen').style.display = 'none';
+  document.getElementById('headerInfo').textContent = `${name} | ${code}`;
+
+  // Subscribe to broadcast channel
+  channel = supabase.channel(`room-${roomCode}`);
+
+  channel.on('broadcast', { event: 'perspective_changed' }, (msg) => {
+    const payload = msg.payload;
+    showVoteScreen(payload.perspective, payload.perspectiveIndex, payload.totalPerspectives);
+  });
+
+  channel.on('broadcast', { event: 'votes_revealed' }, () => {
+    // Participant stays on their current view
+  });
+
+  channel.on('broadcast', { event: 'placement_confirmed' }, () => {
+    // Facilitator handles flow
+  });
+
+  channel.on('broadcast', { event: 'exercise_complete' }, () => {
+    document.getElementById('voteScreen').classList.remove('active');
+    document.getElementById('waitingScreen').classList.remove('active');
+    document.getElementById('completeScreen').classList.add('active');
+  });
+
+  channel.subscribe();
+
+  // Notify host that we joined
+  channel.send({ type: 'broadcast', event: 'participant_joined', payload: { name } });
+
+  // Check if exercise is already active
+  if (room.status === 'active' && perspectives.length > 0) {
+    const idx = room.current_index || 0;
+    // Check for existing vote
+    const { data: existingVote } = await supabase.from('votes').select('*').eq('room_id', roomId).eq('participant_id', participantId).eq('perspective_index', idx).single();
+    showVoteScreen(perspectives[idx], idx, totalPerspectives, existingVote);
+  } else if (room.status === 'complete') {
+    document.getElementById('completeScreen').classList.add('active');
+  } else {
+    document.getElementById('waitingScreen').classList.add('active');
+    document.getElementById('sessionTitle').textContent = room.title;
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = '';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+async function showVoteScreen(text, idx, total, existingVote) {
+  currentPerspectiveIndex = idx;
+  hasSubmitted = false;
+  myCertainty = null;
+  myImportance = null;
+
+  document.getElementById('waitingScreen').classList.remove('active');
+  document.getElementById('voteScreen').classList.add('active');
+  document.getElementById('perspectiveText').textContent = text;
+  document.getElementById('voteCounter').textContent = `Perspective ${idx + 1} of ${total}`;
+  document.getElementById('voteProgressFill').style.width = `${(idx / total) * 100}%`;
+
+  // Reset UI
+  document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('voteForm').style.display = '';
+  document.getElementById('voteConfirmed').classList.remove('active');
+
+  // Check for existing vote if not passed in
+  if (!existingVote) {
+    const { data } = await supabase.from('votes').select('*').eq('room_id', roomId).eq('participant_id', participantId).eq('perspective_index', idx).single();
+    existingVote = data;
+  }
+
+  // Restore existing vote if any
+  if (existingVote) {
+    myCertainty = existingVote.certainty;
+    myImportance = existingVote.importance;
+    document.getElementById('oFact').classList.toggle('selected', myCertainty === 'fact');
+    document.getElementById('oBelief').classList.toggle('selected', myCertainty === 'belief');
+    document.getElementById('oSignal').classList.toggle('selected', myImportance === 'signal');
+    document.getElementById('oNoise').classList.toggle('selected', myImportance === 'noise');
+    document.getElementById('submitBtn').disabled = false;
+    hasSubmitted = true;
+    document.getElementById('voteForm').style.display = 'none';
+    document.getElementById('voteConfirmed').classList.add('active');
+  }
+}
+
+function pickCertainty(v) {
+  myCertainty = v;
+  document.getElementById('oFact').classList.toggle('selected', v === 'fact');
+  document.getElementById('oBelief').classList.toggle('selected', v === 'belief');
+  document.getElementById('submitBtn').disabled = !(myCertainty && myImportance);
+}
+
+function pickImportance(v) {
+  myImportance = v;
+  document.getElementById('oSignal').classList.toggle('selected', v === 'signal');
+  document.getElementById('oNoise').classList.toggle('selected', v === 'noise');
+  document.getElementById('submitBtn').disabled = !(myCertainty && myImportance);
+}
+
+async function submitVote() {
+  if (!myCertainty || !myImportance) return;
+
+  // Upsert vote (insert or update if exists)
+  const { error } = await supabase.from('votes').upsert({
+    room_id: roomId,
+    participant_id: participantId,
+    perspective_index: currentPerspectiveIndex,
+    certainty: myCertainty,
+    importance: myImportance
+  }, { onConflict: 'room_id,participant_id,perspective_index' });
+
+  if (error) {
+    alert('Failed to submit vote: ' + error.message);
+    return;
+  }
+
+  hasSubmitted = true;
+  document.getElementById('voteForm').style.display = 'none';
+  document.getElementById('voteConfirmed').classList.add('active');
+
+  // Notify host
+  channel.send({ type: 'broadcast', event: 'vote', payload: { participantId } });
+}
+
+function changeVote() {
+  hasSubmitted = false;
+  document.getElementById('voteForm').style.display = '';
+  document.getElementById('voteConfirmed').classList.remove('active');
+}
+
+// Enter key to join
+document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom(); });
+document.getElementById('codeInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('nameInput').focus(); });
+</script>
+</body>
+</html>

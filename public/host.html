@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBSN - Facilitator View</title>
+<style>
+  :root {
+    --teal-dark: #006B5E;
+    --teal: #00897B;
+    --teal-light: #4DB6AC;
+    --teal-pale: #B2DFDB;
+    --teal-bg: #E0F2F1;
+    --fact-signal: #00897B;
+    --fact-noise: #4DB6AC;
+    --belief-signal: #00695C;
+    --belief-noise: #80CBC4;
+    --bg: #1a1a2e;
+    --card: #16213e;
+    --text: #FAFAFA;
+    --text-secondary: #B0BEC5;
+    --border: #2a2a4a;
+    --shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+  .header { background: linear-gradient(135deg, var(--teal-dark), var(--teal)); padding: 0.75rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 1px; }
+  .header .room-code { font-size: 1.5rem; font-weight: 800; letter-spacing: 4px; background: rgba(255,255,255,0.15); padding: 0.25rem 1rem; border-radius: 8px; }
+  .header .meta { text-align: right; font-size: 0.8rem; opacity: 0.8; }
+
+  .setup-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+  .setup-card { background: var(--card); border-radius: 16px; padding: 2.5rem; max-width: 500px; width: 100%; box-shadow: var(--shadow); }
+  .setup-card h2 { color: var(--teal-light); margin-bottom: 0.5rem; }
+  .setup-card p { color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem; }
+  .form-group { margin-bottom: 1.25rem; }
+  label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary); }
+  input, textarea { width: 100%; padding: 0.75rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.95rem; font-family: inherit; background: #0f1629; color: var(--text); }
+  input:focus, textarea:focus { outline: none; border-color: var(--teal); }
+  textarea { resize: vertical; min-height: 120px; }
+  .btn { padding: 0.7rem 1.5rem; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+  .btn-primary { background: var(--teal); color: white; }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-primary:disabled { background: #555; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.05); }
+  .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+
+  .add-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .add-row input { flex: 1; }
+  .persp-list { list-style: none; max-height: 200px; overflow-y: auto; margin-bottom: 1rem; }
+  .persp-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 0.3rem; font-size: 0.85rem; }
+  .persp-item .num { width: 20px; height: 20px; border-radius: 50%; background: var(--teal); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; }
+  .persp-item .rm { margin-left: auto; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1rem; }
+  .persp-count { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+
+  .upload-area { border: 2px dashed var(--border); border-radius: 10px; padding: 1.25rem; text-align: center; cursor: pointer; margin-bottom: 0.75rem; transition: border-color 0.2s; }
+  .upload-area:hover { border-color: var(--teal); }
+  .upload-area input { display: none; }
+  .upload-area .upload-text { color: var(--text-secondary); font-size: 0.8rem; }
+  .or-div { text-align: center; color: var(--text-secondary); font-size: 0.75rem; margin: 0.75rem 0; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--teal-pale); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .presentation { flex: 1; display: none; flex-direction: column; }
+  .presentation.active { display: flex; }
+
+  .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 2rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); }
+  .participants-bar { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .participant-dot { display: flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.08); }
+  .participant-dot.voted { background: var(--teal); color: white; }
+  .participant-dot.not-voted { background: rgba(255,255,255,0.08); color: var(--text-secondary); }
+  .vote-status { font-size: 0.85rem; font-weight: 600; }
+  .vote-status.all-in { color: #66BB6A; }
+
+  .perspective-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; }
+  .persp-counter { font-size: 1rem; color: var(--text-secondary); margin-bottom: 1.5rem; letter-spacing: 1px; }
+  .persp-text { font-size: 2.5rem; font-weight: 700; text-align: center; line-height: 1.4; max-width: 900px; margin-bottom: 2rem; }
+  .persp-progress { width: 100%; max-width: 600px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 2rem; }
+  .persp-progress-fill { height: 100%; background: var(--teal); border-radius: 3px; transition: width 0.4s; }
+
+  .vote-reveal { display: none; width: 100%; max-width: 900px; }
+  .vote-reveal.active { display: block; }
+  .vote-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+  .vote-card { background: rgba(255,255,255,0.06); border-radius: 10px; padding: 1rem; text-align: center; border: 2px solid transparent; }
+  .vote-card .voter-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; }
+  .vote-card .voter-choice { display: flex; gap: 0.5rem; justify-content: center; }
+  .vote-badge { padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; }
+  .vote-badge.fact { background: #E0F2F1; color: var(--teal-dark); }
+  .vote-badge.belief { background: #E0F7FA; color: #006064; }
+  .vote-badge.signal { background: #E8F5E9; color: #2E7D32; }
+  .vote-badge.noise { background: #FFF3E0; color: #E65100; }
+
+  .majority-banner { text-align: center; padding: 1rem; background: rgba(0,137,123,0.15); border-radius: 12px; margin-bottom: 1rem; }
+  .majority-banner .label { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; }
+  .majority-banner .result { font-size: 1.3rem; font-weight: 700; color: var(--teal-light); }
+
+  .controls { padding: 1rem 2rem; background: rgba(0,0,0,0.3); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 1rem; }
+
+  .matrix-toggle-bar { position: fixed; right: 0; top: 50%; transform: translateY(-50%); z-index: 50; }
+  .matrix-toggle-btn { background: var(--teal); color: white; border: none; padding: 0.75rem 0.5rem; border-radius: 8px 0 0 8px; cursor: pointer; font-size: 0.8rem; writing-mode: vertical-lr; font-weight: 600; }
+  .matrix-sidebar { position: fixed; right: 0; top: 0; bottom: 0; width: 400px; background: var(--card); border-left: 1px solid var(--border); z-index: 49; transform: translateX(100%); transition: transform 0.3s; padding: 1.5rem; overflow-y: auto; }
+  .matrix-sidebar.open { transform: translateX(0); }
+  .matrix-sidebar h3 { color: var(--teal-light); margin-bottom: 1rem; }
+
+  .mini-matrix { display: grid; grid-template-columns: auto 1fr 1fr; gap: 0; }
+  .mini-matrix .m-corner { }
+  .mini-matrix .m-col { text-align: center; padding: 0.4rem; font-weight: 700; font-size: 0.7rem; color: var(--teal-light); }
+  .mini-matrix .m-row { writing-mode: vertical-lr; transform: rotate(180deg); text-align: center; padding: 0.4rem; font-weight: 700; font-size: 0.7rem; color: var(--teal-light); display: flex; align-items: center; justify-content: center; }
+  .mini-matrix .m-cell { min-height: 80px; padding: 0.5rem; border-radius: 6px; margin: 2px; display: flex; flex-direction: column; gap: 0.3rem; }
+  .mini-matrix .m-cell.fs { background: rgba(0,137,123,0.15); border: 1px solid var(--fact-signal); }
+  .mini-matrix .m-cell.fn { background: rgba(77,182,172,0.1); border: 1px solid var(--fact-noise); }
+  .mini-matrix .m-cell.bs { background: rgba(0,105,92,0.15); border: 1px solid var(--belief-signal); }
+  .mini-matrix .m-cell.bn { background: rgba(128,203,196,0.1); border: 1px solid var(--belief-noise); }
+  .mini-matrix .m-cell-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--teal-light); letter-spacing: 0.5px; }
+  .mini-matrix .m-tag { font-size: 0.7rem; padding: 0.25rem 0.4rem; background: rgba(255,255,255,0.08); border-radius: 4px; line-height: 1.3; color: var(--text); }
+
+  .waiting { text-align: center; color: var(--text-secondary); font-size: 1.1rem; }
+  .waiting .code-display { font-size: 4rem; font-weight: 800; letter-spacing: 8px; color: var(--teal-light); margin: 1rem 0; }
+  .waiting .url-display { font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+  .waiting p { margin-bottom: 0.5rem; }
+
+  .complete-screen { display: none; flex: 1; padding: 2rem; }
+  .complete-screen.active { display: flex; flex-direction: column; }
+  .complete-screen h2 { color: var(--teal-light); margin-bottom: 1rem; text-align: center; }
+
+  .full-matrix { display: grid; grid-template-columns: auto 1fr 1fr; grid-template-rows: auto 1fr 1fr; gap: 0; flex: 1; margin: 1rem 0; }
+  .full-matrix .m-corner { }
+  .full-matrix .m-col { text-align: center; padding: 0.75rem; font-weight: 700; font-size: 1.1rem; color: var(--teal-light); }
+  .full-matrix .m-row { writing-mode: vertical-lr; transform: rotate(180deg); text-align: center; padding: 0.75rem; font-weight: 700; font-size: 1.1rem; color: var(--teal-light); display: flex; align-items: center; justify-content: center; }
+  .full-matrix .m-cell { padding: 1rem; border-radius: 10px; margin: 3px; display: flex; flex-direction: column; gap: 0.4rem; }
+  .full-matrix .m-cell.fs { background: rgba(0,137,123,0.2); border: 2px solid var(--fact-signal); }
+  .full-matrix .m-cell.fn { background: rgba(77,182,172,0.12); border: 2px solid var(--fact-noise); }
+  .full-matrix .m-cell.bs { background: rgba(0,105,92,0.2); border: 2px solid var(--belief-signal); }
+  .full-matrix .m-cell.bn { background: rgba(128,203,196,0.12); border: 2px solid var(--belief-noise); }
+  .full-matrix .m-cell-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--teal-light); letter-spacing: 0.5px; margin-bottom: 0.25rem; }
+  .full-matrix .m-tag { font-size: 0.9rem; padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.08); border-radius: 6px; line-height: 1.3; }
+
+  .action-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+  .a-col { border-radius: 12px; padding: 1.25rem; }
+  .a-col.must { background: rgba(0,137,123,0.15); border: 2px solid var(--teal); }
+  .a-col.might { background: rgba(249,168,37,0.1); border: 2px solid #F9A825; }
+  .a-col.wont { background: rgba(239,83,80,0.1); border: 2px solid #EF5350; }
+  .a-col h4 { font-size: 0.95rem; margin-bottom: 0.25rem; }
+  .a-col.must h4 { color: var(--teal-light); }
+  .a-col.might h4 { color: #F9A825; }
+  .a-col.wont h4 { color: #EF5350; }
+  .a-col .a-sub { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.75rem; }
+  .a-item { font-size: 0.85rem; padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 0.4rem; line-height: 1.3; }
+  .a-empty { font-size: 0.8rem; color: var(--text-secondary); font-style: italic; }
+</style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="header">
+  <h1>FBSN</h1>
+  <div id="roomCodeDisplay" style="display:none" class="room-code"></div>
+  <div class="meta" id="headerMeta"></div>
+</div>
+
+<!-- SETUP -->
+<div class="setup-screen" id="setupScreen">
+  <div class="setup-card">
+    <h2>Start a Live Session</h2>
+    <p>Set up your exercise, then share the room code with participants.</p>
+    <div class="form-group">
+      <label>Exercise Title</label>
+      <input type="text" id="titleInput" placeholder="e.g. Q3 Growth Strategy">
+    </div>
+    <div class="form-group">
+      <label>Context (optional)</label>
+      <textarea id="contextInput" placeholder="Background context for the exercise..."></textarea>
+    </div>
+
+    <label>Add perspectives manually</label>
+    <div class="add-row">
+      <input type="text" id="manualInput" placeholder="Type a perspective and press Enter">
+      <button class="btn btn-primary" onclick="addPersp()">Add</button>
+    </div>
+
+    <div class="or-div">or extract from text / file</div>
+    <div class="form-group">
+      <textarea id="rawTextInput" placeholder="Paste raw information here..." style="min-height:80px"></textarea>
+    </div>
+    <div class="upload-area" id="uploadArea">
+      <input type="file" id="fileInput" accept=".txt,.md,.csv,.xlsx,.xls">
+      <div class="upload-text">Drop a file (.txt, .csv, .xlsx) or click to browse</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="extractBtn" onclick="extractPerspectives()">Extract with AI</button>
+      <span id="extractLoading" style="display:none"><span class="spinner"></span> Extracting...</span>
+    </div>
+
+    <div class="persp-count" id="perspCount">0 perspectives</div>
+    <ul class="persp-list" id="perspList"></ul>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="startBtn" disabled onclick="startSession()">Start Live Session</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRESENTATION -->
+<div class="presentation" id="presentationView">
+  <div class="top-bar">
+    <div class="participants-bar" id="participantsBar"></div>
+    <div class="vote-status" id="voteStatus">Waiting for participants...</div>
+  </div>
+
+  <div class="perspective-area" id="perspArea">
+    <div id="waitingView" class="waiting">
+      <p>Share this code with your team:</p>
+      <div class="code-display" id="bigCode"></div>
+      <div class="url-display" id="joinUrl"></div>
+      <p style="font-size:0.85rem">Waiting for participants to join...</p>
+      <div class="btn-row" style="justify-content:center;margin-top:1.5rem">
+        <button class="btn btn-primary" id="beginBtn" disabled onclick="beginExercise()">Begin Exercise</button>
+      </div>
+    </div>
+
+    <div id="activeView" style="display:none">
+      <div class="persp-counter" id="perspCounter"></div>
+      <div class="persp-progress"><div class="persp-progress-fill" id="perspProgressFill"></div></div>
+      <div class="persp-text" id="perspText"></div>
+
+      <div class="vote-reveal" id="voteReveal">
+        <div class="majority-banner" id="majorityBanner">
+          <div class="label">Majority Vote</div>
+          <div class="result" id="majorityResult"></div>
+        </div>
+        <div class="vote-grid" id="voteGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls" id="controls" style="display:none">
+    <button class="btn btn-ghost" onclick="prevPerspective()">Previous</button>
+    <button class="btn btn-primary" id="revealBtn" onclick="revealVotes()">Reveal Votes</button>
+    <button class="btn btn-primary" id="confirmBtn" style="display:none" onclick="confirmMajority()">Confirm Placement</button>
+    <button class="btn btn-primary" id="nextBtn" onclick="nextPerspective()">Next</button>
+  </div>
+
+  <div class="matrix-toggle-bar">
+    <button class="matrix-toggle-btn" onclick="toggleMatrix()">Matrix</button>
+  </div>
+  <div class="matrix-sidebar" id="matrixSidebar">
+    <h3>Live Matrix</h3>
+    <div class="mini-matrix" id="miniMatrix">
+      <div class="m-corner"></div>
+      <div class="m-col">Noise</div>
+      <div class="m-col">Signal</div>
+      <div class="m-row">Fact</div>
+      <div class="m-cell fn" id="mm-fact-noise"><div class="m-cell-title">Fact / Noise</div></div>
+      <div class="m-cell fs" id="mm-fact-signal"><div class="m-cell-title">Fact / Signal</div></div>
+      <div class="m-row">Belief</div>
+      <div class="m-cell bn" id="mm-belief-noise"><div class="m-cell-title">Belief / Noise</div></div>
+      <div class="m-cell bs" id="mm-belief-signal"><div class="m-cell-title">Belief / Signal</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETE -->
+<div class="complete-screen" id="completeScreen">
+  <h2>Exercise Complete</h2>
+  <div class="full-matrix" id="fullMatrix">
+    <div class="m-corner"></div>
+    <div class="m-col">Noise</div>
+    <div class="m-col">Signal</div>
+    <div class="m-row">Fact</div>
+    <div class="m-cell fn" id="fm-fact-noise"><div class="m-cell-title">Facts / Noise</div></div>
+    <div class="m-cell fs" id="fm-fact-signal"><div class="m-cell-title">Facts / Signals</div></div>
+    <div class="m-row">Belief</div>
+    <div class="m-cell bn" id="fm-belief-noise"><div class="m-cell-title">Beliefs / Noise</div></div>
+    <div class="m-cell bs" id="fm-belief-signal"><div class="m-cell-title">Beliefs / Signals</div></div>
+  </div>
+  <div class="action-cols" id="actionCols">
+    <div class="a-col must"><h4>MUST DO</h4><div class="a-sub">Act now</div><div id="mustDoList"></div></div>
+    <div class="a-col might"><h4>MIGHT DO</h4><div class="a-sub">Test and learn</div><div id="mightDoList"></div></div>
+    <div class="a-col wont"><h4>WON'T DO</h4><div class="a-sub">Avoid distractions</div><div id="wontDoList"></div></div>
+  </div>
+  <div class="btn-row" style="justify-content:center;margin-top:1rem">
+    <button class="btn btn-ghost" onclick="location.reload()">New Session</button>
+  </div>
+</div>
+
+<script src="supabase-config.js"></script>
+<script>
+let channel;
+let roomId = '';
+let roomCode = '';
+let perspectives = [];
+let currentIndex = 0;
+let finalDecisions = {};
+let currentMajority = null;
+let participantsList = [];
+let pollInterval = null;
+
+// ========== SETUP ==========
+function addPersp() {
+  const input = document.getElementById('manualInput');
+  const t = input.value.trim();
+  if (!t) return;
+  perspectives.push(t);
+  input.value = '';
+  renderPerspList();
+}
+document.getElementById('manualInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addPersp(); } });
+
+function renderPerspList() {
+  const list = document.getElementById('perspList');
+  document.getElementById('perspCount').textContent = `${perspectives.length} perspectives`;
+  document.getElementById('startBtn').disabled = perspectives.length === 0;
+  list.innerHTML = perspectives.map((p, i) => `<li class="persp-item"><span class="num">${i+1}</span><span>${esc(p)}</span><button class="rm" onclick="perspectives.splice(${i},1);renderPerspList()">&times;</button></li>`).join('');
+}
+
+// File upload
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+uploadArea.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
+function handleFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'xlsx' || ext === 'xls') {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      let text = '';
+      wb.SheetNames.forEach(n => { const csv = XLSX.utils.sheet_to_csv(wb.Sheets[n], { blankrows: false }); if (csv.trim()) text += `--- ${n} ---\n${csv}\n\n`; });
+      document.getElementById('rawTextInput').value = text.trim();
+      uploadArea.querySelector('.upload-text').textContent = `Loaded: ${file.name}`;
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    const reader = new FileReader();
+    reader.onload = e => { document.getElementById('rawTextInput').value = e.target.result; uploadArea.querySelector('.upload-text').textContent = `Loaded: ${file.name}`; };
+    reader.readAsText(file);
+  }
+}
+
+async function extractPerspectives() {
+  const raw = document.getElementById('rawTextInput').value.trim();
+  if (!raw) { alert('Paste or upload text first.'); return; }
+  document.getElementById('extractBtn').style.display = 'none';
+  document.getElementById('extractLoading').style.display = '';
+  try {
+    const res = await fetch('/api/extract', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rawText: raw, context: document.getElementById('contextInput').value.trim() }) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+    const data = await res.json();
+    const match = data.content[0].text.match(/\[[\s\S]*\]/);
+    if (match) JSON.parse(match[0]).forEach(p => { if (typeof p === 'string' && p.trim()) perspectives.push(p.trim()); });
+    renderPerspList();
+  } catch (e) { alert('Extraction failed: ' + e.message); }
+  finally { document.getElementById('extractBtn').style.display = ''; document.getElementById('extractLoading').style.display = 'none'; }
+}
+
+// ========== START SESSION (Supabase) ==========
+async function startSession() {
+  const title = document.getElementById('titleInput').value.trim() || 'Untitled';
+  const context = document.getElementById('contextInput').value.trim();
+  roomCode = generateRoomCode();
+
+  // Insert room into Supabase
+  const { data, error } = await supabase.from('rooms').insert({
+    code: roomCode,
+    title,
+    context,
+    perspectives,
+    current_index: 0,
+    revealed: false,
+    final_decisions: {},
+    status: 'waiting'
+  }).select().single();
+
+  if (error) {
+    alert('Failed to create room: ' + error.message);
+    return;
+  }
+
+  roomId = data.id;
+
+  // Show presentation view
+  document.getElementById('roomCodeDisplay').style.display = '';
+  document.getElementById('roomCodeDisplay').textContent = roomCode;
+  document.getElementById('headerMeta').textContent = title;
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('presentationView').classList.add('active');
+  document.getElementById('bigCode').textContent = roomCode;
+  document.getElementById('joinUrl').textContent = `${location.origin}/join.html`;
+
+  // Subscribe to Supabase Realtime channel
+  channel = supabase.channel(`room-${roomCode}`);
+
+  channel.on('broadcast', { event: 'vote' }, () => {
+    refreshVoteStatus();
+  });
+
+  channel.on('broadcast', { event: 'participant_joined' }, (payload) => {
+    refreshParticipants();
+  });
+
+  channel.subscribe();
+
+  // Poll for new participants
+  pollInterval = setInterval(refreshParticipants, 3000);
+  refreshParticipants();
+}
+
+// ========== REFRESH DATA ==========
+async function refreshParticipants() {
+  const { data: parts } = await supabase.from('participants').select('*').eq('room_id', roomId);
+  if (!parts) return;
+  participantsList = parts;
+  if (parts.length > 0) document.getElementById('beginBtn').disabled = false;
+  refreshVoteStatus();
+}
+
+async function refreshVoteStatus() {
+  const { data: parts } = await supabase.from('participants').select('*').eq('room_id', roomId);
+  if (!parts) return;
+  participantsList = parts;
+
+  const { data: votes } = await supabase.from('votes').select('*').eq('room_id', roomId).eq('perspective_index', currentIndex);
+
+  const votedIds = new Set((votes || []).map(v => v.participant_id));
+  const totalVoted = votedIds.size;
+  const totalParticipants = parts.length;
+  const allVoted = totalParticipants > 0 && totalVoted >= totalParticipants;
+
+  const bar = document.getElementById('participantsBar');
+  bar.innerHTML = parts.map(p =>
+    `<div class="participant-dot ${votedIds.has(p.id) ? 'voted' : 'not-voted'}">${esc(p.name)}</div>`
+  ).join('');
+
+  const status = document.getElementById('voteStatus');
+  status.textContent = `${totalVoted}/${totalParticipants} voted`;
+  status.classList.toggle('all-in', allVoted);
+}
+
+// ========== PRESENTATION ==========
+async function beginExercise() {
+  await supabase.from('rooms').update({ status: 'active', current_index: 0 }).eq('id', roomId);
+
+  document.getElementById('waitingView').style.display = 'none';
+  document.getElementById('activeView').style.display = '';
+  document.getElementById('controls').style.display = '';
+  currentIndex = 0;
+  showPerspective(perspectives[0], 0, perspectives.length);
+
+  // Broadcast to participants
+  channel.send({ type: 'broadcast', event: 'perspective_changed', payload: { perspectiveIndex: 0, perspective: perspectives[0], totalPerspectives: perspectives.length } });
+}
+
+function showPerspective(text, idx, total) {
+  document.getElementById('perspCounter').textContent = `Perspective ${idx + 1} of ${total}`;
+  document.getElementById('perspText').textContent = text;
+  document.getElementById('perspProgressFill').style.width = `${(idx / total) * 100}%`;
+  document.getElementById('voteReveal').classList.remove('active');
+  document.getElementById('revealBtn').style.display = '';
+  document.getElementById('confirmBtn').style.display = 'none';
+  currentMajority = null;
+  refreshVoteStatus();
+}
+
+async function revealVotes() {
+  const { data: votes } = await supabase.from('votes').select('*, participants(name)').eq('room_id', roomId).eq('perspective_index', currentIndex);
+
+  // Calculate majority
+  const counts = {};
+  (votes || []).forEach(v => {
+    const key = `${v.certainty}-${v.importance}`;
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  let maxCount = 0, majorityKey = null;
+  Object.entries(counts).forEach(([key, count]) => { if (count > maxCount) { maxCount = count; majorityKey = key; } });
+
+  const revealData = [];
+  participantsList.forEach(p => {
+    const v = (votes || []).find(vote => vote.participant_id === p.id);
+    revealData.push({ name: p.name, vote: v ? { certainty: v.certainty, importance: v.importance } : null });
+  });
+
+  // Show reveal UI
+  document.getElementById('voteReveal').classList.add('active');
+  document.getElementById('revealBtn').style.display = 'none';
+  document.getElementById('confirmBtn').style.display = '';
+
+  if (majorityKey) {
+    const [cert, imp] = majorityKey.split('-');
+    currentMajority = { certainty: cert, importance: imp };
+    document.getElementById('majorityBanner').style.display = '';
+    document.getElementById('majorityResult').textContent = `${capitalize(cert)} + ${capitalize(imp)}`;
+  } else {
+    document.getElementById('majorityBanner').style.display = 'none';
+  }
+
+  const grid = document.getElementById('voteGrid');
+  grid.innerHTML = revealData.map(p => {
+    const v = p.vote;
+    return `<div class="vote-card">
+      <div class="voter-name">${esc(p.name)}</div>
+      <div class="voter-choice">
+        ${v ? `<span class="vote-badge ${v.certainty}">${capitalize(v.certainty)}</span><span class="vote-badge ${v.importance}">${capitalize(v.importance)}</span>` : '<span style="color:var(--text-secondary)">No vote</span>'}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Update room revealed state
+  await supabase.from('rooms').update({ revealed: true }).eq('id', roomId);
+  channel.send({ type: 'broadcast', event: 'votes_revealed', payload: {} });
+}
+
+async function confirmMajority() {
+  if (!currentMajority) return;
+  finalDecisions[currentIndex] = currentMajority;
+
+  // Update room with final decision
+  await supabase.from('rooms').update({ final_decisions: finalDecisions }).eq('id', roomId);
+  renderMiniMatrix();
+
+  channel.send({ type: 'broadcast', event: 'placement_confirmed', payload: { perspectiveIndex: currentIndex, certainty: currentMajority.certainty, importance: currentMajority.importance } });
+}
+
+async function nextPerspective() {
+  if (currentIndex >= perspectives.length - 1) {
+    // Exercise complete
+    await supabase.from('rooms').update({ status: 'complete', final_decisions: finalDecisions }).eq('id', roomId);
+    channel.send({ type: 'broadcast', event: 'exercise_complete', payload: {} });
+    showComplete(perspectives, finalDecisions);
+    if (pollInterval) clearInterval(pollInterval);
+    return;
+  }
+  currentIndex++;
+  await supabase.from('rooms').update({ current_index: currentIndex, revealed: false }).eq('id', roomId);
+  showPerspective(perspectives[currentIndex], currentIndex, perspectives.length);
+  channel.send({ type: 'broadcast', event: 'perspective_changed', payload: { perspectiveIndex: currentIndex, perspective: perspectives[currentIndex], totalPerspectives: perspectives.length } });
+}
+
+async function prevPerspective() {
+  if (currentIndex <= 0) return;
+  currentIndex--;
+  await supabase.from('rooms').update({ current_index: currentIndex, revealed: false }).eq('id', roomId);
+  showPerspective(perspectives[currentIndex], currentIndex, perspectives.length);
+  channel.send({ type: 'broadcast', event: 'perspective_changed', payload: { perspectiveIndex: currentIndex, perspective: perspectives[currentIndex], totalPerspectives: perspectives.length } });
+}
+
+// ========== MATRIX ==========
+let matrixOpen = false;
+function toggleMatrix() {
+  matrixOpen = !matrixOpen;
+  document.getElementById('matrixSidebar').classList.toggle('open', matrixOpen);
+}
+
+function renderMiniMatrix() {
+  const cells = { 'fact-signal': [], 'fact-noise': [], 'belief-signal': [], 'belief-noise': [] };
+  Object.entries(finalDecisions).forEach(([idx, d]) => {
+    cells[`${d.certainty}-${d.importance}`].push(perspectives[idx]);
+  });
+  Object.entries(cells).forEach(([key, items]) => {
+    const cell = document.getElementById(`mm-${key}`);
+    cell.querySelectorAll('.m-tag').forEach(t => t.remove());
+    items.forEach(t => { const tag = document.createElement('div'); tag.className = 'm-tag'; tag.textContent = t; cell.appendChild(tag); });
+  });
+}
+
+// ========== COMPLETE ==========
+function showComplete(persps, decisions) {
+  document.getElementById('presentationView').classList.remove('active');
+  document.getElementById('completeScreen').classList.add('active');
+
+  const cells = { 'fact-signal': [], 'fact-noise': [], 'belief-signal': [], 'belief-noise': [] };
+  Object.entries(decisions).forEach(([idx, d]) => {
+    cells[`${d.certainty}-${d.importance}`].push(persps[idx]);
+  });
+  Object.entries(cells).forEach(([key, items]) => {
+    const cell = document.getElementById(`fm-${key}`);
+    cell.querySelectorAll('.m-tag').forEach(t => t.remove());
+    items.forEach(t => { const tag = document.createElement('div'); tag.className = 'm-tag'; tag.textContent = t; cell.appendChild(tag); });
+  });
+
+  const mustDo = [], mightDo = [], wontDo = [];
+  Object.entries(decisions).forEach(([idx, d]) => {
+    const text = persps[idx];
+    if (d.certainty === 'fact' && d.importance === 'signal') mustDo.push(text);
+    else if (d.certainty === 'belief' && d.importance === 'signal') mightDo.push(text);
+    else wontDo.push(text);
+  });
+  document.getElementById('mustDoList').innerHTML = mustDo.length ? mustDo.map(t => `<div class="a-item">${esc(t)}</div>`).join('') : '<div class="a-empty">None</div>';
+  document.getElementById('mightDoList').innerHTML = mightDo.length ? mightDo.map(t => `<div class="a-item">${esc(t)}</div>`).join('') : '<div class="a-empty">None</div>';
+  document.getElementById('wontDoList').innerHTML = wontDo.length ? wontDo.map(t => `<div class="a-item">${esc(t)}</div>`).join('') : '<div class="a-empty">None</div>';
+}
+
+// ========== UTILS ==========
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+renderPerspList();
+</script>
+</body>
+</html>
