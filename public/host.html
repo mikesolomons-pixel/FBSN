@@ -222,7 +222,9 @@
       <div id="qrCode" style="margin:1rem auto;display:inline-block;padding:12px;background:white;border-radius:12px"></div>
       <div class="url-display" id="joinUrl"></div>
       <p style="font-size:0.85rem">Scan the QR code or enter the code at the URL above</p>
-      <div class="btn-row" style="justify-content:center;margin-top:1.5rem">
+      <div id="waitingParticipants" style="margin-top:1.5rem;display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center"></div>
+      <div id="waitingCount" style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.5rem"></div>
+      <div class="btn-row" style="justify-content:center;margin-top:1rem">
         <button class="btn btn-primary" id="beginBtn" disabled onclick="beginExercise()">Begin Exercise</button>
       </div>
     </div>
@@ -460,6 +462,17 @@ async function refreshParticipants() {
   if (!parts) return;
   participantsList = parts;
   if (parts.length > 0) document.getElementById('beginBtn').disabled = false;
+
+  // Update waiting screen names
+  const wp = document.getElementById('waitingParticipants');
+  if (wp) {
+    wp.innerHTML = parts.map(p => `<span style="padding:0.35rem 0.9rem;background:var(--teal);color:white;border-radius:20px;font-size:0.9rem;font-weight:600">${esc(p.name)}</span>`).join('');
+  }
+  const wc = document.getElementById('waitingCount');
+  if (wc) {
+    wc.textContent = parts.length === 0 ? '' : `${parts.length} participant${parts.length !== 1 ? 's' : ''} joined`;
+  }
+
   refreshVoteStatus();
 }
 
