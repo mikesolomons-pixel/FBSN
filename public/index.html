@@ -205,6 +205,7 @@
   .play-card.play-2 { border-top-color: var(--purple); }
   .play-card.play-3 { border-top-color: var(--coral); }
   .play-card.play-4 { border-top-color: var(--gold); }
+  .play-card.play-5 { border-top-color: var(--navy); }
 
   .play-number {
     font-size: 0.65rem;
@@ -217,6 +218,7 @@
   .play-2 .play-number { color: var(--purple); }
   .play-3 .play-number { color: var(--coral); }
   .play-4 .play-number { color: var(--gold); }
+  .play-5 .play-number { color: var(--navy); }
 
   .play-card h3 {
     font-size: 1.15rem;
@@ -271,6 +273,7 @@
   .play-2 .practice-icon { background: rgba(124,92,191,0.1); color: var(--purple); }
   .play-3 .practice-icon { background: rgba(224,122,95,0.1); color: var(--coral); }
   .play-4 .practice-icon { background: rgba(212,168,67,0.1); color: var(--gold); }
+  .play-5 .practice-icon { background: rgba(27,42,74,0.1); color: var(--navy); }
 
   .practice-badge {
     margin-left: auto;
@@ -609,7 +612,7 @@
 
   <!-- The Four Plays -->
   <div class="section-header">
-    <h2>The Four Plays</h2>
+    <h2>The Five Plays</h2>
     <div class="line"></div>
   </div>
 
@@ -712,6 +715,28 @@
         </li>
       </ul>
     </div>
+    <!-- Play 5: Value Creating -->
+    <div class="play-card play-5" onclick="togglePlay(5)">
+      <div class="play-number">Play 5</div>
+      <h3>Value Creating</h3>
+      <p class="play-subtitle">Bringing it all together. Turning learning into impact and creating outcomes that only this team, in this moment, could produce.</p>
+      <ul class="practices-list">
+        <li>
+          <a href="#" onclick="event.preventDefault()">
+            <span class="practice-icon">&#9733;</span>
+            Value Creation Cycle
+            <span class="practice-badge coming-soon">Soon</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="event.preventDefault()">
+            <span class="practice-icon">&#9656;</span>
+            Impact Assessment
+            <span class="practice-badge coming-soon">Soon</span>
+          </a>
+        </li>
+      </ul>
+    </div>
   </div>
 
   <!-- Play Detail Panels -->
@@ -807,6 +832,30 @@
       <a href="#" onclick="event.preventDefault()" class="practice-tile">
         <h4>&#9830; Trust & Candor Protocol</h4>
         <p>Build psychological safety and productive candor so the team can tackle the hardest conversations.</p>
+        <div class="tile-badge soon">Coming Soon</div>
+      </a>
+    </div>
+  </div>
+
+  <div id="play-detail-5" class="play-detail">
+    <div class="play-detail-header">
+      <div>
+        <div class="play-number" style="color:var(--navy)">Play 5</div>
+        <h3>Value Creating &mdash; Bringing It All Together</h3>
+      </div>
+      <button class="close-btn" onclick="togglePlay(5)">&times;</button>
+    </div>
+    <p>The final play integrates everything that comes before. Value Creating is where the team produces outcomes that only this team, in this moment, with this practice, could produce. It's not a destination &mdash; it's the continuous practice of turning learning into impact. Value creation is always contextual: specific to the domain, the problem, and the ambition of the organization.</p>
+    <p>After significant value creation, the cycle begins anew. Teams sense the changed landscape, imagine new possibilities, navigate the next set of unknowns, collaborate with deepened trust, and create value again. This is why Value Creating is a play, not an outcome &mdash; a repeatable capability the team builds and refines over time.</p>
+    <div class="practices-grid">
+      <a href="#" onclick="event.preventDefault()" class="practice-tile">
+        <h4>&#9733; Value Creation Cycle</h4>
+        <p>Guide teams through the full cycle of sensing, imagining, navigating, collaborating, and creating value as a repeatable practice.</p>
+        <div class="tile-badge soon">Coming Soon</div>
+      </a>
+      <a href="#" onclick="event.preventDefault()" class="practice-tile">
+        <h4>&#9656; Impact Assessment</h4>
+        <p>Evaluate outcomes, capture learnings, and reset the cycle for the next round of value creation.</p>
         <div class="tile-badge soon">Coming Soon</div>
       </a>
     </div>
