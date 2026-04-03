@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBSN - Facts, Beliefs, Signals, Noise</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<style>
+  :root {
+    --teal-dark: #006B5E;
+    --teal: #00897B;
+    --teal-light: #4DB6AC;
+    --teal-pale: #B2DFDB;
+    --teal-bg: #E0F2F1;
+    --fact-signal: #00897B;
+    --fact-noise: #4DB6AC;
+    --belief-signal: #00695C;
+    --belief-noise: #80CBC4;
+    --must-do: #00897B;
+    --might-do: #F9A825;
+    --wont-do: #EF5350;
+    --bg: #FAFAFA;
+    --card: #FFFFFF;
+    --text: #212121;
+    --text-secondary: #616161;
+    --border: #E0E0E0;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--teal-dark), var(--teal));
+    color: white;
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow);
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; }
+  .header .subtitle { font-size: 0.85rem; opacity: 0.85; }
+
+  /* Progress Bar */
+  .progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 1rem 2rem;
+    background: white;
+    border-bottom: 1px solid var(--border);
+  }
+  .progress-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    cursor: default;
+  }
+  .progress-step .step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--border);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+  .progress-step.active .step-num {
+    background: var(--teal);
+    color: white;
+  }
+  .progress-step.done .step-num {
+    background: var(--teal-light);
+    color: white;
+  }
+  .progress-step.active { color: var(--teal-dark); font-weight: 600; }
+  .progress-connector {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    margin: 0 0.75rem;
+    min-width: 20px;
+  }
+  .progress-connector.done { background: var(--teal-light); }
+
+  /* Main Container */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  /* Phase panels */
+  .phase { display: none; }
+  .phase.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+  }
+  .card h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: var(--teal-dark);
+  }
+  .card p.desc {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  /* Form elements */
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    background: white;
+  }
+  input[type="text"]:focus, textarea:focus {
+    outline: none;
+    border-color: var(--teal);
+  }
+  textarea { resize: vertical; min-height: 180px; line-height: 1.6; }
+  label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.9rem; }
+  .form-group { margin-bottom: 1.25rem; }
+
+  /* Buttons */
+  .btn {
+    padding: 0.7rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .btn-primary {
+    background: var(--teal);
+    color: white;
+  }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-primary:disabled { background: #B0BEC5; cursor: not-allowed; }
+  .btn-secondary {
+    background: white;
+    color: var(--teal);
+    border: 1.5px solid var(--teal);
+  }
+  .btn-secondary:hover { background: var(--teal-bg); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+  }
+  .btn-ghost:hover { background: #F5F5F5; }
+  .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+
+  /* Perspectives list */
+  .perspective-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .perspective-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--teal-bg);
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+  .perspective-item .num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .perspective-item .remove-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0 0.25rem;
+    line-height: 1;
+  }
+  .perspective-item .remove-btn:hover { color: var(--wont-do); }
+
+  /* Exercise phase - split layout */
+  .exercise-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .exercise-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    padding: 2rem;
+    text-align: center;
+  }
+  .exercise-counter {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+  }
+  .exercise-perspective {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background: var(--teal-bg);
+    border-radius: 12px;
+    border-left: 4px solid var(--teal);
+  }
+  .exercise-question {
+    font-size: 0.9rem;
+    color: var(--teal-dark);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+  .exercise-axes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .axis-group {
+    text-align: center;
+  }
+  .exercise-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .option-btn {
+    padding: 0.75rem 0.75rem;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .option-btn:hover { border-color: var(--teal); background: var(--teal-bg); }
+  .option-btn.selected { border-color: var(--teal); background: var(--teal-bg); }
+  .option-btn .option-label {
+    font-size: 1rem;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.15rem;
+  }
+  .option-btn .option-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+  .exercise-progress-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .exercise-progress-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .confirm-btn {
+    margin-top: 0.75rem;
+  }
+  .live-matrix-panel {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+  }
+  .live-matrix-panel h3 {
+    font-size: 1rem;
+    color: var(--teal-dark);
+    margin-bottom: 1rem;
+  }
+
+  /* Collapsible panels */
+  .collapsible-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+  .collapsible-header h3 { margin: 0; }
+  .collapse-toggle {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    line-height: 1;
+  }
+  .collapse-toggle:hover { background: var(--teal-bg); color: var(--teal-dark); }
+  .collapsible-body {
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    max-height: 2000px;
+    opacity: 1;
+  }
+  .collapsible-body.collapsed {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  /* Full-screen matrix (phase 4) */
+  .fullscreen-matrix {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+  }
+  .fullscreen-matrix-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .fullscreen-matrix-header h2 {
+    font-size: 1.3rem;
+    color: var(--teal-dark);
+    margin: 0;
+  }
+  .fullscreen-matrix-body {
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+    padding: 2rem;
+  }
+  .fullscreen-matrix-body .matrix-container {
+    flex: 1;
+    margin: 0;
+  }
+  .fullscreen-matrix-body .matrix-cell {
+    min-height: 0;
+    flex: 1;
+  }
+  .fullscreen-matrix-body .matrix-container {
+    grid-template-rows: auto 1fr 1fr;
+  }
+
+  @media (max-width: 900px) {
+    .exercise-layout { grid-template-columns: 1fr; }
+  }
+
+  /* Matrix */
+  .matrix-container {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 0;
+    margin: 1.5rem 0;
+  }
+  .matrix-corner { }
+  .matrix-col-header {
+    text-align: center;
+    padding: 0.75rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--teal-dark);
+  }
+  .matrix-row-header {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    text-align: center;
+    padding: 0.75rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--teal-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .matrix-cell {
+    min-height: 160px;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 3px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .matrix-cell.fact-signal { background: #E0F2F1; border: 2px solid var(--fact-signal); }
+  .matrix-cell.fact-noise { background: #E8F5E9; border: 2px solid var(--fact-noise); }
+  .matrix-cell.belief-signal { background: #E0F7FA; border: 2px solid var(--belief-signal); }
+  .matrix-cell.belief-noise { background: #FFF3E0; border: 2px solid var(--belief-noise); }
+  .matrix-cell-title {
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+  }
+  .matrix-cell.fact-signal .matrix-cell-title { color: var(--fact-signal); }
+  .matrix-cell.fact-noise .matrix-cell-title { color: #2E7D32; }
+  .matrix-cell.belief-signal .matrix-cell-title { color: var(--belief-signal); }
+  .matrix-cell.belief-noise .matrix-cell-title { color: #E65100; }
+  .matrix-cell-subtitle {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+  .matrix-tag {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+    background: rgba(255,255,255,0.8);
+    border-radius: 6px;
+    line-height: 1.3;
+  }
+
+  /* Action Cards */
+  .action-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .action-col {
+    border-radius: 12px;
+    padding: 1.5rem;
+    min-height: 200px;
+  }
+  .action-col.must-do { background: #E0F2F1; border: 2px solid var(--must-do); }
+  .action-col.might-do { background: #FFF8E1; border: 2px solid var(--might-do); }
+  .action-col.wont-do { background: #FFEBEE; border: 2px solid var(--wont-do); }
+  .action-col-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+  .action-col.must-do .action-col-header { color: var(--must-do); }
+  .action-col.might-do .action-col-header { color: #F57F17; }
+  .action-col.wont-do .action-col-header { color: var(--wont-do); }
+  .action-col-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+  }
+  .action-context {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(0,0,0,0.04);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .action-context:empty { display: none; }
+  .action-context .ctx-label { font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem; color: var(--text-secondary); }
+  .action-context .ctx-item { padding: 0.15rem 0; }
+  .action-item {
+    padding: 0.6rem 0.75rem;
+    background: rgba(255,255,255,0.8);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .action-item .action-rm { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1rem; margin-left: 0.5rem; flex-shrink: 0; }
+  .action-item .action-rm:hover { color: #EF5350; }
+  .action-add-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+  .action-input {
+    flex: 1;
+    padding: 0.4rem 0.6rem;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-family: inherit;
+  }
+  .action-input:focus { outline: none; border-color: var(--teal); }
+
+  /* Spinner */
+  .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 3px solid var(--teal-pale);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-overlay {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem;
+    color: var(--teal-dark);
+    font-weight: 600;
+  }
+  .loading-overlay.active { display: flex; }
+
+  /* Editable perspective in exercise */
+  .edit-inline {
+    display: none;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.5rem;
+  }
+  .edit-inline input { flex: 1; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  /* File upload area */
+  .upload-area {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+  }
+  .upload-area:hover { border-color: var(--teal); background: var(--teal-bg); }
+  .upload-area input { display: none; }
+  .upload-area .upload-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .upload-area .upload-text { color: var(--text-secondary); font-size: 0.9rem; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .container { padding: 1rem; }
+    .exercise-options { flex-direction: column; align-items: center; }
+    .option-btn { max-width: 100%; }
+    .action-columns { grid-template-columns: 1fr; }
+    .matrix-container { font-size: 0.8rem; }
+    .progress-step span:not(.step-num) { display: none; }
+  }
+
+  /* Tab bar for input */
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border);
+  }
+  .tab-btn {
+    padding: 0.75rem 1.25rem;
+    border: none;
+    background: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    color: var(--teal-dark);
+    border-bottom-color: var(--teal);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Manual add row */
+  .add-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .add-row input { flex: 1; }
+
+  .or-divider {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin: 1rem 0;
+    position: relative;
+  }
+  .or-divider::before, .or-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 1.5rem);
+    height: 1px;
+    background: var(--border);
+  }
+  .or-divider::before { left: 0; }
+  .or-divider::after { right: 0; }
+
+  .context-input { min-height: 60px; }
+
+  /* Mode selector */
+  .mode-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .mode-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: var(--text);
+    display: block;
+  }
+  .mode-card:hover { border-color: var(--teal); background: var(--teal-bg); }
+  .mode-card .mode-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .mode-card .mode-title { font-size: 1.1rem; font-weight: 700; color: var(--teal-dark); margin-bottom: 0.25rem; }
+  .mode-card .mode-desc { font-size: 0.8rem; color: var(--text-secondary); }
+
+  /* Sessions list */
+  .sessions-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+  }
+  .sessions-card h2 { font-size: 1.3rem; color: var(--teal-dark); margin-bottom: 0.25rem; }
+  .sessions-card p.desc { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+  .session-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .session-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--teal-bg);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+  }
+  .session-item:hover { border-color: var(--teal); }
+  .session-item-info { flex: 1; min-width: 0; }
+  .session-item-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .session-item-meta {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.15rem;
+  }
+  .session-item-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .session-item-badge.in-progress { background: #FFF8E1; color: #F57F17; }
+  .session-item-badge.complete { background: #E0F2F1; color: var(--teal-dark); }
+  .session-item .remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0.25rem;
+    line-height: 1;
+  }
+  .session-item .remove-btn:hover { color: var(--wont-do); }
+  .session-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div>
+    <h1>FBSN</h1>
+    <div class="subtitle">Facts, Beliefs, Signals, Noise</div>
+  </div>
+  <div style="text-align:right">
+    <div class="subtitle" id="exerciseTitle"></div>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar">
+  <div class="progress-step active" data-step="1"><span class="step-num">1</span><span>Setup</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="2"><span class="step-num">2</span><span>Perspectives</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="3"><span class="step-num">3</span><span>Categorize</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="4"><span class="step-num">4</span><span>Matrix</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="5"><span class="step-num">5</span><span>Actions</span></div>
+</div>
+
+<div class="container">
+
+  <!-- PHASE 1: Setup -->
+  <div class="phase active" id="phase-1">
+    <!-- Mode selector -->
+    <div class="mode-selector">
+      <a class="mode-card" href="/host.html">
+        <div class="mode-icon">&#127891;</div>
+        <div class="mode-title">Host Live Session</div>
+        <div class="mode-desc">Present on a big screen and let your team vote from their devices.</div>
+      </a>
+      <a class="mode-card" href="/join.html">
+        <div class="mode-icon">&#9995;</div>
+        <div class="mode-title">Join a Session</div>
+        <div class="mode-desc">Enter a room code to vote on perspectives from your device.</div>
+      </a>
+    </div>
+
+    <!-- Saved sessions -->
+    <div class="sessions-card" id="sessionsCard" style="display:none">
+      <h2>Saved Sessions</h2>
+      <p class="desc">Resume a previous exercise or start a new one below.</p>
+      <ul class="session-list" id="sessionList"></ul>
+      <div class="session-actions">
+        <label class="btn btn-ghost" style="cursor:pointer">
+          Import from file
+          <input type="file" accept=".json" onchange="importSession(this)" style="display:none">
+        </label>
+      </div>
+    </div>
+
+    <!-- New exercise -->
+    <div class="card">
+      <h2>New Exercise</h2>
+      <p class="desc">Give your FBSN exercise a name and optional context. This helps frame the perspectives you'll evaluate.</p>
+      <div class="form-group">
+        <label>Exercise Title</label>
+        <input type="text" id="titleInput" placeholder="e.g. Q3 Growth Strategy, AI Platform Bet, Market Entry Decision">
+      </div>
+      <div class="form-group">
+        <label>Context (optional)</label>
+        <textarea id="contextInput" class="context-input" placeholder="Provide background context for this exercise. E.g. 'We are evaluating whether to expand into the APAC market given recent regulatory changes...'"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="goToPhase(2)">Next: Add Perspectives</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2: Perspectives -->
+  <div class="phase" id="phase-2">
+    <div class="card">
+      <h2>Build Your Perspectives</h2>
+      <p class="desc">Add the perspectives you want to evaluate. You can type them manually, paste raw text for AI extraction, or upload a file.</p>
+
+      <!-- Manual add -->
+      <label>Add perspectives manually</label>
+      <div class="add-row">
+        <input type="text" id="manualInput" placeholder="Type a perspective and press Enter or click Add">
+        <button class="btn btn-primary" onclick="addManualPerspective()">Add</button>
+      </div>
+
+      <div class="or-divider">or extract from text</div>
+
+      <!-- Raw text input -->
+      <div class="form-group">
+        <label>Paste raw information</label>
+        <textarea id="rawTextInput" placeholder="Paste meeting notes, reports, articles, strategy documents, interview transcripts, or any raw information here..."></textarea>
+      </div>
+
+      <!-- File upload -->
+      <div class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput" accept=".txt,.md,.csv,.xlsx,.xls,.pdf">
+        <div class="upload-icon">+</div>
+        <div class="upload-text">Drop a file here (.txt, .csv, .xlsx, .pdf), or click to browse</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="extractPerspectives()" id="extractBtn">Extract Perspectives with AI</button>
+        <div class="loading-overlay" id="extractLoading">
+          <div class="spinner"></div>
+          <span>Extracting perspectives...</span>
+        </div>
+      </div>
+
+      <!-- Current perspectives -->
+      <div style="margin-top:1.5rem">
+        <label>Perspectives to evaluate (<span id="perspectiveCount">0</span>)</label>
+        <ul class="perspective-list" id="perspectiveList"></ul>
+        <div class="empty-state" id="emptyPerspectives">No perspectives added yet. Add them manually or extract from text above.</div>
+      </div>
+
+      <div class="btn-row" style="margin-top:1.5rem">
+        <button class="btn btn-ghost" onclick="goToPhase(1)">Back</button>
+        <button class="btn btn-primary" id="startExerciseBtn" disabled onclick="goToPhase(3)">Start Exercise</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3: Exercise -->
+  <div class="phase" id="phase-3">
+    <div class="exercise-layout">
+      <!-- Left: Categorization -->
+      <div class="exercise-card" id="sortingPanel">
+        <div class="collapsible-header" onclick="togglePanel('sorting')">
+          <h3 style="font-size:1rem;color:var(--teal-dark)">Categorize Perspectives</h3>
+          <button class="collapse-toggle" id="sortingToggle" title="Collapse">&#9650;</button>
+        </div>
+        <div class="collapsible-body" id="sortingBody">
+          <div style="margin-top:1rem">
+            <div class="exercise-progress-bar">
+              <div class="exercise-progress-fill" id="exerciseProgressFill"></div>
+            </div>
+            <div class="exercise-counter" id="exerciseCounter">Perspective 1 of 10</div>
+
+            <div class="exercise-perspective" id="currentPerspective"></div>
+            <div style="text-align:center;margin-bottom:1rem">
+              <button class="btn btn-ghost" style="font-size:0.8rem;padding:0.4rem 1rem" onclick="factCheckCurrent()">Fact Check with AI</button>
+              <div id="factCheckResult" style="display:none;margin-top:0.75rem;text-align:left;background:var(--teal-bg);border-radius:10px;padding:1rem;font-size:0.85rem;line-height:1.5;border-left:4px solid var(--teal)">
+              </div>
+            </div>
+
+            <div class="exercise-axes">
+              <div class="axis-group">
+                <div class="exercise-question">Certainty</div>
+                <div class="exercise-options">
+                  <button class="option-btn" onclick="selectCertainty('fact')" id="optFact">
+                    <span class="option-label">Fact</span>
+                    <span class="option-desc">True and verifiable</span>
+                  </button>
+                  <button class="option-btn" onclick="selectCertainty('belief')" id="optBelief">
+                    <span class="option-label">Belief</span>
+                    <span class="option-desc">Unproven or assumed</span>
+                  </button>
+                </div>
+              </div>
+              <div class="axis-group">
+                <div class="exercise-question">Importance</div>
+                <div class="exercise-options">
+                  <button class="option-btn" onclick="selectImportance('signal')" id="optSignal">
+                    <span class="option-label">Signal</span>
+                    <span class="option-desc">Meaningful, drives focus</span>
+                  </button>
+                  <button class="option-btn" onclick="selectImportance('noise')" id="optNoise">
+                    <span class="option-label">Noise</span>
+                    <span class="option-desc">Distracting, off course</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="btn-row" style="justify-content:center">
+              <button class="btn btn-ghost" onclick="skipPerspective()">Skip</button>
+              <button class="btn btn-primary confirm-btn" id="confirmBtn" disabled onclick="confirmPerspective()">Place in Matrix</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Live Matrix -->
+      <div class="live-matrix-panel" id="matrixPanel">
+        <div class="collapsible-header" onclick="togglePanel('matrix')">
+          <h3>FBSN Matrix</h3>
+          <button class="collapse-toggle" id="matrixToggle" title="Collapse">&#9650;</button>
+        </div>
+        <div class="collapsible-body" id="matrixBody">
+          <div style="margin-top:1rem">
+            <div class="matrix-container" id="liveMatrix">
+              <div class="matrix-corner"></div>
+              <div class="matrix-col-header">Noise</div>
+              <div class="matrix-col-header">Signal</div>
+              <div class="matrix-row-header">Fact</div>
+              <div class="matrix-cell fact-noise" id="live-fact-noise">
+                <div class="matrix-cell-title">Facts / Noise</div>
+                <div class="matrix-cell-subtitle">Stable but Non-Differentiating</div>
+              </div>
+              <div class="matrix-cell fact-signal" id="live-fact-signal">
+                <div class="matrix-cell-title">Facts / Signals</div>
+                <div class="matrix-cell-subtitle">Growth Drivers</div>
+              </div>
+              <div class="matrix-row-header">Belief</div>
+              <div class="matrix-cell belief-noise" id="live-belief-noise">
+                <div class="matrix-cell-title">Beliefs / Noise</div>
+                <div class="matrix-cell-subtitle">Distracting Assumptions</div>
+              </div>
+              <div class="matrix-cell belief-signal" id="live-belief-signal">
+                <div class="matrix-cell-title">Beliefs / Signals</div>
+                <div class="matrix-cell-subtitle">Strategic Bets</div>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-top:1rem">
+              <button class="btn btn-primary" id="finishExerciseBtn" style="display:none" onclick="goToPhase(4)">View Full Matrix</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4: Full-screen Matrix -->
+  <div class="phase" id="phase-4">
+    <div class="fullscreen-matrix">
+      <div class="fullscreen-matrix-header">
+        <h2>FBSN Matrix</h2>
+        <div class="btn-row" style="margin:0">
+          <button class="btn btn-ghost" onclick="goToPhase(3)">Re-do Exercise</button>
+          <button class="btn btn-primary" onclick="goToPhase(5)">View Actions</button>
+        </div>
+      </div>
+      <div class="fullscreen-matrix-body">
+        <div class="matrix-container">
+          <div class="matrix-corner"></div>
+          <div class="matrix-col-header">Noise</div>
+          <div class="matrix-col-header">Signal</div>
+          <div class="matrix-row-header">Fact</div>
+          <div class="matrix-cell fact-noise" id="cell-fact-noise">
+            <div class="matrix-cell-title">Facts / Noise</div>
+            <div class="matrix-cell-subtitle">Stable but Non-Differentiating</div>
+          </div>
+          <div class="matrix-cell fact-signal" id="cell-fact-signal">
+            <div class="matrix-cell-title">Facts / Signals</div>
+            <div class="matrix-cell-subtitle">Growth Drivers</div>
+          </div>
+          <div class="matrix-row-header">Belief</div>
+          <div class="matrix-cell belief-noise" id="cell-belief-noise">
+            <div class="matrix-cell-title">Beliefs / Noise</div>
+            <div class="matrix-cell-subtitle">Distracting Assumptions</div>
+          </div>
+          <div class="matrix-cell belief-signal" id="cell-belief-signal">
+            <div class="matrix-cell-title">Beliefs / Signals</div>
+            <div class="matrix-cell-subtitle">Strategic Bets</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 5: Actions -->
+  <div class="phase" id="phase-5">
+    <div class="card">
+      <h2>From Strategic Clarity to Action</h2>
+      <p class="desc">Based on where perspectives landed in the matrix, define what you will do next. Add specific actions under each category.</p>
+
+      <div class="action-columns">
+        <div class="action-col must-do">
+          <div class="action-col-header">MUST DO</div>
+          <div class="action-col-subtitle">Facts + Signals &mdash; Act now, align execution, move fast</div>
+          <div class="action-context" id="mustDoContext"></div>
+          <div id="mustDoList"></div>
+          <div class="action-add-row">
+            <input type="text" class="action-input" id="mustDoInput" placeholder="Add an action...">
+            <button class="btn btn-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem" onclick="addAction('mustDo')">Add</button>
+          </div>
+        </div>
+        <div class="action-col might-do">
+          <div class="action-col-header">MIGHT DO</div>
+          <div class="action-col-subtitle">Beliefs + Signals &mdash; Test and learn, validate the bet</div>
+          <div class="action-context" id="mightDoContext"></div>
+          <div id="mightDoList"></div>
+          <div class="action-add-row">
+            <input type="text" class="action-input" id="mightDoInput" placeholder="Add an action...">
+            <button class="btn btn-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem" onclick="addAction('mightDo')">Add</button>
+          </div>
+        </div>
+        <div class="action-col wont-do">
+          <div class="action-col-header">WON'T DO</div>
+          <div class="action-col-subtitle">Noise &mdash; Avoid distractions, free cognitive load</div>
+          <div class="action-context" id="wontDoContext"></div>
+          <div id="wontDoList"></div>
+          <div class="action-add-row">
+            <input type="text" class="action-input" id="wontDoInput" placeholder="Add an action...">
+            <button class="btn btn-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem" onclick="addAction('wontDo')">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-top:1.5rem">
+        <button class="btn btn-ghost" onclick="goToPhase(4)">Back to Matrix</button>
+        <button class="btn btn-secondary" onclick="saveSession()">Save Session</button>
+        <button class="btn btn-secondary" onclick="exportSessionFile()">Export to File</button>
+        <button class="btn btn-secondary" onclick="exportResults()">Export as Text</button>
+        <button class="btn btn-primary" onclick="resetApp()">New Exercise</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ========== STATE ==========
+let state = {
+  title: '',
+  context: '',
+  perspectives: [],       // array of strings
+  categorized: [],         // array of { text, certainty: 'fact'|'belief', importance: 'signal'|'noise' }
+  currentIndex: 0,
+  currentCertainty: null,
+  currentImportance: null,
+  actions: { mustDo: [], mightDo: [], wontDo: [] },
+};
+
+// ========== NAVIGATION ==========
+function goToPhase(n) {
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.getElementById(`phase-${n}`).classList.add('active');
+
+  // Update progress
+  document.querySelectorAll('.progress-step').forEach(s => {
+    const step = parseInt(s.dataset.step);
+    s.classList.remove('active', 'done');
+    if (step < n) s.classList.add('done');
+    if (step === n) s.classList.add('active');
+  });
+  document.querySelectorAll('.progress-connector').forEach((c, i) => {
+    c.classList.toggle('done', i < n - 1);
+  });
+
+  // Phase-specific setup
+  if (n === 2) {
+    state.title = document.getElementById('titleInput').value.trim();
+    state.context = document.getElementById('contextInput').value.trim();
+    document.getElementById('exerciseTitle').textContent = state.title;
+    // Create session on first forward move
+    if (!state.sessionId && state.title) {
+      state.sessionId = Date.now().toString();
+    }
+  }
+  if (n === 3) {
+    state.categorized = [];
+    state.currentIndex = 0;
+    state.currentCertainty = null;
+    state.currentImportance = null;
+    // Reset UI elements
+    document.querySelector('.exercise-axes').style.display = '';
+    document.getElementById('sortingPanel').querySelector('.btn-row').style.display = '';
+    document.getElementById('confirmBtn').style.display = '';
+    document.getElementById('finishExerciseBtn').style.display = 'none';
+    // Expand both panels
+    document.getElementById('sortingBody').classList.remove('collapsed');
+    document.getElementById('sortingToggle').innerHTML = '&#9650;';
+    document.getElementById('matrixBody').classList.remove('collapsed');
+    document.getElementById('matrixToggle').innerHTML = '&#9650;';
+    // Clear live matrix tags
+    document.querySelectorAll('#liveMatrix .matrix-tag').forEach(t => t.remove());
+    showCurrentPerspective();
+  }
+  if (n === 4) renderMatrix();
+  if (n === 5) renderActions();
+}
+
+// ========== PERSPECTIVES MANAGEMENT ==========
+function renderPerspectiveList() {
+  const list = document.getElementById('perspectiveList');
+  const empty = document.getElementById('emptyPerspectives');
+  const count = document.getElementById('perspectiveCount');
+  const startBtn = document.getElementById('startExerciseBtn');
+
+  count.textContent = state.perspectives.length;
+  startBtn.disabled = state.perspectives.length === 0;
+
+  if (state.perspectives.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = state.perspectives.map((p, i) => `
+    <li class="perspective-item">
+      <span class="num">${i + 1}</span>
+      <span>${escapeHtml(p)}</span>
+      <button class="remove-btn" onclick="removePerspective(${i})" title="Remove">&times;</button>
+    </li>
+  `).join('');
+}
+
+function addManualPerspective() {
+  const input = document.getElementById('manualInput');
+  const text = input.value.trim();
+  if (!text) return;
+  state.perspectives.push(text);
+  input.value = '';
+  renderPerspectiveList();
+  autoSave();
+}
+
+function removePerspective(i) {
+  state.perspectives.splice(i, 1);
+  renderPerspectiveList();
+}
+
+// Enter key for manual input
+document.getElementById('manualInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); addManualPerspective(); }
+});
+
+// File upload
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+uploadArea.addEventListener('click', () => fileInput.click());
+uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = 'var(--teal)'; });
+uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = 'var(--border)'; });
+uploadArea.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadArea.style.borderColor = 'var(--border)';
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
+
+function handleFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  if (ext === 'xlsx' || ext === 'xls') {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const workbook = XLSX.read(e.target.result, { type: 'array' });
+      let allText = '';
+      workbook.SheetNames.forEach(name => {
+        const sheet = workbook.Sheets[name];
+        const csv = XLSX.utils.sheet_to_csv(sheet, { blankrows: false });
+        if (csv.trim()) {
+          allText += `--- ${name} ---\n${csv}\n\n`;
+        }
+      });
+      document.getElementById('rawTextInput').value = allText.trim();
+      uploadArea.querySelector('.upload-text').textContent = `Loaded: ${file.name}`;
+    };
+    reader.readAsArrayBuffer(file);
+  } else if (ext === 'pdf') {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      uploadArea.querySelector('.upload-text').textContent = 'Reading PDF...';
+      try {
+        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(e.target.result) }).promise;
+        let text = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(item => item.str).join(' ') + '\n\n';
+        }
+        document.getElementById('rawTextInput').value = text.trim();
+        uploadArea.querySelector('.upload-text').textContent = `Loaded: ${file.name} (${pdf.numPages} pages)`;
+      } catch (err) {
+        uploadArea.querySelector('.upload-text').textContent = 'Failed to read PDF';
+        alert('PDF reading failed: ' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById('rawTextInput').value = e.target.result;
+      uploadArea.querySelector('.upload-text').textContent = `Loaded: ${file.name}`;
+    };
+    reader.readAsText(file);
+  }
+}
+
+// ========== AI EXTRACTION ==========
+async function extractPerspectives() {
+  const rawText = document.getElementById('rawTextInput').value.trim();
+
+  if (!rawText) {
+    alert('Please paste or upload some raw text to extract perspectives from.');
+    return;
+  }
+
+  const extractBtn = document.getElementById('extractBtn');
+  const loading = document.getElementById('extractLoading');
+  extractBtn.style.display = 'none';
+  loading.classList.add('active');
+
+  try {
+    const response = await fetch('/api/extract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rawText, context: state.context }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || `Server error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.content[0].text;
+
+    // Parse JSON from response
+    const jsonMatch = content.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error('Could not parse AI response');
+
+    const extracted = JSON.parse(jsonMatch[0]);
+    if (Array.isArray(extracted)) {
+      extracted.forEach(p => {
+        if (typeof p === 'string' && p.trim()) {
+          state.perspectives.push(p.trim());
+        }
+      });
+      renderPerspectiveList();
+      autoSave();
+    }
+  } catch (err) {
+    alert(`Extraction failed: ${err.message}`);
+  } finally {
+    extractBtn.style.display = '';
+    loading.classList.remove('active');
+  }
+}
+
+// ========== COLLAPSIBLE PANELS ==========
+function togglePanel(panel) {
+  const bodyId = panel === 'sorting' ? 'sortingBody' : 'matrixBody';
+  const toggleId = panel === 'sorting' ? 'sortingToggle' : 'matrixToggle';
+  const body = document.getElementById(bodyId);
+  const toggle = document.getElementById(toggleId);
+  const isCollapsed = body.classList.toggle('collapsed');
+  toggle.innerHTML = isCollapsed ? '&#9660;' : '&#9650;';
+}
+
+// ========== EXERCISE ==========
+function showCurrentPerspective() {
+  const total = state.perspectives.length;
+  const idx = state.currentIndex;
+
+  if (idx >= total) {
+    // Exercise complete — show finish button, hide card inputs
+    document.getElementById('confirmBtn').style.display = 'none';
+    document.getElementById('finishExerciseBtn').style.display = '';
+    document.getElementById('exerciseProgressFill').style.width = '100%';
+    document.getElementById('exerciseCounter').textContent = 'All perspectives categorized!';
+    document.getElementById('currentPerspective').textContent = 'Review the matrix, then click "View Full Matrix" to continue.';
+    document.querySelector('.exercise-axes').style.display = 'none';
+    document.getElementById('sortingPanel').querySelector('.btn-row').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('exerciseCounter').textContent = `Perspective ${idx + 1} of ${total}`;
+  document.getElementById('currentPerspective').textContent = state.perspectives[idx];
+  document.getElementById('exerciseProgressFill').style.width = `${(idx / total) * 100}%`;
+
+  // Hide fact check from previous perspective
+  document.getElementById('factCheckResult').style.display = 'none';
+
+  // Reset selections
+  state.currentCertainty = null;
+  state.currentImportance = null;
+  document.getElementById('confirmBtn').disabled = true;
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+}
+
+function selectCertainty(value) {
+  state.currentCertainty = value;
+  document.getElementById('optFact').classList.toggle('selected', value === 'fact');
+  document.getElementById('optBelief').classList.toggle('selected', value === 'belief');
+  updateConfirmBtn();
+}
+
+function selectImportance(value) {
+  state.currentImportance = value;
+  document.getElementById('optSignal').classList.toggle('selected', value === 'signal');
+  document.getElementById('optNoise').classList.toggle('selected', value === 'noise');
+  updateConfirmBtn();
+}
+
+function updateConfirmBtn() {
+  document.getElementById('confirmBtn').disabled = !(state.currentCertainty && state.currentImportance);
+}
+
+function confirmPerspective() {
+  if (!state.currentCertainty || !state.currentImportance) return;
+
+  state.categorized.push({
+    text: state.perspectives[state.currentIndex],
+    certainty: state.currentCertainty,
+    importance: state.currentImportance,
+  });
+
+  renderLiveMatrix();
+  state.currentIndex++;
+  autoSave();
+  showCurrentPerspective();
+}
+
+async function factCheckCurrent() {
+  const text = state.perspectives[state.currentIndex];
+  if (!text) return;
+  const resultEl = document.getElementById('factCheckResult');
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = '<span class="spinner" style="display:inline-block;width:14px;height:14px;border:2px solid var(--teal-pale);border-top-color:var(--teal);border-radius:50%;animation:spin 0.8s linear infinite"></span> Checking...';
+  try {
+    const res = await fetch('/api/factcheck', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ statement: text, context: state.context }) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+    const data = await res.json();
+    const match = data.content[0].text.match(/\{[\s\S]*\}/);
+    if (match) {
+      const r = JSON.parse(match[0]);
+      resultEl.innerHTML = `<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem"><strong style="font-size:1.05rem">${verdictIcon(r.verdict)} ${r.verdict}</strong><span style="color:var(--text-secondary);font-size:0.8rem">(${r.confidence} confidence)</span></div><div style="margin-bottom:0.4rem">${esc(r.explanation)}</div><div style="color:var(--text-secondary);font-size:0.8rem"><strong>Sources:</strong> ${esc(r.sources)}</div>`;
+    } else { resultEl.innerHTML = data.content[0].text; }
+  } catch (e) { resultEl.innerHTML = 'Fact check failed: ' + esc(e.message); }
+}
+
+function verdictIcon(v) {
+  const icons = { 'Fact': '&#9989;', 'Mostly True': '&#9989;', 'Mixed': '&#9888;&#65039;', 'Mostly Opinion': '&#128161;', 'Opinion/Belief': '&#128161;', 'Unverifiable': '&#10067;' };
+  return icons[v] || '&#128269;';
+}
+
+function renderLiveMatrix() {
+  const cells = {
+    'fact-signal': [],
+    'fact-noise': [],
+    'belief-signal': [],
+    'belief-noise': [],
+  };
+  state.categorized.forEach(item => {
+    cells[`${item.certainty}-${item.importance}`].push(item.text);
+  });
+  Object.entries(cells).forEach(([key, items]) => {
+    const cell = document.getElementById(`live-${key}`);
+    cell.querySelectorAll('.matrix-tag').forEach(t => t.remove());
+    items.forEach(text => {
+      const tag = document.createElement('div');
+      tag.className = 'matrix-tag';
+      tag.textContent = text;
+      cell.appendChild(tag);
+    });
+  });
+}
+
+function skipPerspective() {
+  state.currentIndex++;
+  showCurrentPerspective();
+}
+
+// ========== MATRIX ==========
+function renderMatrix() {
+  const cells = {
+    'fact-signal': [],
+    'fact-noise': [],
+    'belief-signal': [],
+    'belief-noise': [],
+  };
+
+  state.categorized.forEach(item => {
+    const key = `${item.certainty}-${item.importance}`;
+    cells[key].push(item.text);
+  });
+
+  Object.entries(cells).forEach(([key, items]) => {
+    const cell = document.getElementById(`cell-${key}`);
+    // Remove old tags
+    cell.querySelectorAll('.matrix-tag').forEach(t => t.remove());
+    items.forEach(text => {
+      const tag = document.createElement('div');
+      tag.className = 'matrix-tag';
+      tag.textContent = text;
+      cell.appendChild(tag);
+    });
+  });
+}
+
+// ========== ACTIONS ==========
+function renderActions() {
+  // Show matrix perspectives as context
+  const mustPersp = [], mightPersp = [], wontPersp = [];
+  state.categorized.forEach(item => {
+    if (item.certainty === 'fact' && item.importance === 'signal') mustPersp.push(item.text);
+    else if (item.certainty === 'belief' && item.importance === 'signal') mightPersp.push(item.text);
+    else wontPersp.push(item.text);
+  });
+
+  renderContext('mustDoContext', 'Facts + Signals', mustPersp);
+  renderContext('mightDoContext', 'Beliefs + Signals', mightPersp);
+  renderContext('wontDoContext', 'Noise', wontPersp);
+
+  renderActionList('mustDoList', 'mustDo');
+  renderActionList('mightDoList', 'mightDo');
+  renderActionList('wontDoList', 'wontDo');
+}
+
+function renderContext(id, label, items) {
+  const el = document.getElementById(id);
+  if (items.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="ctx-label">Based on: ${label}</div>${items.map(t => `<div class="ctx-item">&bull; ${escapeHtml(t)}</div>`).join('')}`;
+}
+
+function renderActionList(id, key) {
+  const el = document.getElementById(id);
+  const items = state.actions[key] || [];
+  if (items.length === 0) {
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = items.map((t, i) => `<div class="action-item"><span>${escapeHtml(t)}</span><button class="action-rm" onclick="removeAction('${key}',${i})">&times;</button></div>`).join('');
+}
+
+function addAction(key) {
+  const input = document.getElementById(key + 'Input');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!state.actions[key]) state.actions[key] = [];
+  state.actions[key].push(text);
+  input.value = '';
+  renderActionList(key + 'List', key);
+  autoSave();
+}
+
+function removeAction(key, idx) {
+  state.actions[key].splice(idx, 1);
+  renderActionList(key + 'List', key);
+  autoSave();
+}
+
+['mustDo', 'mightDo', 'wontDo'].forEach(key => {
+  document.getElementById(key + 'Input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addAction(key); } });
+});
+
+// ========== EXPORT ==========
+function exportResults() {
+  const lines = [];
+  lines.push(`FBSN Exercise: ${state.title || 'Untitled'}`);
+  lines.push(`Date: ${new Date().toLocaleDateString()}`);
+  if (state.context) lines.push(`Context: ${state.context}`);
+  lines.push('');
+  lines.push('=== MATRIX ===');
+  lines.push('');
+
+  const groups = { 'fact-signal': 'FACTS + SIGNALS (Must Do)', 'belief-signal': 'BELIEFS + SIGNALS (Might Do)', 'fact-noise': 'FACTS + NOISE (Won\'t Do)', 'belief-noise': 'BELIEFS + NOISE (Won\'t Do)' };
+
+  Object.entries(groups).forEach(([key, label]) => {
+    const items = state.categorized.filter(c => `${c.certainty}-${c.importance}` === key);
+    lines.push(label);
+    if (items.length === 0) lines.push('  (none)');
+    items.forEach(i => lines.push(`  - ${i.text}`));
+    lines.push('');
+  });
+
+  lines.push('=== ACTIONS ===');
+  lines.push('');
+
+  const a = state.actions || { mustDo: [], mightDo: [], wontDo: [] };
+
+  lines.push('MUST DO (Act now)');
+  a.mustDo.forEach(i => lines.push(`  - ${i}`));
+  if (!a.mustDo.length) lines.push('  (none)');
+  lines.push('');
+  lines.push('MIGHT DO (Test and learn)');
+  a.mightDo.forEach(i => lines.push(`  - ${i}`));
+  if (!a.mightDo.length) lines.push('  (none)');
+  lines.push('');
+  lines.push('WON\'T DO (Avoid distractions)');
+  a.wontDo.forEach(i => lines.push(`  - ${i}`));
+  if (!a.wontDo.length) lines.push('  (none)');
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `FBSN-${(state.title || 'exercise').replace(/\s+/g, '-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ========== SESSIONS ==========
+const SESSIONS_KEY = 'fbsn_sessions';
+
+function getSessions() {
+  try { return JSON.parse(localStorage.getItem(SESSIONS_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveSessions(sessions) {
+  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+}
+
+function buildSessionData() {
+  return {
+    id: state.sessionId || Date.now().toString(),
+    title: state.title || 'Untitled',
+    context: state.context,
+    perspectives: state.perspectives,
+    categorized: state.categorized,
+    actions: state.actions,
+    currentIndex: state.currentIndex,
+    savedAt: new Date().toISOString(),
+    phase: getCurrentPhase(),
+  };
+}
+
+function getCurrentPhase() {
+  for (let i = 1; i <= 5; i++) {
+    if (document.getElementById(`phase-${i}`).classList.contains('active')) return i;
+  }
+  return 1;
+}
+
+function saveSession() {
+  state.title = state.title || document.getElementById('titleInput').value.trim();
+  state.context = state.context || document.getElementById('contextInput').value.trim();
+
+  if (!state.sessionId) state.sessionId = Date.now().toString();
+  const data = buildSessionData();
+  const sessions = getSessions().filter(s => s.id !== data.id);
+  sessions.unshift(data);
+  saveSessions(sessions);
+  renderSessionList();
+  alert('Session saved.');
+}
+
+function autoSave() {
+  if (!state.sessionId) return;
+  const data = buildSessionData();
+  const sessions = getSessions().filter(s => s.id !== data.id);
+  sessions.unshift(data);
+  saveSessions(sessions);
+}
+
+function loadSession(id) {
+  const sessions = getSessions();
+  const data = sessions.find(s => s.id === id);
+  if (!data) return;
+
+  state.sessionId = data.id;
+  state.title = data.title;
+  state.context = data.context;
+  state.perspectives = data.perspectives || [];
+  state.categorized = data.categorized || [];
+  state.actions = data.actions || { mustDo: [], mightDo: [], wontDo: [] };
+  state.currentIndex = data.currentIndex || 0;
+  state.currentCertainty = null;
+  state.currentImportance = null;
+
+  document.getElementById('titleInput').value = state.title;
+  document.getElementById('contextInput').value = state.context;
+  document.getElementById('exerciseTitle').textContent = state.title;
+  renderPerspectiveList();
+
+  // Go to the right phase
+  const phase = data.phase || 1;
+  if (phase >= 3 && state.perspectives.length > 0 && state.currentIndex < state.perspectives.length) {
+    goToPhaseResume(3);
+  } else if (phase >= 5 && state.categorized.length > 0) {
+    goToPhase(5);
+  } else if (phase >= 4 && state.categorized.length > 0) {
+    goToPhase(4);
+  } else if (state.perspectives.length > 0) {
+    goToPhase(2);
+  } else {
+    goToPhase(1);
+  }
+}
+
+function goToPhaseResume(n) {
+  // Like goToPhase(3) but doesn't reset categorized/currentIndex
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.getElementById(`phase-${n}`).classList.add('active');
+
+  document.querySelectorAll('.progress-step').forEach(s => {
+    const step = parseInt(s.dataset.step);
+    s.classList.remove('active', 'done');
+    if (step < n) s.classList.add('done');
+    if (step === n) s.classList.add('active');
+  });
+  document.querySelectorAll('.progress-connector').forEach((c, i) => {
+    c.classList.toggle('done', i < n - 1);
+  });
+
+  document.getElementById('exerciseTitle').textContent = state.title;
+
+  // Restore UI elements
+  document.querySelector('.exercise-axes').style.display = '';
+  document.getElementById('sortingPanel').querySelector('.btn-row').style.display = '';
+  document.getElementById('confirmBtn').style.display = '';
+  document.getElementById('finishExerciseBtn').style.display = 'none';
+  // Expand both panels
+  document.getElementById('sortingBody').classList.remove('collapsed');
+  document.getElementById('sortingToggle').innerHTML = '&#9650;';
+  document.getElementById('matrixBody').classList.remove('collapsed');
+  document.getElementById('matrixToggle').innerHTML = '&#9650;';
+  document.querySelectorAll('#liveMatrix .matrix-tag').forEach(t => t.remove());
+
+  // Re-render already-categorized items into live matrix
+  renderLiveMatrix();
+  showCurrentPerspective();
+}
+
+function deleteSession(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this saved session?')) return;
+  const sessions = getSessions().filter(s => s.id !== id);
+  saveSessions(sessions);
+  renderSessionList();
+}
+
+function renderSessionList() {
+  const sessions = getSessions();
+  const card = document.getElementById('sessionsCard');
+  const list = document.getElementById('sessionList');
+
+  if (sessions.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+  list.innerHTML = sessions.map(s => {
+    const date = new Date(s.savedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const total = (s.perspectives || []).length;
+    const done = (s.categorized || []).length;
+    const isComplete = total > 0 && done >= total;
+    const badgeClass = isComplete ? 'complete' : 'in-progress';
+    const badgeText = isComplete ? 'Complete' : `${done}/${total} categorized`;
+    return `<li class="session-item" onclick="loadSession('${s.id}')">
+      <div class="session-item-info">
+        <div class="session-item-title">${escapeHtml(s.title)}</div>
+        <div class="session-item-meta">${date} &middot; ${total} perspectives</div>
+      </div>
+      <span class="session-item-badge ${badgeClass}">${badgeText}</span>
+      <button class="remove-btn" onclick="deleteSession('${s.id}', event)" title="Delete">&times;</button>
+    </li>`;
+  }).join('');
+}
+
+function exportSessionFile() {
+  const data = buildSessionData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `FBSN-${(state.title || 'session').replace(/\s+/g, '-')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importSession(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.perspectives) throw new Error('Invalid session file');
+      data.id = Date.now().toString(); // new id to avoid collisions
+      const sessions = getSessions();
+      sessions.unshift(data);
+      saveSessions(sessions);
+      renderSessionList();
+      loadSession(data.id);
+    } catch (err) {
+      alert('Could not load session file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ========== RESET ==========
+function resetApp() {
+  state = { title: '', context: '', perspectives: [], categorized: [], currentIndex: 0, currentCertainty: null, currentImportance: null, actions: { mustDo: [], mightDo: [], wontDo: [] }, sessionId: null };
+  document.getElementById('titleInput').value = '';
+  document.getElementById('contextInput').value = '';
+  document.getElementById('rawTextInput').value = '';
+  document.getElementById('manualInput').value = '';
+  renderPerspectiveList();
+  renderSessionList();
+  goToPhase(1);
+}
+
+// ========== UTILS ==========
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// Init
+renderPerspectiveList();
+renderSessionList();
+</script>
+
+</body>
+</html>
