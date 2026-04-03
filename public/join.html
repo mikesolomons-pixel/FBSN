@@ -430,6 +430,13 @@ window.pickImportance = pickImportance;
 window.submitVote = submitVote;
 window.changeVote = changeVote;
 
+// Pre-fill code from URL query param
+const urlCode = new URLSearchParams(window.location.search).get('code');
+if (urlCode) {
+  document.getElementById('codeInput').value = urlCode.toUpperCase();
+  document.getElementById('nameInput').focus();
+}
+
 // Enter key to join
 document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom(); });
 document.getElementById('codeInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('nameInput').focus(); });

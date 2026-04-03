@@ -151,6 +151,7 @@
   .a-empty { font-size: 0.8rem; color: var(--text-secondary); font-style: italic; }
 </style>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 </head>
@@ -215,8 +216,9 @@
     <div id="waitingView" class="waiting">
       <p>Share this code with your team:</p>
       <div class="code-display" id="bigCode"></div>
+      <div id="qrCode" style="margin:1rem auto;display:inline-block;padding:12px;background:white;border-radius:12px"></div>
       <div class="url-display" id="joinUrl"></div>
-      <p style="font-size:0.85rem">Waiting for participants to join...</p>
+      <p style="font-size:0.85rem">Scan the QR code or enter the code at the URL above</p>
       <div class="btn-row" style="justify-content:center;margin-top:1.5rem">
         <button class="btn btn-primary" id="beginBtn" disabled onclick="beginExercise()">Begin Exercise</button>
       </div>
@@ -417,7 +419,9 @@ async function startSession() {
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('presentationView').classList.add('active');
   document.getElementById('bigCode').textContent = roomCode;
-  document.getElementById('joinUrl').textContent = `${location.origin}/join.html`;
+  const joinLink = `${location.origin}/join.html?code=${roomCode}`;
+  document.getElementById('joinUrl').textContent = joinLink;
+  new QRCode(document.getElementById('qrCode'), { text: joinLink, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
 
   // Subscribe to Supabase Realtime channel
   channel = supabaseClient.channel(`room-${roomCode}`);
