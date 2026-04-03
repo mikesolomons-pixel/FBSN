@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cynefin Navigator - Value Creating Teams</title>
+<script src="auth.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --coral: #E07A5F;
+    --coral-light: #F4A691;
+    --clear-color: #43A047;
+    --clear-bg: #E8F5E9;
+    --complicated-color: #1E88E5;
+    --complicated-bg: #E3F2FD;
+    --complex-color: #F4511E;
+    --complex-bg: #FBE9E7;
+    --chaotic-color: #8E24AA;
+    --chaotic-bg: #F3E5F5;
+    --confused-color: #757575;
+    --confused-bg: #F5F5F5;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1B2A4A;
+    --text-secondary: #5A6B8A;
+    --border: #E2E8F0;
+    --shadow: 0 2px 8px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.12);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--coral) 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    position: relative;
+  }
+  .header-inner { max-width: 1200px; margin: 0 auto; }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.8rem;
+    margin-bottom: 0.75rem; transition: color 0.15s;
+  }
+  .back-link:hover { color: white; }
+  .header h1 { font-size: 1.6rem; font-weight: 800; }
+  .header .subtitle { font-size: 0.85rem; opacity: 0.85; margin-top: 0.2rem; }
+
+  /* Progress */
+  .progress-bar {
+    display: flex; align-items: center; gap: 0; padding: 0.75rem 2rem;
+    background: white; border-bottom: 1px solid var(--border);
+  }
+  .progress-step {
+    display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+  .progress-step .step-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--border); color: var(--text-secondary);
+    font-weight: 600; font-size: 0.7rem; flex-shrink: 0;
+  }
+  .progress-step.active .step-num { background: var(--coral); color: white; }
+  .progress-step.done .step-num { background: var(--coral-light); color: white; }
+  .progress-step.active { color: var(--navy); font-weight: 600; }
+  .progress-connector {
+    flex: 1; height: 2px; background: var(--border);
+    margin: 0 0.6rem; min-width: 16px;
+  }
+  .progress-connector.done { background: var(--coral-light); }
+
+  /* Main */
+  .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .phase { display: none; }
+  .phase.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: var(--card); border-radius: 14px; padding: 1.75rem;
+    box-shadow: var(--shadow); margin-bottom: 1.25rem;
+  }
+  .card h2 { font-size: 1.2rem; font-weight: 700; color: var(--navy); margin-bottom: 0.4rem; }
+  .card p.desc { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.55; margin-bottom: 1.25rem; }
+
+  /* Form */
+  textarea, input[type="text"] {
+    width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: 0.9rem; font-family: inherit;
+    transition: border-color 0.2s; background: white;
+  }
+  textarea:focus, input[type="text"]:focus { outline: none; border-color: var(--coral); }
+  textarea { resize: vertical; min-height: 140px; line-height: 1.6; }
+  label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.85rem; }
+  .form-group { margin-bottom: 1rem; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.7rem 1.4rem; border-radius: 8px; font-size: 0.85rem;
+    font-weight: 600; cursor: pointer; border: none; font-family: inherit;
+    transition: transform 0.1s, box-shadow 0.15s;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--coral); color: white; }
+  .btn-secondary { background: var(--border); color: var(--text); }
+  .btn-clear { background: var(--clear-color); color: white; }
+  .btn-complicated { background: var(--complicated-color); color: white; }
+  .btn-complex { background: var(--complex-color); color: white; }
+  .btn-sm { padding: 0.45rem 0.85rem; font-size: 0.78rem; }
+  .btn-nav { margin-top: 1.5rem; }
+
+  /* Challenge chips */
+  .challenge-chip {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    padding: 0.85rem 1rem; background: var(--bg); border-radius: 10px;
+    margin-bottom: 0.5rem; border: 1.5px solid var(--border);
+    transition: border-color 0.15s;
+  }
+  .challenge-chip .chip-num {
+    width: 24px; height: 24px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700; flex-shrink: 0;
+    background: var(--navy); color: white;
+  }
+  .challenge-chip .chip-text { font-size: 0.85rem; line-height: 1.45; flex: 1; }
+  .challenge-chip .chip-domain {
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px;
+    padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600;
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* Domain colors */
+  .domain-clear { background: var(--clear-bg); color: var(--clear-color); border-color: var(--clear-color); }
+  .domain-complicated { background: var(--complicated-bg); color: var(--complicated-color); border-color: var(--complicated-color); }
+  .domain-complex { background: var(--complex-bg); color: var(--complex-color); border-color: var(--complex-color); }
+  .domain-chaotic { background: var(--chaotic-bg); color: var(--chaotic-color); border-color: var(--chaotic-color); }
+  .domain-confused { background: var(--confused-bg); color: var(--confused-color); border-color: var(--confused-color); }
+
+  .chip-domain.domain-clear { background: var(--clear-color); color: white; }
+  .chip-domain.domain-complicated { background: var(--complicated-color); color: white; }
+  .chip-domain.domain-complex { background: var(--complex-color); color: white; }
+  .chip-domain.domain-chaotic { background: var(--chaotic-color); color: white; }
+  .chip-domain.domain-confused { background: var(--confused-color); color: white; }
+
+  /* Cynefin Matrix */
+  .cynefin-grid {
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto;
+    gap: 1rem; margin-bottom: 1.5rem;
+  }
+  .cynefin-quadrant {
+    border-radius: 14px; padding: 1.25rem; min-height: 180px;
+    border: 2px solid transparent; position: relative;
+  }
+  .cynefin-quadrant h3 {
+    font-size: 0.9rem; font-weight: 700; margin-bottom: 0.15rem;
+  }
+  .cynefin-quadrant .domain-approach {
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 0.75rem; opacity: 0.7;
+  }
+  .q-complex { background: var(--complex-bg); border-color: var(--complex-color); }
+  .q-complex h3 { color: var(--complex-color); }
+  .q-complicated { background: var(--complicated-bg); border-color: var(--complicated-color); }
+  .q-complicated h3 { color: var(--complicated-color); }
+  .q-chaotic { background: var(--chaotic-bg); border-color: var(--chaotic-color); }
+  .q-chaotic h3 { color: var(--chaotic-color); }
+  .q-clear { background: var(--clear-bg); border-color: var(--clear-color); }
+  .q-clear h3 { color: var(--clear-color); }
+  .q-confused {
+    grid-column: 1 / -1; background: var(--confused-bg);
+    border-color: var(--confused-color); min-height: 80px;
+  }
+  .q-confused h3 { color: var(--confused-color); }
+
+  .q-item {
+    display: flex; align-items: flex-start; gap: 0.5rem;
+    padding: 0.5rem 0.65rem; background: rgba(255,255,255,0.7);
+    border-radius: 8px; margin-bottom: 0.4rem; font-size: 0.8rem;
+    line-height: 1.4; cursor: pointer; transition: background 0.15s;
+  }
+  .q-item:hover { background: rgba(255,255,255,0.95); }
+  .q-item .q-reason {
+    font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.2rem;
+  }
+
+  /* Domain selector buttons */
+  .domain-selector {
+    display: flex; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap;
+  }
+  .domain-btn {
+    padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.68rem;
+    font-weight: 600; border: 1.5px solid; cursor: pointer;
+    background: white; transition: all 0.15s; text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .domain-btn.db-clear { color: var(--clear-color); border-color: var(--clear-color); }
+  .domain-btn.db-clear:hover, .domain-btn.db-clear.active { background: var(--clear-color); color: white; }
+  .domain-btn.db-complicated { color: var(--complicated-color); border-color: var(--complicated-color); }
+  .domain-btn.db-complicated:hover, .domain-btn.db-complicated.active { background: var(--complicated-color); color: white; }
+  .domain-btn.db-complex { color: var(--complex-color); border-color: var(--complex-color); }
+  .domain-btn.db-complex:hover, .domain-btn.db-complex.active { background: var(--complex-color); color: white; }
+  .domain-btn.db-chaotic { color: var(--chaotic-color); border-color: var(--chaotic-color); }
+  .domain-btn.db-chaotic:hover, .domain-btn.db-chaotic.active { background: var(--chaotic-color); color: white; }
+  .domain-btn.db-confused { color: var(--confused-color); border-color: var(--confused-color); }
+  .domain-btn.db-confused:hover, .domain-btn.db-confused.active { background: var(--confused-color); color: white; }
+
+  /* Explore panels */
+  .explore-section { margin-bottom: 1.5rem; }
+  .explore-section h3 {
+    font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .domain-tag {
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px;
+    padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600; color: white;
+  }
+
+  /* Expert panel */
+  .expert-panel {
+    background: var(--card); border-radius: 12px; padding: 1.25rem;
+    box-shadow: var(--shadow); margin-bottom: 1rem;
+    border-left: 4px solid var(--complicated-color);
+  }
+  .expert-panel.clear-panel { border-left-color: var(--clear-color); }
+  .expert-panel h4 { font-size: 0.9rem; font-weight: 700; color: var(--navy); margin-bottom: 0.5rem; }
+  .expert-panel p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 0.5rem; }
+  .expert-panel p:last-child { margin-bottom: 0; }
+
+  .option-card {
+    background: var(--bg); border-radius: 10px; padding: 1rem;
+    margin-bottom: 0.75rem; border: 1px solid var(--border);
+  }
+  .option-card h5 {
+    font-size: 0.85rem; font-weight: 700; color: var(--navy); margin-bottom: 0.3rem;
+  }
+  .option-card p { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem; }
+  .pros-cons h6 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.25rem; }
+  .pros-cons .pro { color: var(--clear-color); }
+  .pros-cons .con { color: var(--complex-color); }
+  .pros-cons li { font-size: 0.78rem; color: var(--text); margin-bottom: 0.2rem; list-style: none; padding-left: 0.75rem; position: relative; }
+  .pros-cons li::before { content: ''; position: absolute; left: 0; top: 7px; width: 5px; height: 5px; border-radius: 50%; }
+  .pros-cons .pro-list li::before { background: var(--clear-color); }
+  .pros-cons .con-list li::before { background: var(--complex-color); }
+
+  /* Experiment panel */
+  .experiment-card {
+    background: var(--card); border-radius: 12px; padding: 1.25rem;
+    box-shadow: var(--shadow); margin-bottom: 1rem;
+    border-left: 4px solid var(--complex-color);
+  }
+  .experiment-card h4 { font-size: 0.9rem; font-weight: 700; color: var(--navy); margin-bottom: 0.5rem; }
+  .experiment-card p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 0.5rem; }
+  .exp-detail {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .exp-detail-item {
+    padding: 0.5rem 0.75rem; background: var(--bg); border-radius: 8px;
+  }
+  .exp-detail-item .edl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); font-weight: 600; margin-bottom: 0.15rem; }
+  .exp-detail-item p { font-size: 0.78rem; color: var(--text); margin: 0; }
+  .amplify { border-left: 3px solid var(--clear-color); }
+  .dampen { border-left: 3px solid var(--complex-color); }
+
+  /* Hypothesis input */
+  .hypothesis-input {
+    background: var(--card); border-radius: 12px; padding: 1.25rem;
+    box-shadow: var(--shadow); margin-bottom: 1rem;
+  }
+  .hypothesis-input h4 { font-size: 0.9rem; font-weight: 700; color: var(--navy); margin-bottom: 0.3rem; }
+  .hypothesis-input p { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem; }
+
+  /* Loading */
+  .loading {
+    display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem;
+    color: var(--text-secondary); font-size: 0.85rem;
+  }
+  .spinner {
+    width: 20px; height: 20px; border: 2px solid var(--border);
+    border-top-color: var(--coral); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Warning box */
+  .warning-box {
+    padding: 0.75rem 1rem; background: #FFF8E1; border-radius: 8px;
+    border-left: 3px solid #F9A825; font-size: 0.8rem; color: #5D4037;
+    margin-top: 0.75rem; line-height: 1.5;
+  }
+  .key-questions li {
+    font-size: 0.82rem; color: var(--text); margin-bottom: 0.35rem;
+    list-style: none; padding-left: 1rem; position: relative;
+  }
+  .key-questions li::before {
+    content: '?'; position: absolute; left: 0; color: var(--complicated-color);
+    font-weight: 700;
+  }
+
+  /* Tabs */
+  .domain-tabs {
+    display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap;
+  }
+  .domain-tab {
+    padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem;
+    font-weight: 600; cursor: pointer; border: 2px solid transparent;
+    transition: all 0.15s; background: var(--card);
+  }
+  .domain-tab .tab-count {
+    font-size: 0.65rem; background: var(--border); padding: 0.1rem 0.35rem;
+    border-radius: 4px; margin-left: 0.3rem;
+  }
+  .domain-tab.active-clear { border-color: var(--clear-color); color: var(--clear-color); }
+  .domain-tab.active-clear .tab-count { background: var(--clear-bg); color: var(--clear-color); }
+  .domain-tab.active-complicated { border-color: var(--complicated-color); color: var(--complicated-color); }
+  .domain-tab.active-complicated .tab-count { background: var(--complicated-bg); color: var(--complicated-color); }
+  .domain-tab.active-complex { border-color: var(--complex-color); color: var(--complex-color); }
+  .domain-tab.active-complex .tab-count { background: var(--complex-bg); color: var(--complex-color); }
+  .domain-tab.active-chaotic { border-color: var(--chaotic-color); color: var(--chaotic-color); }
+  .domain-tab.active-chaotic .tab-count { background: var(--chaotic-bg); color: var(--chaotic-color); }
+  .domain-panel { display: none; }
+  .domain-panel.active { display: block; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .cynefin-grid { grid-template-columns: 1fr; }
+    .q-confused { grid-column: 1; }
+    .main { padding: 1rem; }
+    .exp-detail { grid-template-columns: 1fr; }
+    .pros-cons { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
+    <h1>Cynefin Navigator</h1>
+    <p class="subtitle">Sort challenges by complexity domain. Consult experts. Design experiments.</p>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step active" id="ps1"><span class="step-num">1</span> Input</div>
+  <div class="progress-connector" id="pc1"></div>
+  <div class="progress-step" id="ps2"><span class="step-num">2</span> Classify</div>
+  <div class="progress-connector" id="pc2"></div>
+  <div class="progress-step" id="ps3"><span class="step-num">3</span> Explore</div>
+</div>
+
+<div class="main">
+
+  <!-- Phase 1: Input Challenges -->
+  <div class="phase active" id="phase1">
+    <div class="card">
+      <h2>What challenges is the team facing?</h2>
+      <p class="desc">Enter the challenges, problems, or decisions your team needs to navigate. One per line. These will be classified into the Cynefin framework domains to determine the right approach for each.</p>
+      <div class="form-group">
+        <label>Context (optional)</label>
+        <input type="text" id="context-input" placeholder="e.g., Global pharmaceutical company, post-merger integration...">
+      </div>
+      <div class="form-group">
+        <label>Challenges</label>
+        <textarea id="challenges-input" placeholder="Enter one challenge per line, e.g.:&#10;How to integrate two different IT systems after the merger&#10;Declining customer satisfaction scores in APAC&#10;Whether AI will fundamentally disrupt our business model&#10;Supply chain disruptions from geopolitical instability&#10;Standardizing our onboarding process across regions"></textarea>
+      </div>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="classifyChallenges()">Classify with AI &#8594;</button>
+        <button class="btn btn-secondary" onclick="manualClassify()">Classify Manually</button>
+      </div>
+    </div>
+
+    <!-- Cynefin Reference -->
+    <div class="card">
+      <h2>The Cynefin Framework</h2>
+      <p class="desc">Developed by Dave Snowden, Cynefin helps leaders understand the nature of the challenges they face and choose the right approach. Different domains demand fundamentally different responses.</p>
+      <div class="cynefin-grid">
+        <div class="cynefin-quadrant q-complex">
+          <h3>Complex</h3>
+          <div class="domain-approach">Probe &rarr; Sense &rarr; Respond</div>
+          <p style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;">Cause and effect only visible in retrospect. Use safe-to-fail experiments. Emergent practice.</p>
+        </div>
+        <div class="cynefin-quadrant q-complicated">
+          <h3>Complicated</h3>
+          <div class="domain-approach">Sense &rarr; Analyze &rarr; Respond</div>
+          <p style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;">Cause and effect discoverable through expertise. Multiple right answers exist. Good practice.</p>
+        </div>
+        <div class="cynefin-quadrant q-chaotic">
+          <h3>Chaotic</h3>
+          <div class="domain-approach">Act &rarr; Sense &rarr; Respond</div>
+          <p style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;">No cause and effect relationship at system level. Act first to establish order. Novel practice.</p>
+        </div>
+        <div class="cynefin-quadrant q-clear">
+          <h3>Clear</h3>
+          <div class="domain-approach">Sense &rarr; Categorize &rarr; Respond</div>
+          <p style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;">Cause and effect is obvious. Best practices exist and should be applied. Established practice.</p>
+        </div>
+        <div class="cynefin-quadrant q-confused">
+          <h3>Confused / Disorder</h3>
+          <div class="domain-approach">The state of not knowing which domain you are in</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2: Classify -->
+  <div class="phase" id="phase2">
+    <div class="card">
+      <h2>Classify Challenges</h2>
+      <p class="desc" id="classify-desc">Review the AI-suggested classifications. Click a challenge to change its domain. When you're satisfied, proceed to explore each domain.</p>
+      <div id="classify-list"></div>
+      <div style="display:flex;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="goToPhase(3)">Explore Domains &#8594;</button>
+        <button class="btn btn-secondary" onclick="goToPhase(1)">&#8592; Back</button>
+      </div>
+    </div>
+
+    <!-- Live Matrix Preview -->
+    <div class="card">
+      <h2>Cynefin Map</h2>
+      <div class="cynefin-grid" id="live-matrix">
+        <div class="cynefin-quadrant q-complex">
+          <h3>Complex</h3>
+          <div class="domain-approach">Probe &rarr; Sense &rarr; Respond</div>
+          <div id="matrix-complex"></div>
+        </div>
+        <div class="cynefin-quadrant q-complicated">
+          <h3>Complicated</h3>
+          <div class="domain-approach">Sense &rarr; Analyze &rarr; Respond</div>
+          <div id="matrix-complicated"></div>
+        </div>
+        <div class="cynefin-quadrant q-chaotic">
+          <h3>Chaotic</h3>
+          <div class="domain-approach">Act &rarr; Sense &rarr; Respond</div>
+          <div id="matrix-chaotic"></div>
+        </div>
+        <div class="cynefin-quadrant q-clear">
+          <h3>Clear</h3>
+          <div class="domain-approach">Sense &rarr; Categorize &rarr; Respond</div>
+          <div id="matrix-clear"></div>
+        </div>
+        <div class="cynefin-quadrant q-confused">
+          <h3>Confused</h3>
+          <div id="matrix-confused"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3: Explore -->
+  <div class="phase" id="phase3">
+    <div class="card">
+      <h2>Explore &amp; Act</h2>
+      <p class="desc">Each domain requires a different response. Select a domain tab to explore your challenges and take the appropriate action.</p>
+      <div class="domain-tabs" id="domain-tabs"></div>
+    </div>
+
+    <!-- Clear Domain Panel -->
+    <div class="domain-panel" id="panel-clear">
+      <div class="card" style="border-left: 4px solid var(--clear-color);">
+        <h2 style="color:var(--clear-color);">&#9679; Clear Domain</h2>
+        <p class="desc">These challenges have obvious cause-and-effect relationships. Best practices exist. The approach is: <strong>Sense &rarr; Categorize &rarr; Respond</strong>. Apply established best practice.</p>
+        <div id="clear-challenges"></div>
+      </div>
+      <div id="clear-results"></div>
+    </div>
+
+    <!-- Complicated Domain Panel -->
+    <div class="domain-panel" id="panel-complicated">
+      <div class="card" style="border-left: 4px solid var(--complicated-color);">
+        <h2 style="color:var(--complicated-color);">&#9679; Complicated Domain</h2>
+        <p class="desc">These challenges require expert analysis. The relationship between cause and effect exists but isn't self-evident. The approach is: <strong>Sense &rarr; Analyze &rarr; Respond</strong>. There may be multiple right answers.</p>
+        <div id="complicated-challenges"></div>
+      </div>
+      <div id="complicated-results"></div>
+    </div>
+
+    <!-- Complex Domain Panel -->
+    <div class="domain-panel" id="panel-complex">
+      <div class="card" style="border-left: 4px solid var(--complex-color);">
+        <h2 style="color:var(--complex-color);">&#9679; Complex Domain</h2>
+        <p class="desc">These challenges are unpredictable. Cause and effect can only be understood in retrospect. The approach is: <strong>Probe &rarr; Sense &rarr; Respond</strong>. Design safe-to-fail experiments to learn about the system.</p>
+        <div id="complex-challenges"></div>
+      </div>
+      <div id="complex-experiments"></div>
+    </div>
+
+    <!-- Chaotic Domain Panel -->
+    <div class="domain-panel" id="panel-chaotic">
+      <div class="card" style="border-left: 4px solid var(--chaotic-color);">
+        <h2 style="color:var(--chaotic-color);">&#9679; Chaotic Domain</h2>
+        <p class="desc">These challenges are in crisis. There is no discernible cause-and-effect relationship. The approach is: <strong>Act &rarr; Sense &rarr; Respond</strong>. Take immediate action to establish order, then sense where stability lies.</p>
+        <div id="chaotic-challenges"></div>
+        <div style="margin-top:1rem; padding:1rem; background:var(--chaotic-bg); border-radius:10px;">
+          <h4 style="font-size:0.85rem; color:var(--chaotic-color); margin-bottom:0.4rem;">Immediate Action Required</h4>
+          <p style="font-size:0.8rem; color:var(--text-secondary); line-height:1.5;">In the Chaotic domain, there is no time for analysis or experimentation. Act decisively to stabilize the situation. Once order is established, the challenge may shift into the Complex or Complicated domain where more deliberate approaches become possible.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confused Panel -->
+    <div class="domain-panel" id="panel-confused">
+      <div class="card" style="border-left: 4px solid var(--confused-color);">
+        <h2 style="color:var(--confused-color);">&#9679; Confused / Disorder</h2>
+        <p class="desc">These challenges haven't been clearly classified yet. The first step is to break them down or gather more information so they can be moved into one of the four primary domains.</p>
+        <div id="confused-challenges"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:1rem;">
+      <button class="btn btn-secondary" onclick="goToPhase(2)">&#8592; Back to Classification</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let challenges = [];
+  let context = '';
+
+  function goToPhase(n) {
+    document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+    document.getElementById('phase' + n).classList.add('active');
+    ['ps1','ps2','ps3'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.classList.remove('active','done');
+      if (i + 1 === n) el.classList.add('active');
+      else if (i + 1 < n) el.classList.add('done');
+    });
+    ['pc1','pc2'].forEach((id, i) => {
+      document.getElementById(id).classList.toggle('done', i + 1 < n);
+    });
+    window.scrollTo(0, 0);
+    if (n === 3) buildExplorePanels();
+  }
+
+  function parseResponse(data) {
+    const text = data.content[0].text;
+    const match = text.match(/\[[\s\S]*\]/);
+    if (match) return JSON.parse(match[0]);
+    return JSON.parse(text);
+  }
+
+  function parseObjectResponse(data) {
+    const text = data.content[0].text;
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+    return JSON.parse(text);
+  }
+
+  async function classifyChallenges() {
+    const raw = document.getElementById('challenges-input').value.trim();
+    context = document.getElementById('context-input').value.trim();
+    if (!raw) return alert('Please enter at least one challenge.');
+
+    const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    if (lines.length === 0) return alert('Please enter at least one challenge.');
+
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Classifying...';
+
+    try {
+      const res = await fetch('/api/cynefin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'classify',
+          challenge: lines.map((l, i) => `${i + 1}. ${l}`).join('\n'),
+          context
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      const classified = parseResponse(data);
+      challenges = classified.map((c, i) => ({
+        id: i,
+        text: c.challenge,
+        domain: c.domain,
+        reasoning: c.reasoning,
+        approach: c.approach
+      }));
+
+      renderClassifyList();
+      renderMatrix();
+      goToPhase(2);
+    } catch (err) {
+      alert('Error classifying: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Classify with AI \u2192';
+    }
+  }
+
+  function manualClassify() {
+    const raw = document.getElementById('challenges-input').value.trim();
+    context = document.getElementById('context-input').value.trim();
+    if (!raw) return alert('Please enter at least one challenge.');
+
+    const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    challenges = lines.map((l, i) => ({
+      id: i, text: l, domain: 'confused', reasoning: '', approach: ''
+    }));
+
+    document.getElementById('classify-desc').textContent = 'Assign each challenge to a Cynefin domain by clicking the domain buttons.';
+    renderClassifyList();
+    renderMatrix();
+    goToPhase(2);
+  }
+
+  function changeDomain(id, domain) {
+    challenges[id].domain = domain;
+    renderClassifyList();
+    renderMatrix();
+  }
+
+  function renderClassifyList() {
+    const container = document.getElementById('classify-list');
+    container.innerHTML = challenges.map((c, i) => `
+      <div class="challenge-chip" style="border-color: var(--${c.domain}-color);">
+        <div class="chip-num">${i + 1}</div>
+        <div style="flex:1;">
+          <div class="chip-text">${c.text}</div>
+          ${c.reasoning ? `<div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.25rem;">${c.reasoning}</div>` : ''}
+          <div class="domain-selector">
+            ${['clear','complicated','complex','chaotic','confused'].map(d =>
+              `<button class="domain-btn db-${d} ${c.domain === d ? 'active' : ''}" onclick="changeDomain(${i},'${d}')">${d}</button>`
+            ).join('')}
+          </div>
+        </div>
+        <span class="chip-domain domain-${c.domain}">${c.domain}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderMatrix() {
+    ['complex','complicated','chaotic','clear','confused'].forEach(domain => {
+      const el = document.getElementById('matrix-' + domain);
+      const items = challenges.filter(c => c.domain === domain);
+      el.innerHTML = items.map(c =>
+        `<div class="q-item"><span style="font-size:0.75rem;opacity:0.5;">${c.id + 1}.</span> ${c.text}</div>`
+      ).join('') || '<div style="font-size:0.75rem;color:var(--text-secondary);opacity:0.6;padding:0.5rem;">No challenges</div>';
+    });
+  }
+
+  function buildExplorePanels() {
+    const domains = ['clear','complicated','complex','chaotic','confused'];
+    const labels = { clear: 'Clear', complicated: 'Complicated', complex: 'Complex', chaotic: 'Chaotic', confused: 'Confused' };
+    const tabsEl = document.getElementById('domain-tabs');
+
+    // Build tabs for domains that have challenges
+    const activeDomains = domains.filter(d => challenges.some(c => c.domain === d));
+    tabsEl.innerHTML = activeDomains.map((d, i) => {
+      const count = challenges.filter(c => c.domain === d).length;
+      return `<div class="domain-tab ${i === 0 ? 'active-' + d : ''}" onclick="switchDomainTab('${d}', this)" data-domain="${d}">
+        ${labels[d]} <span class="tab-count">${count}</span>
+      </div>`;
+    }).join('');
+
+    // Build challenge lists for each domain
+    domains.forEach(d => {
+      const container = document.getElementById(d + '-challenges');
+      if (!container) return;
+      const items = challenges.filter(c => c.domain === d);
+      container.innerHTML = items.map((c, idx) => `
+        <div class="challenge-chip" style="border-color: var(--${d}-color); margin-bottom: 0.5rem;">
+          <div class="chip-num">${c.id + 1}</div>
+          <div class="chip-text">${c.text}</div>
+          ${d === 'clear' ? `<button class="btn btn-clear btn-sm" onclick="askExpertClear(${c.id})">Ask Expert</button>` : ''}
+          ${d === 'complicated' ? `<button class="btn btn-complicated btn-sm" onclick="askExpertComplicated(${c.id})">Analyze</button>` : ''}
+          ${d === 'complex' ? `<button class="btn btn-complex btn-sm" onclick="showHypothesisInput(${c.id})">Design Experiment</button>` : ''}
+        </div>
+      `).join('') || '<p style="color:var(--text-secondary);font-size:0.85rem;">No challenges in this domain.</p>';
+    });
+
+    // Show first active domain
+    document.querySelectorAll('.domain-panel').forEach(p => p.classList.remove('active'));
+    if (activeDomains.length > 0) {
+      document.getElementById('panel-' + activeDomains[0]).classList.add('active');
+    }
+
+    // Clear previous results
+    document.getElementById('clear-results').innerHTML = '';
+    document.getElementById('complicated-results').innerHTML = '';
+    document.getElementById('complex-experiments').innerHTML = '';
+  }
+
+  function switchDomainTab(domain, tabEl) {
+    document.querySelectorAll('.domain-tab').forEach(t => {
+      t.className = 'domain-tab';
+    });
+    tabEl.classList.add('active-' + domain);
+    document.querySelectorAll('.domain-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + domain).classList.add('active');
+  }
+
+  async function askExpertClear(id) {
+    const c = challenges[id];
+    const resultsEl = document.getElementById('clear-results');
+    resultsEl.innerHTML = `<div class="loading"><div class="spinner"></div>Consulting expert on best practice for: "${c.text}"...</div>`;
+
+    try {
+      const res = await fetch('/api/cynefin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'expert-clear', challenge: c.text, context })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      const result = parseObjectResponse(data);
+      resultsEl.innerHTML = `
+        <div class="expert-panel clear-panel">
+          <h4>&#9679; Best Practice: ${c.text}</h4>
+          <p>${result.bestPractice}</p>
+          <div style="margin-top:0.75rem;">
+            <h4 style="font-size:0.8rem;">Steps to Implement</h4>
+            <ol style="padding-left:1.25rem;margin-top:0.3rem;">
+              ${result.steps.map(s => `<li style="font-size:0.82rem;color:var(--text);margin-bottom:0.3rem;line-height:1.45;">${s}</li>`).join('')}
+            </ol>
+          </div>
+          <div style="margin-top:0.75rem;">
+            <h4 style="font-size:0.8rem;">Common Pitfalls to Avoid</h4>
+            <ul style="padding-left:1.25rem;margin-top:0.3rem;">
+              ${result.pitfalls.map(p => `<li style="font-size:0.82rem;color:var(--text);margin-bottom:0.3rem;line-height:1.45;">${p}</li>`).join('')}
+            </ul>
+          </div>
+          <div style="margin-top:0.75rem;display:flex;gap:1rem;flex-wrap:wrap;">
+            <div style="padding:0.5rem 0.75rem;background:var(--clear-bg);border-radius:8px;font-size:0.8rem;">
+              <strong>Timeframe:</strong> ${result.timeframe}
+            </div>
+            <div style="padding:0.5rem 0.75rem;background:${result.confidence === 'high' ? 'var(--clear-bg)' : '#FFF8E1'};border-radius:8px;font-size:0.8rem;">
+              <strong>Confidence:</strong> ${result.confidence}
+            </div>
+          </div>
+        </div>
+      `;
+    } catch (err) {
+      resultsEl.innerHTML = `<div class="warning-box">Error: ${err.message}</div>`;
+    }
+  }
+
+  async function askExpertComplicated(id) {
+    const c = challenges[id];
+    const resultsEl = document.getElementById('complicated-results');
+    resultsEl.innerHTML = `<div class="loading"><div class="spinner"></div>Performing deep expert analysis on: "${c.text}"...</div>`;
+
+    try {
+      const res = await fetch('/api/cynefin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'expert-complicated', challenge: c.text, context })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      const result = parseObjectResponse(data);
+      resultsEl.innerHTML = `
+        <div class="expert-panel">
+          <h4>&#128269; Expert Analysis: ${c.text}</h4>
+          <p>${result.analysis}</p>
+        </div>
+
+        ${result.options.map((opt, i) => `
+          <div class="option-card">
+            <h5>Option ${i + 1}: ${opt.name}</h5>
+            <p>${opt.description}</p>
+            <div class="pros-cons">
+              <div>
+                <h6 class="pro">Pros</h6>
+                <ul class="pro-list">${opt.pros.map(p => `<li>${p}</li>`).join('')}</ul>
+              </div>
+              <div>
+                <h6 class="con">Cons</h6>
+                <ul class="con-list">${opt.cons.map(c => `<li>${c}</li>`).join('')}</ul>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+
+        <div class="expert-panel">
+          <h4>&#127919; Recommendation</h4>
+          <p>${result.recommendation}</p>
+        </div>
+
+        <div class="expert-panel">
+          <h4>Expertise to Seek</h4>
+          <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.25rem;">
+            ${result.expertiseNeeded.map(e => `<span style="padding:0.3rem 0.6rem;background:var(--complicated-bg);border-radius:6px;font-size:0.78rem;color:var(--complicated-color);font-weight:500;">${e}</span>`).join('')}
+          </div>
+        </div>
+
+        <div class="expert-panel">
+          <h4>Key Diagnostic Questions</h4>
+          <ul class="key-questions" style="margin-top:0.3rem;">
+            ${result.keyQuestions.map(q => `<li>${q}</li>`).join('')}
+          </ul>
+        </div>
+
+        ${result.warning ? `<div class="warning-box"><strong>&#9888; Domain Warning:</strong> ${result.warning}</div>` : ''}
+      `;
+    } catch (err) {
+      resultsEl.innerHTML = `<div class="warning-box">Error: ${err.message}</div>`;
+    }
+  }
+
+  function showHypothesisInput(id) {
+    const c = challenges[id];
+    const container = document.getElementById('complex-experiments');
+    container.innerHTML = `
+      <div class="hypothesis-input">
+        <h4>Design Safe-to-Fail Experiments</h4>
+        <p>For: <strong>${c.text}</strong></p>
+        <p>What is your hypothesis? What do you believe might be true about this challenge? The AI will design experiments to test this hypothesis safely.</p>
+        <div class="form-group" style="margin-top:0.75rem;">
+          <label>Hypothesis</label>
+          <textarea id="hypothesis-text" rows="3" style="min-height:80px;" placeholder="e.g., We believe that giving regional teams more pricing autonomy will increase market responsiveness without significantly eroding margins..."></textarea>
+        </div>
+        <button class="btn btn-complex" onclick="designExperiments(${id})">Design Experiments &#8594;</button>
+      </div>
+    `;
+  }
+
+  async function designExperiments(id) {
+    const c = challenges[id];
+    const hypothesis = document.getElementById('hypothesis-text').value.trim();
+    if (!hypothesis) return alert('Please enter a hypothesis.');
+
+    const container = document.getElementById('complex-experiments');
+    const inputHTML = container.innerHTML;
+    container.innerHTML += `<div class="loading" id="exp-loading"><div class="spinner"></div>Designing safe-to-fail experiments...</div>`;
+
+    try {
+      const res = await fetch('/api/cynefin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'experiment-complex',
+          challenge: c.text,
+          hypothesis,
+          context
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      const result = parseObjectResponse(data);
+      document.getElementById('exp-loading').remove();
+
+      container.innerHTML = `
+        <div class="hypothesis-input">
+          <h4>&#128300; Hypothesis Assessment</h4>
+          <p>For: <strong>${c.text}</strong></p>
+          <p><em>"${hypothesis}"</em></p>
+          <p style="margin-top:0.5rem;">${result.hypothesisAssessment}</p>
+        </div>
+
+        ${result.experiments.map((exp, i) => `
+          <div class="experiment-card">
+            <h4>Experiment ${i + 1}: ${exp.name}</h4>
+            <p>${exp.description}</p>
+            <div class="exp-detail">
+              <div class="exp-detail-item">
+                <div class="edl">Probe Action</div>
+                <p>${exp.probeAction}</p>
+              </div>
+              <div class="exp-detail-item">
+                <div class="edl">Sensing Mechanism</div>
+                <p>${exp.sensingMechanism}</p>
+              </div>
+              <div class="exp-detail-item amplify">
+                <div class="edl">&#9650; Amplify If...</div>
+                <p>${exp.amplifySignals}</p>
+              </div>
+              <div class="exp-detail-item dampen">
+                <div class="edl">&#9660; Dampen If...</div>
+                <p>${exp.dampenSignals}</p>
+              </div>
+              <div class="exp-detail-item">
+                <div class="edl">Timeframe</div>
+                <p>${exp.timeframe}</p>
+              </div>
+              <div class="exp-detail-item">
+                <div class="edl">Resources</div>
+                <p>${exp.resources}</p>
+              </div>
+              <div class="exp-detail-item" style="grid-column:1/-1;">
+                <div class="edl">&#128737; Safety Bounds</div>
+                <p>${exp.safetyBounds}</p>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+
+        <div class="expert-panel" style="border-left-color:var(--complex-color);">
+          <h4>Portfolio Note</h4>
+          <p>${result.portfolioNote}</p>
+        </div>
+
+        <div class="expert-panel" style="border-left-color:var(--complex-color);">
+          <h4>Emergent Indicators to Watch</h4>
+          <ul style="padding-left:1.25rem;margin-top:0.3rem;">
+            ${result.emergentIndicators.map(e => `<li style="font-size:0.82rem;color:var(--text);margin-bottom:0.3rem;line-height:1.45;">${e}</li>`).join('')}
+          </ul>
+        </div>
+
+        <div style="margin-top:1rem;">
+          <button class="btn btn-complex btn-sm" onclick="showHypothesisInput(${id})">&#8634; Try Different Hypothesis</button>
+        </div>
+      `;
+    } catch (err) {
+      const loadingEl = document.getElementById('exp-loading');
+      if (loadingEl) loadingEl.remove();
+      container.innerHTML += `<div class="warning-box">Error: ${err.message}</div>`;
+    }
+  }
+</script>
+
+</body>
+</html>
