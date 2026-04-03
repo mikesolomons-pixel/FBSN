@@ -95,6 +95,9 @@
   .majority-banner { text-align: center; padding: 1rem; background: rgba(0,137,123,0.15); border-radius: 12px; margin-bottom: 1rem; }
   .majority-banner .label { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; }
   .majority-banner .result { font-size: 1.3rem; font-weight: 700; color: var(--teal-light); }
+  .maj-btn { padding: 0.4rem 1.2rem; border-radius: 8px; border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: var(--text-secondary); font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .maj-btn:hover { border-color: var(--teal); }
+  .maj-btn.active { border-color: var(--teal-light); background: rgba(0,137,123,0.3); color: white; }
 
   .controls { padding: 1rem 2rem; background: rgba(0,0,0,0.3); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 1rem; }
 
@@ -235,8 +238,17 @@
 
       <div class="vote-reveal" id="voteReveal">
         <div class="majority-banner" id="majorityBanner">
-          <div class="label">Majority Vote</div>
-          <div class="result" id="majorityResult"></div>
+          <div class="label">Final Decision <span style="font-size:0.7rem;opacity:0.7">(click to change)</span></div>
+          <div style="display:flex;gap:0.75rem;justify-content:center;margin-top:0.5rem;flex-wrap:wrap">
+            <div style="display:flex;gap:0.4rem">
+              <button class="maj-btn" id="majFact" onclick="setMajority('fact',null)">Fact</button>
+              <button class="maj-btn" id="majBelief" onclick="setMajority('belief',null)">Belief</button>
+            </div>
+            <div style="display:flex;gap:0.4rem">
+              <button class="maj-btn" id="majSignal" onclick="setMajority(null,'signal')">Signal</button>
+              <button class="maj-btn" id="majNoise" onclick="setMajority(null,'noise')">Noise</button>
+            </div>
+          </div>
         </div>
         <div class="vote-grid" id="voteGrid"></div>
       </div>
@@ -518,14 +530,12 @@ async function refreshReveal() {
     revealData.push({ name: p.name, vote: v ? { certainty: v.certainty, importance: v.importance } : null });
   });
 
-  if (majorityKey) {
+  if (majorityKey && !currentMajority) {
     const [cert, imp] = majorityKey.split('-');
     currentMajority = { certainty: cert, importance: imp };
-    document.getElementById('majorityBanner').style.display = '';
-    document.getElementById('majorityResult').textContent = `${capitalize(cert)} + ${capitalize(imp)}`;
-  } else {
-    document.getElementById('majorityBanner').style.display = 'none';
   }
+  document.getElementById('majorityBanner').style.display = '';
+  updateMajorityButtons();
 
   const grid = document.getElementById('voteGrid');
   grid.innerHTML = revealData.map(p => {
@@ -633,6 +643,21 @@ function showComplete(persps, decisions) {
   document.getElementById('wontDoList').innerHTML = wontDo.length ? wontDo.map(t => `<div class="a-item">${esc(t)}</div>`).join('') : '<div class="a-empty">None</div>';
 }
 
+// ========== MAJORITY OVERRIDE ==========
+function setMajority(cert, imp) {
+  if (!currentMajority) currentMajority = { certainty: null, importance: null };
+  if (cert) currentMajority.certainty = cert;
+  if (imp) currentMajority.importance = imp;
+  updateMajorityButtons();
+}
+
+function updateMajorityButtons() {
+  document.getElementById('majFact').classList.toggle('active', currentMajority && currentMajority.certainty === 'fact');
+  document.getElementById('majBelief').classList.toggle('active', currentMajority && currentMajority.certainty === 'belief');
+  document.getElementById('majSignal').classList.toggle('active', currentMajority && currentMajority.importance === 'signal');
+  document.getElementById('majNoise').classList.toggle('active', currentMajority && currentMajority.importance === 'noise');
+}
+
 // ========== FACT CHECK ==========
 async function factCheckCurrent() {
   const text = perspectives[currentIndex];
@@ -669,6 +694,7 @@ window.nextPerspective = nextPerspective;
 window.prevPerspective = prevPerspective;
 window.toggleMatrix = toggleMatrix;
 window.factCheckCurrent = factCheckCurrent;
+window.setMajority = setMajority;
 window.perspectives = perspectives;
 window.renderPerspList = renderPerspList;
 
