@@ -305,6 +305,7 @@ let finalDecisions = {};
 let currentMajority = null;
 let participantsList = [];
 let pollInterval = null;
+let votesRevealed = false;
 
 // ========== SETUP ==========
 function addPersp() {
@@ -423,6 +424,7 @@ async function startSession() {
 
   channel.on('broadcast', { event: 'vote' }, () => {
     refreshVoteStatus();
+    if (votesRevealed) refreshReveal();
   });
 
   channel.on('broadcast', { event: 'participant_joined' }, (payload) => {
@@ -490,10 +492,11 @@ function showPerspective(text, idx, total) {
   document.getElementById('revealBtn').style.display = '';
   document.getElementById('confirmBtn').style.display = 'none';
   currentMajority = null;
+  votesRevealed = false;
   refreshVoteStatus();
 }
 
-async function revealVotes() {
+async function refreshReveal() {
   const { data: votes } = await supabaseClient.from('votes').select('*, participants(name)').eq('room_id', roomId).eq('perspective_index', currentIndex);
 
   // Calculate majority
@@ -510,11 +513,6 @@ async function revealVotes() {
     const v = (votes || []).find(vote => vote.participant_id === p.id);
     revealData.push({ name: p.name, vote: v ? { certainty: v.certainty, importance: v.importance } : null });
   });
-
-  // Show reveal UI
-  document.getElementById('voteReveal').classList.add('active');
-  document.getElementById('revealBtn').style.display = 'none';
-  document.getElementById('confirmBtn').style.display = '';
 
   if (majorityKey) {
     const [cert, imp] = majorityKey.split('-');
@@ -535,6 +533,16 @@ async function revealVotes() {
       </div>
     </div>`;
   }).join('');
+}
+
+async function revealVotes() {
+  await refreshReveal();
+
+  // Show reveal UI
+  votesRevealed = true;
+  document.getElementById('voteReveal').classList.add('active');
+  document.getElementById('revealBtn').style.display = 'none';
+  document.getElementById('confirmBtn').style.display = '';
 
   // Update room revealed state
   await supabaseClient.from('rooms').update({ revealed: true }).eq('id', roomId);
