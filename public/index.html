@@ -492,6 +492,18 @@
     color: var(--text-secondary);
     margin-bottom: 1rem;
   }
+  .action-context {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(0,0,0,0.04);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .action-context:empty { display: none; }
+  .action-context .ctx-label { font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem; color: var(--text-secondary); }
+  .action-context .ctx-item { padding: 0.15rem 0; }
   .action-item {
     padding: 0.6rem 0.75rem;
     background: rgba(255,255,255,0.8);
@@ -499,7 +511,26 @@
     font-size: 0.85rem;
     margin-bottom: 0.5rem;
     line-height: 1.4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
+  .action-item .action-rm { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1rem; margin-left: 0.5rem; flex-shrink: 0; }
+  .action-item .action-rm:hover { color: #EF5350; }
+  .action-add-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+  .action-input {
+    flex: 1;
+    padding: 0.4rem 0.6rem;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-family: inherit;
+  }
+  .action-input:focus { outline: none; border-color: var(--teal); }
 
   /* Spinner */
   .spinner {
@@ -977,23 +1008,38 @@
   <div class="phase" id="phase-5">
     <div class="card">
       <h2>From Strategic Clarity to Action</h2>
-      <p class="desc">What we do next depends on how we classify our facts and beliefs. Not all facts require action, and not all beliefs should be ignored.</p>
+      <p class="desc">Based on where perspectives landed in the matrix, define what you will do next. Add specific actions under each category.</p>
 
       <div class="action-columns">
         <div class="action-col must-do">
           <div class="action-col-header">MUST DO</div>
-          <div class="action-col-subtitle">Act now &mdash; align execution, move fast</div>
+          <div class="action-col-subtitle">Facts + Signals &mdash; Act now, align execution, move fast</div>
+          <div class="action-context" id="mustDoContext"></div>
           <div id="mustDoList"></div>
+          <div class="action-add-row">
+            <input type="text" class="action-input" id="mustDoInput" placeholder="Add an action...">
+            <button class="btn btn-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem" onclick="addAction('mustDo')">Add</button>
+          </div>
         </div>
         <div class="action-col might-do">
           <div class="action-col-header">MIGHT DO</div>
-          <div class="action-col-subtitle">Test and learn &mdash; validate the bet</div>
+          <div class="action-col-subtitle">Beliefs + Signals &mdash; Test and learn, validate the bet</div>
+          <div class="action-context" id="mightDoContext"></div>
           <div id="mightDoList"></div>
+          <div class="action-add-row">
+            <input type="text" class="action-input" id="mightDoInput" placeholder="Add an action...">
+            <button class="btn btn-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem" onclick="addAction('mightDo')">Add</button>
+          </div>
         </div>
         <div class="action-col wont-do">
           <div class="action-col-header">WON'T DO</div>
-          <div class="action-col-subtitle">Avoid distractions &mdash; free cognitive load</div>
+          <div class="action-col-subtitle">Noise &mdash; Avoid distractions, free cognitive load</div>
+          <div class="action-context" id="wontDoContext"></div>
           <div id="wontDoList"></div>
+          <div class="action-add-row">
+            <input type="text" class="action-input" id="wontDoInput" placeholder="Add an action...">
+            <button class="btn btn-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem" onclick="addAction('wontDo')">Add</button>
+          </div>
         </div>
       </div>
 
@@ -1019,6 +1065,7 @@ let state = {
   currentIndex: 0,
   currentCertainty: null,
   currentImportance: null,
+  actions: { mustDo: [], mightDo: [], wontDo: [] },
 };
 
 // ========== NAVIGATION ==========
@@ -1381,29 +1428,59 @@ function renderMatrix() {
 
 // ========== ACTIONS ==========
 function renderActions() {
-  const mustDo = [];
-  const mightDo = [];
-  const wontDo = [];
-
+  // Show matrix perspectives as context
+  const mustPersp = [], mightPersp = [], wontPersp = [];
   state.categorized.forEach(item => {
-    if (item.certainty === 'fact' && item.importance === 'signal') mustDo.push(item.text);
-    else if (item.certainty === 'belief' && item.importance === 'signal') mightDo.push(item.text);
-    else wontDo.push(item.text);
+    if (item.certainty === 'fact' && item.importance === 'signal') mustPersp.push(item.text);
+    else if (item.certainty === 'belief' && item.importance === 'signal') mightPersp.push(item.text);
+    else wontPersp.push(item.text);
   });
 
-  renderActionList('mustDoList', mustDo);
-  renderActionList('mightDoList', mightDo);
-  renderActionList('wontDoList', wontDo);
+  renderContext('mustDoContext', 'Facts + Signals', mustPersp);
+  renderContext('mightDoContext', 'Beliefs + Signals', mightPersp);
+  renderContext('wontDoContext', 'Noise', wontPersp);
+
+  renderActionList('mustDoList', 'mustDo');
+  renderActionList('mightDoList', 'mightDo');
+  renderActionList('wontDoList', 'wontDo');
 }
 
-function renderActionList(id, items) {
+function renderContext(id, label, items) {
   const el = document.getElementById(id);
+  if (items.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="ctx-label">Based on: ${label}</div>${items.map(t => `<div class="ctx-item">&bull; ${escapeHtml(t)}</div>`).join('')}`;
+}
+
+function renderActionList(id, key) {
+  const el = document.getElementById(id);
+  const items = state.actions[key] || [];
   if (items.length === 0) {
-    el.innerHTML = '<div class="empty-state" style="padding:1rem">No items</div>';
+    el.innerHTML = '';
     return;
   }
-  el.innerHTML = items.map(t => `<div class="action-item">${escapeHtml(t)}</div>`).join('');
+  el.innerHTML = items.map((t, i) => `<div class="action-item"><span>${escapeHtml(t)}</span><button class="action-rm" onclick="removeAction('${key}',${i})">&times;</button></div>`).join('');
 }
+
+function addAction(key) {
+  const input = document.getElementById(key + 'Input');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!state.actions[key]) state.actions[key] = [];
+  state.actions[key].push(text);
+  input.value = '';
+  renderActionList(key + 'List', key);
+  autoSave();
+}
+
+function removeAction(key, idx) {
+  state.actions[key].splice(idx, 1);
+  renderActionList(key + 'List', key);
+  autoSave();
+}
+
+['mustDo', 'mightDo', 'wontDo'].forEach(key => {
+  document.getElementById(key + 'Input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addAction(key); } });
+});
 
 // ========== EXPORT ==========
 function exportResults() {
@@ -1428,21 +1505,19 @@ function exportResults() {
   lines.push('=== ACTIONS ===');
   lines.push('');
 
-  const mustDo = state.categorized.filter(c => c.certainty === 'fact' && c.importance === 'signal');
-  const mightDo = state.categorized.filter(c => c.certainty === 'belief' && c.importance === 'signal');
-  const wontDo = state.categorized.filter(c => (c.importance === 'noise'));
+  const a = state.actions || { mustDo: [], mightDo: [], wontDo: [] };
 
   lines.push('MUST DO (Act now)');
-  mustDo.forEach(i => lines.push(`  - ${i.text}`));
-  if (!mustDo.length) lines.push('  (none)');
+  a.mustDo.forEach(i => lines.push(`  - ${i}`));
+  if (!a.mustDo.length) lines.push('  (none)');
   lines.push('');
   lines.push('MIGHT DO (Test and learn)');
-  mightDo.forEach(i => lines.push(`  - ${i.text}`));
-  if (!mightDo.length) lines.push('  (none)');
+  a.mightDo.forEach(i => lines.push(`  - ${i}`));
+  if (!a.mightDo.length) lines.push('  (none)');
   lines.push('');
   lines.push('WON\'T DO (Avoid distractions)');
-  wontDo.forEach(i => lines.push(`  - ${i.text}`));
-  if (!wontDo.length) lines.push('  (none)');
+  a.wontDo.forEach(i => lines.push(`  - ${i}`));
+  if (!a.wontDo.length) lines.push('  (none)');
 
   const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
@@ -1472,6 +1547,7 @@ function buildSessionData() {
     context: state.context,
     perspectives: state.perspectives,
     categorized: state.categorized,
+    actions: state.actions,
     currentIndex: state.currentIndex,
     savedAt: new Date().toISOString(),
     phase: getCurrentPhase(),
@@ -1516,6 +1592,7 @@ function loadSession(id) {
   state.context = data.context;
   state.perspectives = data.perspectives || [];
   state.categorized = data.categorized || [];
+  state.actions = data.actions || { mustDo: [], mightDo: [], wontDo: [] };
   state.currentIndex = data.currentIndex || 0;
   state.currentCertainty = null;
   state.currentImportance = null;
@@ -1645,7 +1722,7 @@ function importSession(input) {
 
 // ========== RESET ==========
 function resetApp() {
-  state = { title: '', context: '', perspectives: [], categorized: [], currentIndex: 0, currentCertainty: null, currentImportance: null, sessionId: null };
+  state = { title: '', context: '', perspectives: [], categorized: [], currentIndex: 0, currentCertainty: null, currentImportance: null, actions: { mustDo: [], mightDo: [], wontDo: [] }, sessionId: null };
   document.getElementById('titleInput').value = '';
   document.getElementById('contextInput').value = '';
   document.getElementById('rawTextInput').value = '';

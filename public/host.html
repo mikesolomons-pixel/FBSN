@@ -152,6 +152,14 @@
   .a-col .a-sub { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.75rem; }
   .a-item { font-size: 0.85rem; padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 0.4rem; line-height: 1.3; }
   .a-empty { font-size: 0.8rem; color: var(--text-secondary); font-style: italic; }
+  .a-context { font-size: 0.75rem; color: var(--text-secondary); background: rgba(255,255,255,0.04); border-radius: 6px; padding: 0.5rem; margin-bottom: 0.5rem; line-height: 1.4; }
+  .a-context:empty { display: none; }
+  .a-context .ctx-label { font-weight: 600; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.2rem; }
+  .a-input { flex: 1; padding: 0.35rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; font-family: inherit; background: rgba(255,255,255,0.05); color: var(--text); }
+  .a-input:focus { outline: none; border-color: var(--teal); }
+  .a-item { display: flex; align-items: center; justify-content: space-between; }
+  .a-item .a-rm { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.9rem; margin-left: 0.3rem; }
+  .a-item .a-rm:hover { color: #EF5350; }
 </style>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -298,9 +306,33 @@
     <div class="m-cell bs" id="fm-belief-signal"><div class="m-cell-title">Beliefs / Signals</div></div>
   </div>
   <div class="action-cols" id="actionCols">
-    <div class="a-col must"><h4>MUST DO</h4><div class="a-sub">Act now</div><div id="mustDoList"></div></div>
-    <div class="a-col might"><h4>MIGHT DO</h4><div class="a-sub">Test and learn</div><div id="mightDoList"></div></div>
-    <div class="a-col wont"><h4>WON'T DO</h4><div class="a-sub">Avoid distractions</div><div id="wontDoList"></div></div>
+    <div class="a-col must">
+      <h4>MUST DO</h4><div class="a-sub">Facts + Signals &mdash; Act now</div>
+      <div class="a-context" id="mustDoContext"></div>
+      <div id="mustDoList"></div>
+      <div style="display:flex;gap:0.3rem;margin-top:0.5rem">
+        <input type="text" class="a-input" id="mustDoInput" placeholder="Add action...">
+        <button class="btn btn-primary" style="padding:0.3rem 0.6rem;font-size:0.75rem" onclick="addHostAction('mustDo')">Add</button>
+      </div>
+    </div>
+    <div class="a-col might">
+      <h4>MIGHT DO</h4><div class="a-sub">Beliefs + Signals &mdash; Test and learn</div>
+      <div class="a-context" id="mightDoContext"></div>
+      <div id="mightDoList"></div>
+      <div style="display:flex;gap:0.3rem;margin-top:0.5rem">
+        <input type="text" class="a-input" id="mightDoInput" placeholder="Add action...">
+        <button class="btn btn-primary" style="padding:0.3rem 0.6rem;font-size:0.75rem" onclick="addHostAction('mightDo')">Add</button>
+      </div>
+    </div>
+    <div class="a-col wont">
+      <h4>WON'T DO</h4><div class="a-sub">Noise &mdash; Avoid distractions</div>
+      <div class="a-context" id="wontDoContext"></div>
+      <div id="wontDoList"></div>
+      <div style="display:flex;gap:0.3rem;margin-top:0.5rem">
+        <input type="text" class="a-input" id="wontDoInput" placeholder="Add action...">
+        <button class="btn btn-primary" style="padding:0.3rem 0.6rem;font-size:0.75rem" onclick="addHostAction('wontDo')">Add</button>
+      </div>
+    </div>
   </div>
   <div class="btn-row" style="justify-content:center;margin-top:1rem">
     <button class="btn btn-ghost" onclick="location.reload()">New Session</button>
@@ -644,16 +676,56 @@ function showComplete(persps, decisions) {
     items.forEach(t => { const tag = document.createElement('div'); tag.className = 'm-tag'; tag.textContent = t; cell.appendChild(tag); });
   });
 
-  const mustDo = [], mightDo = [], wontDo = [];
+  // Show perspectives as context under each action column
+  const mustPersp = [], mightPersp = [], wontPersp = [];
   Object.entries(decisions).forEach(([idx, d]) => {
     const text = persps[idx];
-    if (d.certainty === 'fact' && d.importance === 'signal') mustDo.push(text);
-    else if (d.certainty === 'belief' && d.importance === 'signal') mightDo.push(text);
-    else wontDo.push(text);
+    if (d.certainty === 'fact' && d.importance === 'signal') mustPersp.push(text);
+    else if (d.certainty === 'belief' && d.importance === 'signal') mightPersp.push(text);
+    else wontPersp.push(text);
   });
-  document.getElementById('mustDoList').innerHTML = mustDo.length ? mustDo.map(t => `<div class="a-item">${esc(t)}</div>`).join('') : '<div class="a-empty">None</div>';
-  document.getElementById('mightDoList').innerHTML = mightDo.length ? mightDo.map(t => `<div class="a-item">${esc(t)}</div>`).join('') : '<div class="a-empty">None</div>';
-  document.getElementById('wontDoList').innerHTML = wontDo.length ? wontDo.map(t => `<div class="a-item">${esc(t)}</div>`).join('') : '<div class="a-empty">None</div>';
+
+  renderHostContext('mustDoContext', 'Facts + Signals', mustPersp);
+  renderHostContext('mightDoContext', 'Beliefs + Signals', mightPersp);
+  renderHostContext('wontDoContext', 'Noise', wontPersp);
+
+  // Clear action lists
+  document.getElementById('mustDoList').innerHTML = '';
+  document.getElementById('mightDoList').innerHTML = '';
+  document.getElementById('wontDoList').innerHTML = '';
+
+  // Enter key for action inputs
+  ['mustDo', 'mightDo', 'wontDo'].forEach(key => {
+    document.getElementById(key + 'Input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addHostAction(key); } });
+  });
+}
+
+function renderHostContext(id, label, items) {
+  const el = document.getElementById(id);
+  if (items.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="ctx-label">Based on: ${label}</div>${items.map(t => `<div>&bull; ${esc(t)}</div>`).join('')}`;
+}
+
+let hostActions = { mustDo: [], mightDo: [], wontDo: [] };
+
+function addHostAction(key) {
+  const input = document.getElementById(key + 'Input');
+  const text = input.value.trim();
+  if (!text) return;
+  hostActions[key].push(text);
+  input.value = '';
+  renderHostActionList(key);
+}
+
+function removeHostAction(key, idx) {
+  hostActions[key].splice(idx, 1);
+  renderHostActionList(key);
+}
+
+function renderHostActionList(key) {
+  const el = document.getElementById(key + 'List');
+  const items = hostActions[key];
+  el.innerHTML = items.map((t, i) => `<div class="a-item">${esc(t)}<button class="a-rm" onclick="removeHostAction('${key}',${i})">&times;</button></div>`).join('');
 }
 
 // ========== MAJORITY OVERRIDE ==========
@@ -708,6 +780,8 @@ window.prevPerspective = prevPerspective;
 window.toggleMatrix = toggleMatrix;
 window.factCheckCurrent = factCheckCurrent;
 window.setMajority = setMajority;
+window.addHostAction = addHostAction;
+window.removeHostAction = removeHostAction;
 window.perspectives = perspectives;
 window.renderPerspList = renderPerspList;
 
