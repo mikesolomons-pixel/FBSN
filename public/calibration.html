@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calibration - Value Creating Teams</title>
+<script src="auth.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --teal: #00897B;
+    --teal-dark: #006B5E;
+    --teal-light: #4DB6AC;
+    --gold: #D4A843;
+    --coral: #E07A5F;
+    --purple: #7C5CBF;
+    --blue: #4A90D9;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1B2A4A;
+    --text-secondary: #5A6B8A;
+    --border: #E2E8F0;
+    --shadow: 0 2px 8px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+    color: white;
+    padding: 2rem 2rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at 70% 80%, rgba(74,144,217,0.2) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .header-content { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: white; }
+  .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+  .header .time-badge {
+    display: inline-block;
+    margin-top: 0.75rem;
+    padding: 0.3rem 0.75rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* Main */
+  .main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+  /* Intro Card */
+  .intro-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+    border-left: 4px solid var(--blue);
+  }
+  .intro-card h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.75rem;
+  }
+  .intro-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 0.75rem;
+  }
+  .intro-card p:last-child { margin-bottom: 0; }
+  .surfaces-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .surface-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .surface-item .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--blue);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  /* Timeline */
+  .timeline-section {
+    margin-bottom: 2rem;
+  }
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-label h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .section-label .line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* Timeline Track */
+  .timeline {
+    position: relative;
+    padding-left: 48px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--blue), var(--teal), var(--gold));
+    border-radius: 2px;
+  }
+
+  /* Phase Headers on Timeline */
+  .timeline-phase {
+    position: relative;
+    margin-bottom: 0.5rem;
+  }
+  .timeline-phase .phase-marker {
+    position: absolute;
+    left: -48px;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 0.75rem;
+    z-index: 2;
+  }
+  .phase-1 .phase-marker { background: var(--blue); }
+  .phase-2 .phase-marker { background: var(--teal); }
+  .phase-3 .phase-marker { background: var(--purple); }
+  .phase-4 .phase-marker { background: var(--gold); }
+
+  .timeline-phase .phase-header {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+  }
+  .timeline-phase .phase-header:hover {
+    box-shadow: var(--shadow-lg);
+  }
+  .phase-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .phase-header h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .phase-header .phase-time {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .phase-header p {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-top: 0.4rem;
+  }
+  .phase-toggle {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+  }
+  .phase-header.expanded .phase-toggle { transform: rotate(180deg); }
+
+  /* Timeline Items */
+  .timeline-items {
+    display: none;
+    padding-bottom: 1rem;
+  }
+  .timeline-items.expanded { display: block; }
+
+  .timeline-item {
+    position: relative;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 0.75rem;
+    border-left: 3px solid transparent;
+    transition: transform 0.15s;
+  }
+  .timeline-item:hover { transform: translateX(2px); }
+  .phase-1 .timeline-item { border-left-color: var(--blue); }
+  .phase-2 .timeline-item { border-left-color: var(--teal); }
+  .phase-3 .timeline-item { border-left-color: var(--purple); }
+  .phase-4 .timeline-item { border-left-color: var(--gold); }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -35px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--border);
+    z-index: 2;
+  }
+  .phase-1 .timeline-item::before { border-color: var(--blue); }
+  .phase-2 .timeline-item::before { border-color: var(--teal); }
+  .phase-3 .timeline-item::before { border-color: var(--purple); }
+  .phase-4 .timeline-item::before { border-color: var(--gold); }
+
+  .item-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.4rem;
+  }
+  .timeline-item h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .item-timing {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .phase-1 .item-timing { background: var(--blue); }
+  .phase-2 .item-timing { background: var(--teal); }
+  .phase-3 .item-timing { background: var(--purple); }
+  .phase-4 .item-timing { background: var(--gold); }
+
+  .timeline-item p {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin-bottom: 0.5rem;
+  }
+  .timeline-item p:last-child { margin-bottom: 0; }
+
+  .item-details {
+    list-style: none;
+    margin-top: 0.5rem;
+  }
+  .item-details li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 0.35rem;
+  }
+  .item-details li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  .item-output {
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--bg);
+    border-radius: 8px;
+    font-size: 0.78rem;
+    color: var(--text);
+  }
+  .item-output strong {
+    color: var(--navy);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Summary Bar */
+  .summary-bar {
+    background: linear-gradient(135deg, var(--navy), var(--teal-dark));
+    border-radius: 16px;
+    padding: 1.75rem;
+    color: white;
+    margin-bottom: 2rem;
+  }
+  .summary-bar h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  .summary-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+  .metric {
+    padding: 0.75rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .metric .metric-value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 0.15rem;
+  }
+  .metric .metric-label {
+    font-size: 0.72rem;
+    opacity: 0.75;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header h1 { font-size: 1.5rem; }
+    .main { padding: 1rem; }
+    .timeline { padding-left: 40px; }
+    .timeline::before { left: 15px; }
+    .timeline-phase .phase-marker { left: -40px; width: 32px; height: 32px; font-size: 0.65rem; }
+    .timeline-item::before { left: -31px; }
+    .surfaces-grid { grid-template-columns: 1fr; }
+    .summary-metrics { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-content">
+    <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
+    <h1>Calibration</h1>
+    <p class="subtitle">Synchronizing understanding. Establishing a shared view of where the team actually is &mdash; not where they wish they were.</p>
+    <span class="time-badge">&#9201; First 30 &ndash; 60 Days</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Summary Metrics -->
+  <div class="summary-bar">
+    <h3>Calibration at a Glance</h3>
+    <div class="summary-metrics">
+      <div class="metric">
+        <div class="metric-value">30-60</div>
+        <div class="metric-label">Days Total</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">4</div>
+        <div class="metric-label">Major Phases</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">1:1s</div>
+        <div class="metric-label">Every Executive</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">Multi-Day</div>
+        <div class="metric-label">Calibration Event</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Intro -->
+  <div class="intro-card">
+    <h2>Calibration, Not Alignment</h2>
+    <p>We use the term <strong>calibration</strong> intentionally. We do not seek premature alignment. Alignment implies smoothing away differences, creating early consensus, or forcing uniformity where none yet exists. That is not what early-stage work requires.</p>
+    <p>Calibration is about synchronizing understanding &mdash; an honest mapping of starting conditions. It surfaces tensions, reveals misalignments, and exposes gaps &mdash; not to fix them immediately, but to understand them clearly.</p>
+    <h2 style="margin-top:1.25rem;">What Calibration Surfaces</h2>
+    <div class="surfaces-grid">
+      <div class="surface-item">
+        <div class="dot"></div>
+        <span>The real mission for the work &mdash; what success actually looks like</span>
+      </div>
+      <div class="surface-item">
+        <div class="dot"></div>
+        <span>The intractable challenges keeping the CEO up at night</span>
+      </div>
+      <div class="surface-item">
+        <div class="dot"></div>
+        <span>Current capabilities and constraints of the executive team</span>
+      </div>
+      <div class="surface-item">
+        <div class="dot"></div>
+        <span>CEO expectations &mdash; and whether they match reality</span>
+      </div>
+      <div class="surface-item">
+        <div class="dot"></div>
+        <span>Team readiness for value-creating challenges</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="section-label">
+    <h2>Calibration Timeline</h2>
+    <div class="line"></div>
+  </div>
+
+  <div class="timeline">
+
+    <!-- Phase 1: CEO Partnership -->
+    <div class="timeline-phase phase-1">
+      <div class="phase-marker">P1</div>
+      <div class="phase-header expanded" onclick="togglePhase(this)">
+        <div class="phase-header-top">
+          <div>
+            <div class="phase-time">Days 1 &ndash; 10</div>
+            <h3>CEO Partnership</h3>
+          </div>
+          <span class="phase-toggle">&#9660;</span>
+        </div>
+        <p>Establishing a genuine partnership with the CEO. Articulating the mission, defining what value creation means, and identifying which challenges the team must take on first.</p>
+      </div>
+      <div class="timeline-items expanded">
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Initial CEO Conversation</h4>
+            <span class="item-timing">Day 1-2</span>
+          </div>
+          <p>Deep conversation with the CEO to understand their vision, concerns, and expectations for the executive team. This often reveals that the CEO's own thinking is still forming &mdash; which is exactly why this partnership matters.</p>
+          <ul class="item-details">
+            <li>What does success look like for this team?</li>
+            <li>What are the existential challenges facing the organization?</li>
+            <li>What has the CEO inherited vs. what do they want to build?</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> Initial mission framing and challenge identification
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Define Value Creation Goals</h4>
+            <span class="item-timing">Day 3-5</span>
+          </div>
+          <p>Work with the CEO to articulate what value creation will mean for this specific organization. Not generic strategy &mdash; specific, contextual outcomes that would shift markets or earn stakeholder confidence.</p>
+          <ul class="item-details">
+            <li>What outcomes would be transformational?</li>
+            <li>Which challenges are truly enterprise-critical?</li>
+            <li>Where should the team focus first?</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> Value creation definition and priority challenge shortlist
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Engagement Design</h4>
+            <span class="item-timing">Day 5-10</span>
+          </div>
+          <p>Co-design the calibration approach with the CEO. Agree on how to introduce the work to the team, schedule observations and conversations, and begin shaping the calibration event.</p>
+          <ul class="item-details">
+            <li>How will the coach be introduced to the team?</li>
+            <li>What existing team meetings can be observed?</li>
+            <li>Timeline and logistics for individual conversations</li>
+            <li>Initial thinking on calibration event design</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> Calibration plan and communication approach
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 2: Observation & Conversations -->
+    <div class="timeline-phase phase-2">
+      <div class="phase-marker">P2</div>
+      <div class="phase-header" onclick="togglePhase(this)">
+        <div class="phase-header-top">
+          <div>
+            <div class="phase-time">Days 10 &ndash; 35</div>
+            <h3>Team Observation &amp; Individual Conversations</h3>
+          </div>
+          <span class="phase-toggle">&#9660;</span>
+        </div>
+        <p>Understanding the relational, structural, and behavioral patterns at play. Meeting each executive to understand their view, their challenges, and the divergences that exist beneath the surface.</p>
+      </div>
+      <div class="timeline-items">
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Team Observation</h4>
+            <span class="item-timing">Day 10-20</span>
+          </div>
+          <p>The coach observes the team in their natural setting &mdash; existing meetings, decision forums, and interactions. Understanding what really happens, not what the org chart says should happen.</p>
+          <ul class="item-details">
+            <li>What gets discussed? What gets avoided?</li>
+            <li>Who speaks? Who doesn't?</li>
+            <li>How are decisions actually made?</li>
+            <li>What are the relational and power dynamics?</li>
+            <li>Where is energy? Where is tension?</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> Observation notes on team dynamics, decision patterns, and behavioral norms
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Individual Conversations</h4>
+            <span class="item-timing">Day 15-30</span>
+          </div>
+          <p>One-on-one sessions with each executive. These conversations often reveal significant divergence &mdash; people are seeing different realities, solving for different problems, and operating with different assumptions.</p>
+          <ul class="item-details">
+            <li>Their view of the team and its effectiveness</li>
+            <li>The challenges they see facing the organization</li>
+            <li>Their aspirations and concerns</li>
+            <li>Their sense of what the work ahead requires</li>
+            <li>Where they feel aligned &mdash; and where they don't</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> Individual perspective maps revealing convergence and divergence across the team
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Synthesis &amp; Pattern Recognition</h4>
+            <span class="item-timing">Day 28-35</span>
+          </div>
+          <p>Integrate observations and conversations into a coherent picture. Identify the themes, tensions, and opportunities that will shape the calibration event. Share emerging insights with the CEO.</p>
+          <ul class="item-details">
+            <li>What patterns emerge across individual conversations?</li>
+            <li>Where are the critical misalignments?</li>
+            <li>What does the team not see about itself?</li>
+            <li>What is the team's readiness level for each of the five plays?</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> Calibration synthesis document and CEO debrief
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 3: Calibration Event Design -->
+    <div class="timeline-phase phase-3">
+      <div class="phase-marker">P3</div>
+      <div class="phase-header" onclick="togglePhase(this)">
+        <div class="phase-header-top">
+          <div>
+            <div class="phase-time">Days 35 &ndash; 45</div>
+            <h3>Calibration Event Design</h3>
+          </div>
+          <span class="phase-toggle">&#9660;</span>
+        </div>
+        <p>Designing a multi-day immersive session based on everything learned. The calibration event is the formal launch of the Value Creating Teams approach.</p>
+      </div>
+      <div class="timeline-items">
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Event Architecture</h4>
+            <span class="item-timing">Day 35-40</span>
+          </div>
+          <p>Design the structure, flow, and content of the calibration session in partnership with the CEO. Every element is tailored to what the synthesis revealed about this specific team.</p>
+          <ul class="item-details">
+            <li>Select the existential challenge the team will prioritize</li>
+            <li>Design exercises that introduce early versions of the five plays</li>
+            <li>Plan for surfacing divergence productively (not suppressing it)</li>
+            <li>Build in reflection and real-time adaptation</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> Detailed calibration event agenda and facilitation plan
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>CEO Alignment on Design</h4>
+            <span class="item-timing">Day 40-42</span>
+          </div>
+          <p>Walk the CEO through the event design. Ensure they understand the arc, are prepared for what may surface, and are ready to model the behaviors the work requires.</p>
+          <ul class="item-details">
+            <li>CEO role during the calibration event</li>
+            <li>Potential difficult moments and how to navigate them</li>
+            <li>Success criteria for the event</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> CEO-aligned event plan and pre-brief
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Logistics &amp; Preparation</h4>
+            <span class="item-timing">Day 42-45</span>
+          </div>
+          <p>Finalize all logistics. Prepare materials, pre-reads, and any inputs the team needs. Coordinate with chief of staff or executive assistant on venue, schedule, and communications.</p>
+          <div class="item-output">
+            <strong>Output:</strong> All materials prepared and logistics confirmed
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 4: The Calibration Event -->
+    <div class="timeline-phase phase-4">
+      <div class="phase-marker">P4</div>
+      <div class="phase-header" onclick="togglePhase(this)">
+        <div class="phase-header-top">
+          <div>
+            <div class="phase-time">Days 45 &ndash; 50</div>
+            <h3>The Calibration Event</h3>
+          </div>
+          <span class="phase-toggle">&#9660;</span>
+        </div>
+        <p>A multi-day immersive working session. Not conceptual training &mdash; a visceral experience of Value Creating Teams in practice. The team begins running the five plays for real.</p>
+      </div>
+      <div class="timeline-items">
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Sensemaking: Shared View of Reality</h4>
+            <span class="item-timing">Event Day 1</span>
+          </div>
+          <p>The team builds a shared (not identical) view of current reality &mdash; often discovering they've been looking at different versions of the same organization.</p>
+          <ul class="item-details">
+            <li>FBSN Exercise: Separating facts from beliefs, signals from noise</li>
+            <li>Surface the divergences revealed in individual conversations</li>
+            <li>Begin constructing a shared understanding of the landscape</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> Shared reality map and FBSN matrix for priority challenge
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Imagining: Stretching Shared Ambition</h4>
+            <span class="item-timing">Event Day 1-2</span>
+          </div>
+          <p>Push beyond what feels realistic to explore what might be possible. Articulate a shared ambition that energizes and challenges the team.</p>
+          <ul class="item-details">
+            <li>Move from "what is" to "what could be"</li>
+            <li>Define an ambition that is both aspirational and grounded</li>
+            <li>Test the team's willingness to stretch</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> Draft shared ambition statement
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Navigating: First Experiments</h4>
+            <span class="item-timing">Event Day 2</span>
+          </div>
+          <p>Experiment with navigating uncertainty together. What rhythm feels right? What decisions need to be made now? What can wait? Begin developing the muscle for real-time adaptation.</p>
+          <ul class="item-details">
+            <li>Test decision-making under uncertainty</li>
+            <li>Explore what rhythm the work demands</li>
+            <li>Identify early experiments and learning opportunities</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> Initial navigation plan and experiment design
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Collaborating: Reflecting on How We Work</h4>
+            <span class="item-timing">Event Day 2-3</span>
+          </div>
+          <p>Reflect on collaboration patterns that emerged during the event itself. What worked? What didn't? Begin articulating the team's distinctive way of working.</p>
+          <ul class="item-details">
+            <li>What collaboration patterns emerged naturally?</li>
+            <li>Where did the team get stuck?</li>
+            <li>What norms does this team need?</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> Early collaboration insights and working agreements
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="item-header">
+            <h4>Closing: Commitments &amp; Next Steps</h4>
+            <span class="item-timing">Event Day 3</span>
+          </div>
+          <p>Lock in commitments. The team leaves with clarity on the existential challenge they will prioritize, the ambition they are pursuing, and the immediate next steps. This sets the stage for scaffolding.</p>
+          <ul class="item-details">
+            <li>Confirm the priority existential challenge</li>
+            <li>Agree on immediate actions and owners</li>
+            <li>Set expectations for cadence going forward</li>
+            <li>Individual reflections on what shifted</li>
+          </ul>
+          <div class="item-output">
+            <strong>Output:</strong> Team commitment document and transition brief for scaffolding phase
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /timeline -->
+
+  <!-- What Comes Next -->
+  <div class="intro-card" style="border-left-color: var(--teal); margin-top: 1rem;">
+    <h2>What Comes Next: Designing Scaffolding</h2>
+    <p>After the calibration event, the work transitions into the scaffolding phase. In partnership with the CEO, we design a custom architecture built around what this team needs to accomplish and how they need to grow. This includes:</p>
+    <div class="surfaces-grid" style="margin-top: 0.75rem;">
+      <div class="surface-item">
+        <div class="dot" style="background: var(--teal);"></div>
+        <span><strong>Team design</strong> &mdash; Is this the right configuration for the challenges ahead?</span>
+      </div>
+      <div class="surface-item">
+        <div class="dot" style="background: var(--teal);"></div>
+        <span><strong>Challenge selection</strong> &mdash; Which problems build the most muscle?</span>
+      </div>
+      <div class="surface-item">
+        <div class="dot" style="background: var(--teal);"></div>
+        <span><strong>Rhythm</strong> &mdash; What frequency and depth of interactions does the team need?</span>
+      </div>
+      <div class="surface-item">
+        <div class="dot" style="background: var(--teal);"></div>
+        <span><strong>Environment</strong> &mdash; What meeting structures and decision forums reinforce VCT behaviors?</span>
+      </div>
+      <div class="surface-item">
+        <div class="dot" style="background: var(--teal);"></div>
+        <span><strong>Individual coaching</strong> &mdash; Supporting key leaders to develop inner capacities</span>
+      </div>
+      <div class="surface-item">
+        <div class="dot" style="background: var(--teal);"></div>
+        <span><strong>Chief of Staff enablement</strong> &mdash; Managing day-to-day team mechanisms</span>
+      </div>
+    </div>
+    <p style="margin-top: 1rem; font-style: italic;">The timeline varies &mdash; typically six to eighteen months of intensive work, followed by periodic support. The measure of success is always the same: can this team now create value on their own?</p>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  Value Creating Teams &bull; Korn Ferry &bull; Calibration Phase
+</div>
+
+<script>
+  function togglePhase(header) {
+    const phase = header.parentElement;
+    const items = phase.querySelector('.timeline-items');
+    const isExpanded = items.classList.contains('expanded');
+
+    // Toggle
+    if (isExpanded) {
+      items.classList.remove('expanded');
+      header.classList.remove('expanded');
+    } else {
+      items.classList.add('expanded');
+      header.classList.add('expanded');
+    }
+  }
+
+  // Expand first phase by default (already set in HTML)
+</script>
+
+</body>
+</html>
