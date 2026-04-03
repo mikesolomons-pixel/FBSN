@@ -34,7 +34,6 @@
           <input type="password" id="auth-pass" placeholder="Password" style="width:100%;padding:0.75rem 1rem;border:1.5px solid #E2E8F0;border-radius:8px;font-size:0.95rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.75rem;outline:none;" autofocus>
           <div id="auth-error" style="color:#EF5350;font-size:0.8rem;margin-bottom:0.75rem;display:none;">Incorrect password</div>
           <button id="auth-btn" style="width:100%;padding:0.75rem;background:linear-gradient(135deg,#1B2A4A,#006B5E);color:white;border:none;border-radius:8px;font-size:0.95rem;font-weight:600;cursor:pointer;font-family:inherit;">Enter</button>
-          <p style="color:#5A6B8A;font-size:0.65rem;margin:1rem 0 0 0;text-transform:uppercase;letter-spacing:2px;">Korn Ferry</p>
         </div>
       </div>
     `;
