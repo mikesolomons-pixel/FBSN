@@ -626,7 +626,7 @@
 
   <div class="plays-grid">
     <!-- Play 1: Sensemaking -->
-    <div class="play-card play-1" onclick="togglePlay(1)">
+    <div class="play-card play-1" onclick="window.location.href='play1-sensemaking.html'">
       <div class="play-number">Play 1 &middot; <a href="play1-sensemaking.html" style="color:inherit;font-size:0.65rem;letter-spacing:0;">View Play &rarr;</a></div>
       <h3>Sensemaking</h3>
       <p class="play-subtitle">Understanding where we are. Separating facts from beliefs, signals from noise to build shared clarity.</p>
@@ -656,7 +656,7 @@
     </div>
 
     <!-- Play 2: Imagining -->
-    <div class="play-card play-2" onclick="togglePlay(2)">
+    <div class="play-card play-2" onclick="window.location.href='play2-imagining.html'">
       <div class="play-number">Play 2 &middot; <a href="play2-imagining.html" style="color:inherit;font-size:0.65rem;letter-spacing:0;">View Play &rarr;</a></div>
       <h3>Imagining</h3>
       <p class="play-subtitle">Defining where we want to be. Creating a vivid, shared picture of the future that energizes the team.</p>
@@ -679,7 +679,7 @@
     </div>
 
     <!-- Play 3: Navigating -->
-    <div class="play-card play-3" onclick="togglePlay(3)">
+    <div class="play-card play-3" onclick="window.location.href='play3-navigating.html'">
       <div class="play-number">Play 3 &middot; <a href="play3-navigating.html" style="color:inherit;font-size:0.65rem;letter-spacing:0;">View Play &rarr;</a></div>
       <h3>Navigating</h3>
       <p class="play-subtitle">Maneuvering through the unknown. Making bold decisions under uncertainty and adapting as conditions change.</p>
@@ -709,7 +709,7 @@
     </div>
 
     <!-- Play 4: Collaborating -->
-    <div class="play-card play-4" onclick="togglePlay(4)">
+    <div class="play-card play-4" onclick="window.location.href='play4-collaborating.html'">
       <div class="play-number">Play 4 &middot; <a href="play4-collaborating.html" style="color:inherit;font-size:0.65rem;letter-spacing:0;">View Play &rarr;</a></div>
       <h3>Collaborating</h3>
       <p class="play-subtitle">Establishing the team's unique identity. Building the conditions for high-trust, high-performance teamwork.</p>
@@ -731,7 +731,7 @@
       </ul>
     </div>
     <!-- Play 5: Value Creating -->
-    <div class="play-card play-5" onclick="togglePlay(5)">
+    <div class="play-card play-5" onclick="window.location.href='play5-valuecreating.html'">
       <div class="play-number">Play 5 &middot; <a href="play5-valuecreating.html" style="color:inherit;font-size:0.65rem;letter-spacing:0;">View Play &rarr;</a></div>
       <h3>Value Creating</h3>
       <p class="play-subtitle">Bringing it all together. Turning learning into impact and creating outcomes that only this team, in this moment, could produce.</p>
@@ -751,138 +751,6 @@
           </a>
         </li>
       </ul>
-    </div>
-  </div>
-
-  <!-- Play Detail Panels -->
-  <div id="play-detail-1" class="play-detail">
-    <div class="play-detail-header">
-      <div>
-        <div class="play-number" style="color:var(--teal)">Play 1</div>
-        <h3>Sensemaking &mdash; Understanding Where We Are</h3>
-      </div>
-      <button class="close-btn" onclick="togglePlay(1)">&times;</button>
-    </div>
-    <p>Before a team can chart a course forward, they need shared clarity about the current landscape. Sensemaking practices help teams distinguish verified facts from assumptions, and meaningful signals from background noise. This shared understanding becomes the foundation for every strategic decision that follows.</p>
-    <p style="margin-bottom:1rem;"><a href="play1-sensemaking.html" style="color:var(--teal);font-weight:600;font-size:0.85rem;">View full play page with tutorials &amp; resources &rarr;</a></p>
-    <div class="practices-grid">
-      <a href="fbsn.html" class="practice-tile">
-        <h4>&#9670; FBSN Solo Exercise</h4>
-        <p>Upload information, extract perspectives with AI, categorize on the Fact/Belief + Signal/Noise matrix, and define actions.</p>
-        <div class="tile-badge available">&#10003; Available</div>
-      </a>
-      <a href="host.html" class="practice-tile">
-        <h4>&#9654; FBSN Live Session</h4>
-        <p>Facilitate a real-time multiplayer session where participants vote on categorizations and build consensus.</p>
-        <div class="tile-badge available">&#10003; Available</div>
-      </a>
-      <a href="#" onclick="event.preventDefault()" class="practice-tile">
-        <h4>&#9673; Three Horizons Scan</h4>
-        <p>Map the team's strategic landscape across Horizon 1 (deliver today), Horizon 2 (build tomorrow), and Horizon 3 (create the future).</p>
-        <div class="tile-badge soon">Coming Soon</div>
-      </a>
-    </div>
-  </div>
-
-  <div id="play-detail-2" class="play-detail">
-    <div class="play-detail-header">
-      <div>
-        <div class="play-number" style="color:var(--purple)">Play 2</div>
-        <h3>Imagining &mdash; Defining Where We Want to Be</h3>
-      </div>
-      <button class="close-btn" onclick="togglePlay(2)">&times;</button>
-    </div>
-    <p>Imagining is the play that transforms shared understanding into shared ambition. It moves the team from "what is" to "what could be," creating a vivid picture of the future that is both aspirational and grounded in reality.</p>
-    <p style="margin-bottom:1rem;"><a href="play2-imagining.html" style="color:var(--purple);font-weight:600;font-size:0.85rem;">View full play page with tutorials &amp; resources &rarr;</a></p>
-    <div class="practices-grid">
-      <a href="#" onclick="event.preventDefault()" class="practice-tile">
-        <h4>&#9733; Future Visioning</h4>
-        <p>Collaborative exercises to articulate a compelling future state that aligns and energizes the team.</p>
-        <div class="tile-badge soon">Coming Soon</div>
-      </a>
-      <a href="#" onclick="event.preventDefault()" class="practice-tile">
-        <h4>&#9672; Strategic Ambition Setting</h4>
-        <p>Define bold yet achievable ambitions that stretch the team beyond incremental thinking.</p>
-        <div class="tile-badge soon">Coming Soon</div>
-      </a>
-    </div>
-  </div>
-
-  <div id="play-detail-3" class="play-detail">
-    <div class="play-detail-header">
-      <div>
-        <div class="play-number" style="color:var(--coral)">Play 3</div>
-        <h3>Navigating &mdash; Maneuvering Through the Unknown</h3>
-      </div>
-      <button class="close-btn" onclick="togglePlay(3)">&times;</button>
-    </div>
-    <p>The real world never unfolds according to plan. Navigating gives teams the frameworks and muscle memory to make bold decisions under uncertainty, adapt when conditions change, and maintain momentum toward their ambitions.</p>
-    <p style="margin-bottom:1rem;"><a href="play3-navigating.html" style="color:var(--coral);font-weight:600;font-size:0.85rem;">View full play page with tutorials &amp; resources &rarr;</a></p>
-    <div class="practices-grid">
-      <a href="cynefin.html" class="practice-tile">
-        <h4>&#9670; Cynefin Navigator</h4>
-        <p>Sort challenges into Cynefin domains. Consult AI experts for Clear and Complicated challenges. Design safe-to-fail experiments for Complex ones.</p>
-        <div class="tile-badge available">&#10003; Available</div>
-      </a>
-      <a href="#" onclick="event.preventDefault()" class="practice-tile">
-        <h4>&#9656; Decision Architecture</h4>
-        <p>Structured approaches for making high-stakes decisions under uncertainty with appropriate speed and rigor.</p>
-        <div class="tile-badge soon">Coming Soon</div>
-      </a>
-      <a href="#" onclick="event.preventDefault()" class="practice-tile">
-        <h4>&#9651; Adaptive Strategy</h4>
-        <p>Practices for continuously adjusting course as new information emerges and conditions shift.</p>
-        <div class="tile-badge soon">Coming Soon</div>
-      </a>
-    </div>
-  </div>
-
-  <div id="play-detail-4" class="play-detail">
-    <div class="play-detail-header">
-      <div>
-        <div class="play-number" style="color:var(--gold)">Play 4</div>
-        <h3>Collaborating &mdash; Establishing the Team's Unique Identity</h3>
-      </div>
-      <button class="close-btn" onclick="togglePlay(4)">&times;</button>
-    </div>
-    <p>The most effective teams develop a distinctive identity and way of working that amplifies their collective strengths. Collaborating practices build the conditions for high-trust, high-candor teamwork where the whole is genuinely greater than the sum of its parts.</p>
-    <p style="margin-bottom:1rem;"><a href="play4-collaborating.html" style="color:var(--gold);font-weight:600;font-size:0.85rem;">View full play page with tutorials &amp; resources &rarr;</a></p>
-    <div class="practices-grid">
-      <a href="#" onclick="event.preventDefault()" class="practice-tile">
-        <h4>&#9632; Team Operating System</h4>
-        <p>Design the rhythms, rituals, and norms that become the team's unique operating system.</p>
-        <div class="tile-badge soon">Coming Soon</div>
-      </a>
-      <a href="#" onclick="event.preventDefault()" class="practice-tile">
-        <h4>&#9830; Trust & Candor Protocol</h4>
-        <p>Build psychological safety and productive candor so the team can tackle the hardest conversations.</p>
-        <div class="tile-badge soon">Coming Soon</div>
-      </a>
-    </div>
-  </div>
-
-  <div id="play-detail-5" class="play-detail">
-    <div class="play-detail-header">
-      <div>
-        <div class="play-number" style="color:var(--navy)">Play 5</div>
-        <h3>Value Creating &mdash; Bringing It All Together</h3>
-      </div>
-      <button class="close-btn" onclick="togglePlay(5)">&times;</button>
-    </div>
-    <p>The final play integrates everything that comes before. Value Creating is where the team produces outcomes that only this team, in this moment, with this practice, could produce. It's not a destination &mdash; it's the continuous practice of turning learning into impact. Value creation is always contextual: specific to the domain, the problem, and the ambition of the organization.</p>
-    <p>After significant value creation, the cycle begins anew. Teams sense the changed landscape, imagine new possibilities, navigate the next set of unknowns, collaborate with deepened trust, and create value again. This is why Value Creating is a play, not an outcome &mdash; a repeatable capability the team builds and refines over time.</p>
-    <p style="margin-bottom:1rem;"><a href="play5-valuecreating.html" style="color:var(--navy);font-weight:600;font-size:0.85rem;">View full play page with tutorials &amp; resources &rarr;</a></p>
-    <div class="practices-grid">
-      <a href="#" onclick="event.preventDefault()" class="practice-tile">
-        <h4>&#9733; Value Creation Cycle</h4>
-        <p>Guide teams through the full cycle of sensing, imagining, navigating, collaborating, and creating value as a repeatable practice.</p>
-        <div class="tile-badge soon">Coming Soon</div>
-      </a>
-      <a href="#" onclick="event.preventDefault()" class="practice-tile">
-        <h4>&#9656; Impact Assessment</h4>
-        <p>Evaluate outcomes, capture learnings, and reset the cycle for the next round of value creation.</p>
-        <div class="tile-badge soon">Coming Soon</div>
-      </a>
     </div>
   </div>
 
@@ -1003,21 +871,6 @@
   Value Creating Teams &bull; Helping teams solve their most intractable challenges
 </div>
 
-<script>
-  function togglePlay(num) {
-    const detail = document.getElementById('play-detail-' + num);
-    const wasActive = detail.classList.contains('active');
-
-    // Close all
-    document.querySelectorAll('.play-detail').forEach(d => d.classList.remove('active'));
-
-    // Toggle the clicked one
-    if (!wasActive) {
-      detail.classList.add('active');
-      detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }
-</script>
 
 </body>
 </html>
