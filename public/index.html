@@ -313,14 +313,14 @@
   }
 
   /* Cycle Layout */
-  .cycle-container {
+  .cycle-ring {
     position: relative;
     width: 100%;
-    max-width: 700px;
+    max-width: 560px;
     margin: 0 auto 2rem;
-    aspect-ratio: 700 / 620;
+    aspect-ratio: 1 / 1;
   }
-  .cycle-arrows {
+  .cycle-svg {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
@@ -329,10 +329,12 @@
   }
   .cycle-node {
     position: absolute;
-    width: 160px;
+    width: 140px;
+    margin-left: -70px;
+    margin-top: -52px;
     background: var(--card);
     border-radius: 14px;
-    padding: 1.1rem 1rem;
+    padding: 0.9rem 0.75rem;
     box-shadow: var(--shadow);
     border-top: 4px solid var(--accent);
     text-decoration: none;
@@ -343,34 +345,34 @@
     cursor: pointer;
   }
   .cycle-node:hover {
-    transform: translateY(-3px) scale(1.03);
+    transform: scale(1.06);
     box-shadow: var(--shadow-lg);
   }
   .cycle-num {
-    width: 28px; height: 28px;
+    width: 26px; height: 26px;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    color: white; font-weight: 700; font-size: 0.75rem;
-    margin: 0 auto 0.5rem;
+    color: white; font-weight: 700; font-size: 0.7rem;
+    margin: 0 auto 0.4rem;
   }
   .cycle-node h3 {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 700;
     color: var(--navy);
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.15rem;
   }
   .cycle-node p {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     color: var(--text-secondary);
-    line-height: 1.4;
+    line-height: 1.35;
   }
-  /* Pentagon positions (percentage based) */
-  .cycle-pos-1 { top: 5%; left: 50%; transform: translateX(-50%); }
-  .cycle-pos-2 { top: 22%; right: 5%; }
-  .cycle-pos-3 { top: 60%; right: 12%; }
-  .cycle-pos-4 { top: 60%; left: 12%; }
-  .cycle-pos-5 { top: 22%; left: 5%; }
-  .cycle-pos-1:hover { transform: translateX(-50%) translateY(-3px) scale(1.03); }
+  /* Pentagon positions: 5 points on a circle, top-center start, clockwise */
+  /* Center = 50%, 50%. Radius ~36% of container. Angles: -90, -18, 54, 126, 198 deg */
+  .cn-1 { left: 50%; top: 14%; }       /* top center */
+  .cn-2 { left: 84%; top: 38%; }       /* upper right */
+  .cn-3 { left: 71%; top: 78%; }       /* lower right */
+  .cn-4 { left: 29%; top: 78%; }       /* lower left */
+  .cn-5 { left: 16%; top: 38%; }       /* upper left */
 
   .plays-mobile { display: none; }
 
@@ -707,57 +709,52 @@
   </div>
 
   <!-- Cycle Layout -->
-  <div class="cycle-container">
-    <svg class="cycle-arrows" viewBox="0 0 700 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <div class="cycle-ring">
+    <svg class="cycle-svg" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer ring -->
+      <circle cx="250" cy="250" r="180" stroke="var(--border)" stroke-width="2" fill="none" opacity="0.4"/>
+      <!-- Arrows along the ring (clockwise from top) -->
       <defs>
-        <marker id="ah1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#00897B"/></marker>
-        <marker id="ah2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#7C5CBF"/></marker>
-        <marker id="ah3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#E07A5F"/></marker>
-        <marker id="ah4" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#D4A843"/></marker>
-        <marker id="ah5" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#1B2A4A"/></marker>
+        <marker id="a1" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#00897B"/></marker>
+        <marker id="a2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#7C5CBF"/></marker>
+        <marker id="a3" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#E07A5F"/></marker>
+        <marker id="a4" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#D4A843"/></marker>
+        <marker id="a5" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#1B2A4A"/></marker>
       </defs>
-      <!-- 1→2 -->
-      <path d="M430,95 Q520,60 560,150" stroke="#00897B" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ah2)" opacity="0.5"/>
-      <!-- 2→3 -->
-      <path d="M590,310 Q580,410 520,460" stroke="#7C5CBF" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ah3)" opacity="0.5"/>
-      <!-- 3→4 -->
-      <path d="M360,540 Q270,560 200,480" stroke="#E07A5F" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ah4)" opacity="0.5"/>
-      <!-- 4→5 -->
-      <path d="M120,310 Q100,220 160,150" stroke="#D4A843" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ah5)" opacity="0.5"/>
-      <!-- 5→1 (completing the cycle) -->
-      <path d="M300,80 Q320,50 350,60" stroke="#1B2A4A" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ah1)" opacity="0.5"/>
+      <!-- 1→2: top to upper-right -->
+      <path d="M310,78 A180,180 0 0,1 410,155" stroke="#00897B" stroke-width="2.5" marker-end="url(#a2)" opacity="0.6"/>
+      <!-- 2→3: upper-right to lower-right -->
+      <path d="M428,215 A180,180 0 0,1 385,385" stroke="#7C5CBF" stroke-width="2.5" marker-end="url(#a3)" opacity="0.6"/>
+      <!-- 3→4: lower-right to lower-left -->
+      <path d="M325,420 A180,180 0 0,1 175,420" stroke="#E07A5F" stroke-width="2.5" marker-end="url(#a4)" opacity="0.6"/>
+      <!-- 4→5: lower-left to upper-left -->
+      <path d="M115,385 A180,180 0 0,1 72,215" stroke="#D4A843" stroke-width="2.5" marker-end="url(#a5)" opacity="0.6"/>
+      <!-- 5→1: upper-left to top -->
+      <path d="M90,155 A180,180 0 0,1 190,78" stroke="#1B2A4A" stroke-width="2.5" marker-end="url(#a1)" opacity="0.6"/>
     </svg>
 
-    <!-- Top center: Sensemaking -->
-    <a href="play1-sensemaking.html" class="cycle-node cycle-pos-1" style="--accent:#00897B;">
+    <!-- Nodes positioned around the circle -->
+    <a href="play1-sensemaking.html" class="cycle-node cn-1" style="--accent:#00897B;">
       <div class="cycle-num" style="background:#00897B;">1</div>
       <h3>Sensemaking</h3>
       <p>Understanding where we are</p>
     </a>
-
-    <!-- Top right: Imagining -->
-    <a href="play2-imagining.html" class="cycle-node cycle-pos-2" style="--accent:#7C5CBF;">
+    <a href="play2-imagining.html" class="cycle-node cn-2" style="--accent:#7C5CBF;">
       <div class="cycle-num" style="background:#7C5CBF;">2</div>
       <h3>Imagining</h3>
       <p>Defining where we want to be</p>
     </a>
-
-    <!-- Bottom right: Navigating -->
-    <a href="play3-navigating.html" class="cycle-node cycle-pos-3" style="--accent:#E07A5F;">
+    <a href="play3-navigating.html" class="cycle-node cn-3" style="--accent:#E07A5F;">
       <div class="cycle-num" style="background:#E07A5F;">3</div>
       <h3>Navigating</h3>
       <p>Maneuvering through the unknown</p>
     </a>
-
-    <!-- Bottom left: Collaborating -->
-    <a href="play4-collaborating.html" class="cycle-node cycle-pos-4" style="--accent:#D4A843;">
+    <a href="play4-collaborating.html" class="cycle-node cn-4" style="--accent:#D4A843;">
       <div class="cycle-num" style="background:#D4A843;">4</div>
       <h3>Collaborating</h3>
       <p>Establishing the team's identity</p>
     </a>
-
-    <!-- Top left: Value Creating -->
-    <a href="play5-valuecreating.html" class="cycle-node cycle-pos-5" style="--accent:#1B2A4A;">
+    <a href="play5-valuecreating.html" class="cycle-node cn-5" style="--accent:#1B2A4A;">
       <div class="cycle-num" style="background:#1B2A4A;">5</div>
       <h3>Value Creating</h3>
       <p>Long-lasting impact for all stakeholders</p>
