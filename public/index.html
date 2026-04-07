@@ -710,27 +710,26 @@
 
   <!-- Cycle Layout -->
   <div class="cycle-ring">
-    <svg class="cycle-svg" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible">
-      <!-- Outer ring -->
-      <circle cx="250" cy="250" r="180" stroke="var(--border)" stroke-width="2" fill="none" opacity="0.4"/>
-      <!-- Arrows along the ring (clockwise from top) -->
-      <defs>
-        <marker id="a1" markerWidth="10" markerHeight="8" refX="5" refY="4" orient="auto" markerUnits="userSpaceOnUse" overflow="visible"><path d="M0,0 L10,4 L0,8Z" fill="#00897B"/></marker>
-        <marker id="a2" markerWidth="10" markerHeight="8" refX="5" refY="4" orient="auto" markerUnits="userSpaceOnUse" overflow="visible"><path d="M0,0 L10,4 L0,8Z" fill="#7C5CBF"/></marker>
-        <marker id="a3" markerWidth="10" markerHeight="8" refX="5" refY="4" orient="auto" markerUnits="userSpaceOnUse" overflow="visible"><path d="M0,0 L10,4 L0,8Z" fill="#E07A5F"/></marker>
-        <marker id="a4" markerWidth="10" markerHeight="8" refX="5" refY="4" orient="auto" markerUnits="userSpaceOnUse" overflow="visible"><path d="M0,0 L10,4 L0,8Z" fill="#D4A843"/></marker>
-        <marker id="a5" markerWidth="10" markerHeight="8" refX="5" refY="4" orient="auto" markerUnits="userSpaceOnUse" overflow="visible"><path d="M0,0 L10,4 L0,8Z" fill="#1B2A4A"/></marker>
-      </defs>
-      <!-- 1→2: top to upper-right -->
-      <path d="M305,80 A180,180 0 0,1 405,152" stroke="#00897B" stroke-width="2.5" marker-end="url(#a2)" opacity="0.7"/>
-      <!-- 2→3: upper-right to lower-right -->
-      <path d="M425,210 A180,180 0 0,1 380,378" stroke="#7C5CBF" stroke-width="2.5" marker-end="url(#a3)" opacity="0.7"/>
-      <!-- 3→4: lower-right to lower-left -->
-      <path d="M320,415 A180,180 0 0,1 180,415" stroke="#E07A5F" stroke-width="2.5" marker-end="url(#a4)" opacity="0.7"/>
-      <!-- 4→5: lower-left to upper-left -->
-      <path d="M120,378 A180,180 0 0,1 75,210" stroke="#D4A843" stroke-width="2.5" marker-end="url(#a5)" opacity="0.7"/>
-      <!-- 5→1: upper-left to top -->
-      <path d="M95,152 A180,180 0 0,1 195,80" stroke="#1B2A4A" stroke-width="2.5" marker-end="url(#a1)" opacity="0.7"/>
+    <svg class="cycle-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer ring track -->
+      <circle cx="250" cy="250" r="180" stroke="#E2E8F0" stroke-width="2" fill="none" opacity="0.5"/>
+      <!-- Arc paths -->
+      <path d="M305,80 A180,180 0 0,1 400,148" stroke="#00897B" stroke-width="2.5" fill="none" opacity="0.6"/>
+      <path d="M422,212 A180,180 0 0,1 382,375" stroke="#7C5CBF" stroke-width="2.5" fill="none" opacity="0.6"/>
+      <path d="M322,418 A180,180 0 0,1 178,418" stroke="#E07A5F" stroke-width="2.5" fill="none" opacity="0.6"/>
+      <path d="M118,375 A180,180 0 0,1 78,212" stroke="#D4A843" stroke-width="2.5" fill="none" opacity="0.6"/>
+      <path d="M100,148 A180,180 0 0,1 195,80" stroke="#1B2A4A" stroke-width="2.5" fill="none" opacity="0.6"/>
+      <!-- Arrowhead triangles (solid, at end of each arc) -->
+      <!-- 1→2 arrow pointing toward upper-right -->
+      <polygon points="406,144 394,138 398,152" fill="#7C5CBF" opacity="0.8"/>
+      <!-- 2→3 arrow pointing toward lower-right -->
+      <polygon points="385,380 390,366 378,370" fill="#E07A5F" opacity="0.8"/>
+      <!-- 3→4 arrow pointing toward lower-left -->
+      <polygon points="174,418 188,412 186,426" fill="#D4A843" opacity="0.8"/>
+      <!-- 4→5 arrow pointing toward upper-left -->
+      <polygon points="75,208 80,222 68,218" fill="#1B2A4A" opacity="0.8"/>
+      <!-- 5→1 arrow pointing toward top-center -->
+      <polygon points="199,77 186,84 190,70" fill="#00897B" opacity="0.8"/>
     </svg>
 
     <!-- Nodes positioned around the circle -->
