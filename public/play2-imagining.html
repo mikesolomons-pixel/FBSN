@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play 2: Imagining - Value Creating Teams</title>
+<script src="auth.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --teal: #00897B;
+    --teal-dark: #006B5E;
+    --teal-light: #4DB6AC;
+    --gold: #D4A843;
+    --coral: #E07A5F;
+    --purple: #7C5CBF;
+    --purple-dark: #5E3FA3;
+    --purple-light: #A48BD6;
+    --blue: #4A90D9;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1B2A4A;
+    --text-secondary: #5A6B8A;
+    --border: #E2E8F0;
+    --shadow: 0 2px 8px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.12);
+    --accent: var(--purple);
+    --accent-dark: var(--purple-dark);
+    --accent-light: var(--purple-light);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--purple-dark) 100%);
+    color: white;
+    padding: 2rem 2rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at 70% 80%, rgba(124,92,191,0.25) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .header-content { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: white; }
+  .play-badge {
+    display: inline-block;
+    padding: 0.25rem 0.7rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+
+  /* Main */
+  .main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+  /* Description Card */
+  .description-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+    border-left: 4px solid var(--accent);
+  }
+  .description-card h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.75rem;
+  }
+  .description-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 0.75rem;
+  }
+  .description-card p:last-child { margin-bottom: 0; }
+  .key-points {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .key-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .key-point .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  /* Section Label */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-label h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .section-label .line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* Practice Card */
+  .practice-card {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: box-shadow 0.2s;
+  }
+  .practice-card:hover { box-shadow: var(--shadow-lg); }
+
+  .practice-header {
+    padding: 1.5rem 1.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .practice-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.4rem;
+  }
+  .practice-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .practice-number {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+  }
+  .practice-header p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .status-badge.available {
+    background: var(--accent);
+    color: white;
+  }
+  .status-badge.coming-soon {
+    background: var(--bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+
+  /* Practice Sections */
+  .practice-body {
+    padding: 0 1.75rem 1.5rem;
+  }
+
+  .practice-section {
+    padding-top: 1.25rem;
+  }
+  .practice-section + .practice-section {
+    border-top: 1px solid var(--border);
+    margin-top: 1.25rem;
+  }
+
+  .section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    padding: 0.25rem 0;
+  }
+  .section-toggle h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .toggle-icon {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+  }
+  .section-toggle.expanded .toggle-icon { transform: rotate(180deg); }
+
+  .section-content {
+    display: none;
+    padding-top: 0.75rem;
+  }
+  .section-content.expanded { display: block; }
+  .section-content p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 0.75rem;
+  }
+  .section-content p:last-child { margin-bottom: 0; }
+
+  /* Resources List */
+  .resources-list {
+    list-style: none;
+  }
+  .resources-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    background: var(--bg);
+    border-radius: 8px;
+  }
+  .resources-list li:last-child { margin-bottom: 0; }
+  .book-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 0.85rem;
+  }
+  .book-title { font-weight: 600; color: var(--navy); }
+  .book-author { color: var(--text-secondary); }
+  .resource-type {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    background: var(--accent);
+    color: white;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+  .resource-type.article { background: var(--blue); }
+  .resource-type.book { background: var(--navy-light); }
+
+  /* Action Buttons */
+  .practice-actions {
+    padding: 1rem 1.75rem 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+    cursor: pointer;
+    border: none;
+  }
+  .action-btn.primary {
+    background: var(--accent);
+    color: white;
+  }
+  .action-btn.primary:hover {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(124,92,191,0.3);
+  }
+  .action-btn.secondary {
+    background: var(--bg);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .action-btn.secondary:hover {
+    background: var(--accent);
+    color: white;
+  }
+  .action-btn.disabled {
+    background: var(--bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header h1 { font-size: 1.5rem; }
+    .main { padding: 1rem; }
+    .practice-header { padding: 1.25rem; }
+    .practice-body { padding: 0 1.25rem 1.25rem; }
+    .practice-actions { padding: 1rem 1.25rem 1.25rem; }
+    .key-points { grid-template-columns: 1fr; }
+    .practice-header-top { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-content">
+    <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
+    <div class="play-badge">Play 2 of 5</div>
+    <h1>Imagining</h1>
+    <p class="subtitle">Defining Where We Want to Be &mdash; cultivating shared ambition that pulls the team toward futures worth creating.</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Description -->
+  <div class="description-card">
+    <h2>From Clarity to Ambition</h2>
+    <p>If Sensemaking illuminates where the team stands, Imagining shapes where it wants to go. But this is not traditional goal-setting. Teams do not simply define a single destination and march toward it. Instead, they cultivate shared ambition &mdash; a generative, evolving sense of what "impossibly good" could look like for the organization and its stakeholders.</p>
+    <p>Shared ambition is an ongoing practice, not a one-time articulation etched into a strategy document. It invites leaders to tell stories about possible futures, to explore contradictory possibilities without needing to resolve them immediately, and to stretch far beyond the incremental improvements that feel safe and predictable.</p>
+    <p>Strategy is often rational; ambition is often visceral. The most effective leadership teams develop emotional clarity about what meaningful progress should look and feel like &mdash; not just the metrics, but the lived experience of an organization that is genuinely thriving. This emotional dimension is what transforms a strategic plan from a document into a force.</p>
+
+    <h2 style="margin-top: 1.25rem;">Core Principles</h2>
+    <div class="key-points">
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Break the habit of under-reaching &mdash; open to possibilities far greater than static strategic planning permits</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Explore multiple possible futures before converging, resisting the pressure to commit too early</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Create pull, not push &mdash; a future people want to move toward willingly rather than being driven toward</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Shared ambition evolves as sensemaking deepens &mdash; it is never truly finished</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Combine rational analysis with emotional clarity about what progress should feel like</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Stretch beyond what feels realistic to discover what might actually be possible</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Practices -->
+  <div class="section-label">
+    <h2>Core Practices</h2>
+    <div class="line"></div>
+  </div>
+
+  <!-- Practice 1: Future Visioning -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-number">Practice 1</div>
+      <div class="practice-header-top">
+        <h3>Future Visioning</h3>
+        <span class="status-badge coming-soon">Coming Soon</span>
+      </div>
+      <p>A collaborative exercise where the team constructs vivid, narrative-rich descriptions of multiple possible futures &mdash; not just where the numbers land, but what the organization actually looks, feels, and operates like.</p>
+    </div>
+    <div class="practice-body">
+      <div class="practice-section">
+        <div class="section-toggle expanded" onclick="toggleSection(this)">
+          <h4>Tutorial</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content expanded">
+          <p>Future Visioning moves teams beyond the spreadsheet and into the realm of imagination. The practice asks each leader to create a rich, narrative description of what the organization could look like three to five years from now &mdash; not just financial targets and market share numbers, but the texture of daily life. What does a Monday morning feel like? How do customers describe the organization to their peers? What has changed in the way the team works together?</p>
+          <p>The exercise deliberately generates <strong>multiple futures</strong> rather than converging on a single vision. Each team member or small group develops a distinct scenario, and these are shared without judgment. The point is not to vote on the "right" future but to expand the team's collective sense of what is possible. Often the most valuable insights emerge from the tensions between different visions &mdash; one leader's exciting future is another's nightmare, and understanding why reveals deep differences in values and priorities.</p>
+          <p>After exploring divergent futures, the team looks for the common threads &mdash; the elements that appear across multiple visions and generate the strongest emotional resonance. These become the foundation for shared ambition: not a compromise between competing views, but a synthesis that captures what matters most to everyone.</p>
+          <p>The output is not a vision statement. It is a living narrative that the team can return to, revise, and deepen as their understanding of reality evolves. Effective future visions serve as navigational stars &mdash; they provide direction without prescribing the exact route, allowing the team to adapt as conditions change while maintaining a coherent sense of purpose.</p>
+        </div>
+      </div>
+
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Resources &amp; Reading</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <ul class="resources-list">
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">The Art of the Long View</span> <span class="resource-type book">Book</span><br><span class="book-author">Peter Schwartz</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Scenario Planning: Managing for the Future</span> <span class="resource-type book">Book</span><br><span class="book-author">Gill Ringland</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Competing for the Future</span> <span class="resource-type book">Book</span><br><span class="book-author">Gary Hamel &amp; C.K. Prahalad</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128196;</span>
+              <div><span class="book-title">Shell Scenarios Methodology</span> <span class="resource-type article">Reference</span><br><span class="book-author">Royal Dutch Shell</span></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="practice-actions">
+      <span class="action-btn disabled">Coming Soon</span>
+    </div>
+  </div>
+
+  <!-- Practice 2: Strategic Ambition Setting -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-number">Practice 2</div>
+      <div class="practice-header-top">
+        <h3>Strategic Ambition Setting</h3>
+        <span class="status-badge coming-soon">Coming Soon</span>
+      </div>
+      <p>Moving beyond conventional goal-setting to generative ambition &mdash; articulating what "impossibly good" looks like, then working backward to identify the conditions that would make it real.</p>
+    </div>
+    <div class="practice-body">
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Tutorial</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <p>Most strategic planning starts with what feels achievable and works outward incrementally. Strategic Ambition Setting inverts this logic. It begins by asking: "If we were operating at our absolute best &mdash; if every constraint we currently accept turned out to be negotiable &mdash; what would we accomplish?" This is not wishful thinking; it is a deliberate expansion of the team's sense of the possible.</p>
+          <p>The practice distinguishes between <strong>SMART goals</strong> (specific, measurable, achievable, relevant, time-bound) and <strong>generative ambition</strong>. SMART goals are valuable for execution, but they are inherently conservative &mdash; they describe what we already know how to do. Generative ambition describes what we would need to become capable of doing. It stretches the team's identity, not just its targets.</p>
+          <p>Teams work through a structured process: first, articulating the most ambitious version of success they can imagine. Then, rather than immediately discounting it as unrealistic, they work backward to identify the specific conditions, capabilities, relationships, and resources that would need to exist for that ambition to become achievable. Often, the team discovers that fewer conditions are truly impossible than they initially assumed &mdash; what felt like fantasy starts to reveal a plausible (if demanding) path.</p>
+          <p>The ambition is not static. As the team's sensemaking deepens and its understanding of reality evolves, the ambition evolves with it. Some dimensions expand as new possibilities emerge; others contract as constraints prove more stubborn than expected. This ongoing calibration between ambition and reality is where strategic wisdom develops.</p>
+        </div>
+      </div>
+
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Resources &amp; Reading</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <ul class="resources-list">
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Stretch: Unlock the Power of Less</span> <span class="resource-type book">Book</span><br><span class="book-author">Scott Sonenshein</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Good Strategy Bad Strategy</span> <span class="resource-type book">Book</span><br><span class="book-author">Richard Rumelt</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Playing to Win: How Strategy Really Works</span> <span class="resource-type book">Book</span><br><span class="book-author">A.G. Lafley &amp; Roger Martin</span></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="practice-actions">
+      <span class="action-btn disabled">Coming Soon</span>
+    </div>
+  </div>
+
+  <!-- Practice 3: Backcasting -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-number">Practice 3</div>
+      <div class="practice-header-top">
+        <h3>Backcasting</h3>
+        <span class="status-badge coming-soon">Coming Soon</span>
+      </div>
+      <p>Starting from a vivid future state and reasoning backward to identify the milestones, decisions, and capabilities required to get there &mdash; the inverse of traditional forecasting.</p>
+    </div>
+    <div class="practice-body">
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Tutorial</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <p>Forecasting asks: "Given where we are today, where will we end up?" Backcasting reverses the question entirely: "Given where we want to be, what must have happened along the way to get there?" This simple inversion produces profoundly different strategic thinking. Forecasting is constrained by current trajectory; backcasting is liberated by desired outcomes.</p>
+          <p>The practice begins with a clearly articulated future state &mdash; ideally one developed through Future Visioning or Strategic Ambition Setting. The team then works backward in defined time steps (typically year by year). At each step, they ask: "For this future to be possible, what must be true one year earlier? What decisions must have been made? What capabilities must have been built? What relationships must have been formed?"</p>
+          <p>This backward reasoning often reveals <strong>critical path dependencies</strong> that forward planning misses. Teams discover that certain capabilities take years to develop, certain relationships require early investment, or certain decisions have long lead times. These insights reorder priorities: actions that seemed distant suddenly become urgent because they are prerequisites for everything else.</p>
+          <p>Backcasting also surfaces the <strong>decision points</strong> where the team will face genuine forks in the road. By mapping these in advance, the team can prepare criteria for making those decisions wisely when they arrive, rather than being caught off guard. The output is not a rigid plan but a strategic map showing the key waypoints, dependencies, and choice points between now and the desired future.</p>
+        </div>
+      </div>
+
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Resources &amp; Reading</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <ul class="resources-list">
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">The Natural Step for Business</span> <span class="resource-type book">Book</span><br><span class="book-author">Karl-Henrik Rob&egrave;rt</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128196;</span>
+              <div><span class="book-title">Backcasting: A Framework for Strategic Planning</span> <span class="resource-type article">Research</span><br><span class="book-author">John B. Robinson</span></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="practice-actions">
+      <span class="action-btn disabled">Coming Soon</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  Value Creating Teams &bull; Play 2: Imagining
+</div>
+
+<script>
+  function toggleSection(el) {
+    const content = el.nextElementSibling;
+    const isExpanded = content.classList.contains('expanded');
+    if (isExpanded) {
+      content.classList.remove('expanded');
+      el.classList.remove('expanded');
+    } else {
+      content.classList.add('expanded');
+      el.classList.add('expanded');
+    }
+  }
+</script>
+
+</body>
+</html>

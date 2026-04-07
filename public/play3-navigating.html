@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play 3: Navigating - Value Creating Teams</title>
+<script src="auth.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --teal: #00897B;
+    --teal-dark: #006B5E;
+    --teal-light: #4DB6AC;
+    --gold: #D4A843;
+    --coral: #E07A5F;
+    --coral-dark: #C4614A;
+    --coral-light: #F09E88;
+    --purple: #7C5CBF;
+    --blue: #4A90D9;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1B2A4A;
+    --text-secondary: #5A6B8A;
+    --border: #E2E8F0;
+    --shadow: 0 2px 8px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.12);
+    --accent: var(--coral);
+    --accent-dark: var(--coral-dark);
+    --accent-light: var(--coral-light);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--coral-dark) 100%);
+    color: white;
+    padding: 2rem 2rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at 70% 80%, rgba(224,122,95,0.25) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .header-content { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: white; }
+  .play-badge {
+    display: inline-block;
+    padding: 0.25rem 0.7rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+
+  /* Main */
+  .main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+  /* Description Card */
+  .description-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+    border-left: 4px solid var(--accent);
+  }
+  .description-card h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.75rem;
+  }
+  .description-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 0.75rem;
+  }
+  .description-card p:last-child { margin-bottom: 0; }
+  .key-points {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .key-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .key-point .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  /* Section Label */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-label h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .section-label .line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* Practice Card */
+  .practice-card {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: box-shadow 0.2s;
+  }
+  .practice-card:hover { box-shadow: var(--shadow-lg); }
+
+  .practice-header {
+    padding: 1.5rem 1.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .practice-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.4rem;
+  }
+  .practice-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .practice-number {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+  }
+  .practice-header p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .status-badge.available {
+    background: var(--accent);
+    color: white;
+  }
+  .status-badge.coming-soon {
+    background: var(--bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+
+  /* Practice Sections */
+  .practice-body {
+    padding: 0 1.75rem 1.5rem;
+  }
+
+  .practice-section {
+    padding-top: 1.25rem;
+  }
+  .practice-section + .practice-section {
+    border-top: 1px solid var(--border);
+    margin-top: 1.25rem;
+  }
+
+  .section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    padding: 0.25rem 0;
+  }
+  .section-toggle h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .toggle-icon {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+  }
+  .section-toggle.expanded .toggle-icon { transform: rotate(180deg); }
+
+  .section-content {
+    display: none;
+    padding-top: 0.75rem;
+  }
+  .section-content.expanded { display: block; }
+  .section-content p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 0.75rem;
+  }
+  .section-content p:last-child { margin-bottom: 0; }
+
+  /* Resources List */
+  .resources-list {
+    list-style: none;
+  }
+  .resources-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    background: var(--bg);
+    border-radius: 8px;
+  }
+  .resources-list li:last-child { margin-bottom: 0; }
+  .book-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 0.85rem;
+  }
+  .book-title { font-weight: 600; color: var(--navy); }
+  .book-author { color: var(--text-secondary); }
+  .resource-type {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    background: var(--accent);
+    color: white;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+  .resource-type.article { background: var(--blue); }
+  .resource-type.book { background: var(--navy-light); }
+
+  /* Action Buttons */
+  .practice-actions {
+    padding: 1rem 1.75rem 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+    cursor: pointer;
+    border: none;
+  }
+  .action-btn.primary {
+    background: var(--accent);
+    color: white;
+  }
+  .action-btn.primary:hover {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(224,122,95,0.3);
+  }
+  .action-btn.secondary {
+    background: var(--bg);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .action-btn.secondary:hover {
+    background: var(--accent);
+    color: white;
+  }
+  .action-btn.disabled {
+    background: var(--bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header h1 { font-size: 1.5rem; }
+    .main { padding: 1rem; }
+    .practice-header { padding: 1.25rem; }
+    .practice-body { padding: 0 1.25rem 1.25rem; }
+    .practice-actions { padding: 1rem 1.25rem 1.25rem; }
+    .key-points { grid-template-columns: 1fr; }
+    .practice-header-top { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-content">
+    <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
+    <div class="play-badge">Play 3 of 5</div>
+    <h1>Navigating</h1>
+    <p class="subtitle">Maneuvering Through the Unknown &mdash; learning at speed and in motion, building the adaptive capacity to thrive in uncertainty.</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Description -->
+  <div class="description-card">
+    <h2>Moving Between Where We Are and Where We Want to Be</h2>
+    <p>Navigating is the play where strategy meets reality. It is how teams move between present conditions and future ambitions when the path is unclear, the terrain is shifting, and the map is incomplete. Most teams fail here &mdash; either paralyzed by the desire for certainty that never arrives, or charging ahead recklessly before they understand the landscape.</p>
+    <p>Effective navigation requires rhythm rather than rigid cadence. The pace of work should be driven by the nature of the challenge, not the calendar. Some problems demand rapid experimentation over days; others require patient observation over months. Teams that default to fixed quarterly planning cycles regardless of context are navigating by calendar, not by conditions &mdash; and the difference matters enormously.</p>
+    <p>A healthy team accumulates a growing scrap heap of failed experiments. This is not waste; it is evidence of genuine learning. Teams that never fail are not navigating &mdash; they are following well-worn paths that no longer lead anywhere interesting. The practice of set-based design helps here: holding multiple paths open simultaneously, testing hypotheses in parallel, and resisting the organizational pressure to commit to a single approach before the evidence supports it.</p>
+
+    <h2 style="margin-top: 1.25rem;">Core Principles</h2>
+    <div class="key-points">
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Rhythm over cadence &mdash; let the nature of the challenge dictate the pace, not the calendar</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>A growing scrap heap of failed experiments signals real learning, not dysfunction</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Hold multiple paths open through set-based design rather than committing too early</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Match the decision approach to the nature of the problem &mdash; not all challenges are alike</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Build adaptive capacity: the ability to navigate uncertainty repeatedly, not just once</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Resist the twin traps of analysis paralysis and reckless commitment</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Practices -->
+  <div class="section-label">
+    <h2>Core Practices</h2>
+    <div class="line"></div>
+  </div>
+
+  <!-- Practice 1: Cynefin Navigator -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-number">Practice 1</div>
+      <div class="practice-header-top">
+        <h3>Cynefin Navigator</h3>
+        <span class="status-badge available">Automated</span>
+      </div>
+      <p>A decision framework based on Dave Snowden's Cynefin model that helps teams classify challenges by their nature and choose the right approach for each &mdash; because not all problems respond to the same kind of thinking.</p>
+    </div>
+    <div class="practice-body">
+      <div class="practice-section">
+        <div class="section-toggle expanded" onclick="toggleSection(this)">
+          <h4>Tutorial</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content expanded">
+          <p>The Cynefin framework, developed by Dave Snowden, provides a sense-making model that helps teams understand the nature of the challenges they face and choose appropriate responses. The name comes from the Welsh word for "habitat" or "place of belonging" &mdash; reflecting the idea that context determines what kind of action is appropriate.</p>
+          <p>The framework identifies five domains. <strong>Clear</strong> (formerly "Obvious") is the domain of best practice, where cause and effect are self-evident. The response pattern is sense-categorize-respond: understand the situation, apply the known rule, execute. Most operational processes live here. <strong>Complicated</strong> is the domain of good practice, where cause and effect can be determined but require expertise. The pattern is sense-analyze-respond: bring in experts, evaluate options, choose the best approach. Engineering problems and technical challenges typically fall here.</p>
+          <p><strong>Complex</strong> is the domain of emergent practice, where cause and effect can only be understood in retrospect. This is where most strategic challenges live. The response pattern is probe-sense-respond: run safe-to-fail experiments, observe what happens, amplify what works and dampen what does not. You cannot analyze your way to a solution in complexity &mdash; you must act to learn. <strong>Chaotic</strong> is the domain of novel practice, where cause and effect are unclear and the situation is urgent. The pattern is act-sense-respond: stabilize the situation first, then make sense of what happened. Crises and unprecedented disruptions land here.</p>
+          <p>The fifth domain, <strong>Confused</strong> (formerly "Disorder"), is the most dangerous. It is the state of not knowing which domain you are in &mdash; and therefore not knowing what kind of response is appropriate. The most common leadership failure is treating complex problems as if they were merely complicated: bringing in more analysis when what is needed is experimentation. The Cynefin Navigator helps teams avoid this trap by explicitly classifying each challenge before deciding how to address it.</p>
+          <p>In practice, teams use the navigator to map their portfolio of strategic challenges across the framework. This reveals patterns: an organization that treats everything as complicated is probably missing the emergent opportunities that only experimentation can uncover. A team that lives entirely in the complex domain may need to invest in standardizing what has already been learned. The framework does not prescribe answers &mdash; it prescribes the right kind of thinking for each situation.</p>
+        </div>
+      </div>
+
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Resources &amp; Reading</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <ul class="resources-list">
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Cynefin: Weaving Sense-Making into the Fabric of Our World</span> <span class="resource-type book">Book</span><br><span class="book-author">Dave Snowden et al.</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128196;</span>
+              <div><span class="book-title">A Leader's Framework for Decision Making</span> <span class="resource-type article">Article</span><br><span class="book-author">David J. Snowden &amp; Mary E. Boone &mdash; Harvard Business Review</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128196;</span>
+              <div><span class="book-title">Cognitive Edge / The Cynefin Company Resources</span> <span class="resource-type article">Reference</span><br><span class="book-author">The Cynefin Company</span></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="practice-actions">
+      <a href="cynefin.html" class="action-btn primary">Launch Cynefin Navigator</a>
+    </div>
+  </div>
+
+  <!-- Practice 2: Safe-to-Fail Experiments -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-number">Practice 2</div>
+      <div class="practice-header-top">
+        <h3>Safe-to-Fail Experiments</h3>
+        <span class="status-badge coming-soon">Coming Soon</span>
+      </div>
+      <p>Designing structured probes for complex challenges &mdash; small, bounded experiments that generate real learning while limiting downside risk. Partially available through the Cynefin Navigator.</p>
+    </div>
+    <div class="practice-body">
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Tutorial</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <p>When a challenge sits in the complex domain of Cynefin, traditional planning fails because the relationship between cause and effect cannot be determined in advance. Safe-to-fail experiments are the response: carefully designed probes that generate genuine learning while keeping the downside bounded and manageable.</p>
+          <p>Each experiment has a clear structure. It begins with a <strong>hypothesis</strong> &mdash; a testable statement about what the team believes might be true. Then a <strong>probe action</strong>: the specific, concrete thing the team will do to test that hypothesis. The probe should be small enough to execute quickly but substantial enough to generate meaningful data.</p>
+          <p>Critical to the design are the <strong>sensing mechanisms</strong> &mdash; how will the team know what happened? What will they measure, observe, or listen for? Without explicit sensing, experiments generate activity but not learning. The team also defines <strong>amplify signals</strong> (criteria for scaling what works) and <strong>dampen signals</strong> (criteria for stopping what does not). This prevents the common failure of continuing failed experiments out of sunk-cost bias or killing successful ones prematurely.</p>
+          <p>Finally, every experiment has <strong>safety bounds</strong> &mdash; explicit limits on time, resources, and exposure that define the maximum downside. A safe-to-fail experiment should be consequential enough to matter but bounded enough that failure is informative rather than catastrophic. The key insight is that these experiments run as a <strong>portfolio</strong>, not individual bets. The team expects most probes to fail; what matters is the pattern of learning that emerges across the portfolio.</p>
+        </div>
+      </div>
+
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Resources &amp; Reading</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <ul class="resources-list">
+            <li>
+              <span class="book-icon">&#128196;</span>
+              <div><span class="book-title">Probe, Sense, Respond Methodology</span> <span class="resource-type article">Reference</span><br><span class="book-author">Complexity Science literature</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Adaptive Action: Leveraging Uncertainty in Your Organization</span> <span class="resource-type book">Book</span><br><span class="book-author">Glenda Eoyang &amp; Royce Holladay</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128196;</span>
+              <div><span class="book-title">Safe Enough to Try</span> <span class="resource-type article">Reference</span><br><span class="book-author">Sociocracy &amp; Complexity literature</span></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="practice-actions">
+      <a href="cynefin.html" class="action-btn secondary">Available via Cynefin Navigator</a>
+      <span class="action-btn disabled">Full Version Coming Soon</span>
+    </div>
+  </div>
+
+  <!-- Practice 3: Decision Architecture -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-number">Practice 3</div>
+      <div class="practice-header-top">
+        <h3>Decision Architecture</h3>
+        <span class="status-badge coming-soon">Coming Soon</span>
+      </div>
+      <p>Structuring how the team makes high-stakes decisions &mdash; defining decision rights, matching speed to stakes, and building decision logs that accelerate organizational learning.</p>
+    </div>
+    <div class="practice-body">
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Tutorial</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <p>Most leadership teams make decisions poorly not because the individuals lack judgment, but because the <em>architecture</em> of decision-making is poorly designed. Decision Architecture is the practice of deliberately structuring how a team approaches consequential choices &mdash; who decides, how fast, with what information, and how the outcome is captured for future learning.</p>
+          <p>The first principle is <strong>distinguishing reversible from irreversible decisions</strong>. Reversible decisions (what Amazon calls "two-way doors") should be made quickly by individuals or small groups close to the information. Irreversible decisions ("one-way doors") deserve slower deliberation, broader input, and more careful analysis. Most organizations make this distinction poorly: they deliberate endlessly on reversible decisions and rush through irreversible ones under time pressure.</p>
+          <p>The second principle is <strong>explicit decision rights</strong>. For any given decision, the team should be clear about who has the authority to decide, who must be consulted before the decision is made, who needs to be informed after, and who is responsible for executing. Ambiguity about decision rights is one of the most common sources of organizational friction &mdash; it produces either paralysis (no one decides) or conflict (multiple people decide differently).</p>
+          <p>The third principle is the <strong>decision log</strong>. After each significant decision, the team records what was decided, what the key considerations were, what alternatives were rejected and why, and what they expected to happen. Over time, the decision log becomes the team's most powerful learning tool &mdash; allowing them to see where their judgment was strong, where it was weak, and what patterns of error recur. Teams that build this discipline systematically improve their decision quality over months and years.</p>
+        </div>
+      </div>
+
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Resources &amp; Reading</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <ul class="resources-list">
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Thinking, Fast and Slow</span> <span class="resource-type book">Book</span><br><span class="book-author">Daniel Kahneman</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Decisive: How to Make Better Choices in Life and Work</span> <span class="resource-type book">Book</span><br><span class="book-author">Chip Heath &amp; Dan Heath</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">How Big Things Get Done</span> <span class="resource-type book">Book</span><br><span class="book-author">Bent Flyvbjerg &amp; Dan Gardner</span></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="practice-actions">
+      <span class="action-btn disabled">Coming Soon</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  Value Creating Teams &bull; Play 3: Navigating
+</div>
+
+<script>
+  function toggleSection(el) {
+    const content = el.nextElementSibling;
+    const isExpanded = content.classList.contains('expanded');
+    if (isExpanded) {
+      content.classList.remove('expanded');
+      el.classList.remove('expanded');
+    } else {
+      content.classList.add('expanded');
+      el.classList.add('expanded');
+    }
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play 5: Value Creating - Value Creating Teams</title>
+<script src="auth.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --teal: #00897B;
+    --teal-dark: #006B5E;
+    --teal-light: #4DB6AC;
+    --gold: #D4A843;
+    --gold-light: #E8C96A;
+    --coral: #E07A5F;
+    --purple: #7C5CBF;
+    --blue: #4A90D9;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1B2A4A;
+    --text-secondary: #5A6B8A;
+    --border: #E2E8F0;
+    --shadow: 0 2px 8px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.12);
+    --accent: var(--navy);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: white;
+    padding: 2rem 2rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at 70% 80%, rgba(44,62,107,0.3) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .header-content { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: white; }
+  .play-number {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+  }
+  .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+
+  /* Main */
+  .main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+  /* Description Card */
+  .description-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+    border-left: 4px solid var(--navy);
+  }
+  .description-card h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.75rem;
+  }
+  .description-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 0.75rem;
+  }
+  .description-card p:last-child { margin-bottom: 0; }
+  .description-points {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    margin-top: 1rem;
+  }
+  .description-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .description-point .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--navy);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  /* Cycle Card */
+  .cycle-card {
+    background: linear-gradient(135deg, var(--navy), var(--teal-dark));
+    border-radius: 16px;
+    padding: 1.75rem;
+    color: white;
+    margin-bottom: 2rem;
+  }
+  .cycle-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+  .cycle-steps {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+  .cycle-step {
+    padding: 0.5rem 0.85rem;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .cycle-arrow {
+    font-size: 0.85rem;
+    opacity: 0.6;
+  }
+  .cycle-note {
+    text-align: center;
+    font-size: 0.78rem;
+    opacity: 0.75;
+    margin-top: 0.75rem;
+    font-style: italic;
+  }
+
+  /* Section Label */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-label h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .section-label .line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* Practice Card */
+  .practice-card {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--navy);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .practice-card:hover {
+    box-shadow: var(--shadow-lg);
+  }
+  .practice-header {
+    padding: 1.5rem 1.75rem;
+  }
+  .practice-header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .practice-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .coming-soon-badge {
+    display: inline-block;
+    padding: 0.25rem 0.65rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .practice-header p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  /* Collapsible Sections */
+  .practice-section {
+    border-top: 1px solid var(--border);
+  }
+  .section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.75rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    user-select: none;
+  }
+  .section-toggle:hover {
+    background: var(--bg);
+  }
+  .section-toggle h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-toggle .toggle-icon {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+  }
+  .section-toggle.expanded .toggle-icon {
+    transform: rotate(180deg);
+  }
+  .section-content {
+    display: none;
+    padding: 0 1.75rem 1.25rem;
+  }
+  .section-content.expanded {
+    display: block;
+  }
+  .section-content p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 0.75rem;
+  }
+  .section-content p:last-child { margin-bottom: 0; }
+
+  /* Book List */
+  .book-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .book-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg);
+    border-radius: 8px;
+  }
+  .book-list li:last-child { margin-bottom: 0; }
+  .book-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 0.85rem;
+  }
+  .book-title {
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .book-author {
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+
+  /* Action Button */
+  .practice-action {
+    padding: 1rem 1.75rem;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+    border: none;
+    cursor: default;
+  }
+  .action-btn.coming-soon {
+    background: var(--border);
+    color: var(--text-secondary);
+  }
+  .action-btn.available {
+    background: var(--navy);
+    color: white;
+    cursor: pointer;
+  }
+  .action-btn.available:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header h1 { font-size: 1.5rem; }
+    .main { padding: 1rem; }
+    .practice-header { padding: 1.25rem; }
+    .section-toggle { padding: 0.85rem 1.25rem; }
+    .section-content { padding: 0 1.25rem 1.25rem; }
+    .practice-action { padding: 1rem 1.25rem; }
+    .cycle-steps { gap: 0.35rem; }
+    .cycle-step { font-size: 0.7rem; padding: 0.4rem 0.65rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-content">
+    <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
+    <span class="play-number">Play 5</span>
+    <h1>Value Creating</h1>
+    <p class="subtitle">Bringing It All Together &mdash; turning learning into impact, creating outcomes that only this team, in this moment, could produce</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Description -->
+  <div class="description-card">
+    <h2>The Integration Play</h2>
+    <p>The final play integrates everything. It's where the team creates outcomes that only this team, in this moment, could produce. Value Creating isn't a destination &mdash; it's the <strong>continuous practice of turning learning into impact</strong>.</p>
+    <p>Value creation is always contextual &mdash; specific to the domain, the problem, and the ambition. The central discipline is knowing when to expand learning, when to test hypotheses, when to hold options open, and when to go big. The "go big" moment is one of the most sophisticated calls a leadership team must make.</p>
+    <div class="description-points">
+      <div class="description-point">
+        <div class="dot"></div>
+        <span>Teams develop the ability to sense the right moment through repeated practice of the earlier plays &mdash; what momentum feels like, what coherence feels like, what readiness feels like</span>
+      </div>
+      <div class="description-point">
+        <div class="dot"></div>
+        <span>After significant value creation, the cycle begins anew: Sensemaking, Imagining, Navigating, Collaborating, Value Creating</span>
+      </div>
+      <div class="description-point">
+        <div class="dot"></div>
+        <span>This is why it's a play, not an outcome &mdash; a repeatable capability</span>
+      </div>
+      <div class="description-point">
+        <div class="dot"></div>
+        <span>Teams that master this become engines of sustained value creation</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- The Cycle -->
+  <div class="cycle-card">
+    <h3>The Value Creating Cycle</h3>
+    <div class="cycle-steps">
+      <span class="cycle-step">Sensemaking</span>
+      <span class="cycle-arrow">&#8594;</span>
+      <span class="cycle-step">Imagining</span>
+      <span class="cycle-arrow">&#8594;</span>
+      <span class="cycle-step">Navigating</span>
+      <span class="cycle-arrow">&#8594;</span>
+      <span class="cycle-step">Collaborating</span>
+      <span class="cycle-arrow">&#8594;</span>
+      <span class="cycle-step" style="background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.4);">Value Creating</span>
+      <span class="cycle-arrow">&#8634;</span>
+    </div>
+    <p class="cycle-note">After significant value creation, the cycle begins anew &mdash; each revolution builds deeper capability</p>
+  </div>
+
+  <!-- Core Practices -->
+  <div class="section-label">
+    <h2>Core Practices</h2>
+    <div class="line"></div>
+  </div>
+
+  <!-- Practice 1: Value Creation Cycle -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-header-top">
+        <h3>Value Creation Cycle</h3>
+        <span class="coming-soon-badge">Coming Soon</span>
+      </div>
+      <p>The full integration practice &mdash; reviewing all five plays, identifying momentum, and assessing readiness for decisive action.</p>
+    </div>
+
+    <div class="practice-section">
+      <div class="section-toggle" onclick="toggleSection(this)">
+        <h4>&#128218; Tutorial</h4>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="section-content">
+        <p>The Value Creation Cycle is the integrative practice that brings together everything the team has built across the first four plays. It is not a planning exercise &mdash; it is a readiness assessment and a decision-making discipline. The team reviews where they are across all five plays and makes a judgment: are we ready to commit?</p>
+        <p>The cycle begins with a structured review. The team examines each play in sequence, asking specific questions. For Sensemaking: Do we understand reality clearly enough? Are we seeing the landscape as it is, or as we wish it were? For Imagining: Is our ambition sharp and compelling? Does it energize the team and stretch us beyond the obvious? For Navigating: Are we learning fast enough? Are our experiments yielding insight? For Collaborating: Is the team working at its best? Are we being honest with each other?</p>
+        <p>If all signals point to readiness, the team enters the commitment phase. This is the "go big" moment &mdash; scaling what works, allocating significant resources, and making moves that are difficult to reverse. The sophistication lies in distinguishing genuine readiness from impatience. Teams that commit too early waste resources. Teams that wait too long miss the window. The ability to sense the right moment is developed through repeated practice, not through analysis alone.</p>
+        <p>After a major commitment, the cycle resets. The landscape has changed &mdash; perhaps dramatically &mdash; and the team returns to Sensemaking with fresh eyes. What is the new reality? What has shifted? This is not going back to the beginning; it is spiraling upward, with deeper capabilities and sharper pattern recognition each time through.</p>
+        <p>Teams should run a lightweight version of this cycle regularly &mdash; perhaps monthly &mdash; and a deeper version at key inflection points. Over time, the cycle becomes intuitive. The team develops a shared sense of where they are in the cycle without needing to be formal about it. That is mastery.</p>
+      </div>
+    </div>
+
+    <div class="practice-section">
+      <div class="section-toggle" onclick="toggleSection(this)">
+        <h4>&#128214; Resources &amp; Reading</h4>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="section-content">
+        <ul class="book-list">
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Playing to Win</span> <span class="book-author">&mdash; A.G. Lafley &amp; Roger Martin</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">The Innovator's Dilemma</span> <span class="book-author">&mdash; Clayton Christensen</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Blue Ocean Strategy</span> <span class="book-author">&mdash; W. Chan Kim &amp; Ren&eacute;e Mauborgne</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Loonshots</span> <span class="book-author">&mdash; Safi Bahcall</span></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="practice-action">
+      <span class="action-btn coming-soon">Coming Soon &mdash; Automated Tool in Development</span>
+    </div>
+  </div>
+
+  <!-- Practice 2: Impact Assessment -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-header-top">
+        <h3>Impact Assessment</h3>
+        <span class="coming-soon-badge">Coming Soon</span>
+      </div>
+      <p>A forward-looking practice that evaluates outcomes and feeds directly back into Sensemaking &mdash; resetting the cycle for the next round of value creation.</p>
+    </div>
+
+    <div class="practice-section">
+      <div class="section-toggle" onclick="toggleSection(this)">
+        <h4>&#128218; Tutorial</h4>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="section-content">
+        <p>After a major value-creating move, the team must evaluate what happened &mdash; but not in the way most organizations do it. Traditional post-mortems focus on what went wrong. Impact Assessment is fundamentally forward-looking: what happened, what changed, and what does it mean for what comes next?</p>
+        <p>The assessment begins with outcomes. What value was actually created? This requires honest measurement, not spin. Did revenue grow? Did market position shift? Did capability improve? Did the organization learn something it didn't know before? The team examines both intended and unintended consequences &mdash; sometimes the most valuable outcome is something no one anticipated.</p>
+        <p>Next, the team examines the landscape. What changed as a result of the move? How did competitors respond? How did customers or stakeholders react? What new opportunities or threats emerged? This is where the assessment begins to feed back into Sensemaking &mdash; the landscape is different now, and the team needs to update its understanding.</p>
+        <p>Then comes the capability assessment. What new capabilities did the team build through this cycle? What did the team learn about how it works together? What surprised the team about its own performance? This connects back to Collaborating &mdash; each value creation cycle should leave the team stronger, not just the organization.</p>
+        <p>The final step is explicit: the assessment becomes the input for the next cycle. The team identifies the new questions that need answering, the new opportunities worth exploring, and the new ambitions worth pursuing. This is what makes Value Creating a play rather than an outcome &mdash; it is never finished, and each cycle raises the bar for what comes next.</p>
+      </div>
+    </div>
+
+    <div class="practice-section">
+      <div class="section-toggle" onclick="toggleSection(this)">
+        <h4>&#128214; Resources &amp; Reading</h4>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="section-content">
+        <ul class="book-list">
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Measure What Matters</span> <span class="book-author">&mdash; John Doerr</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">The Lean Startup</span> <span class="book-author">&mdash; Eric Ries (Build-Measure-Learn cycle)</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Outcomes Over Output</span> <span class="book-author">&mdash; Josh Seiden</span></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="practice-action">
+      <span class="action-btn coming-soon">Coming Soon &mdash; Automated Tool in Development</span>
+    </div>
+  </div>
+
+  <!-- Practice 3: Portfolio of Bets -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-header-top">
+        <h3>Portfolio of Bets</h3>
+        <span class="coming-soon-badge">Coming Soon</span>
+      </div>
+      <p>Managing strategic initiatives as a portfolio of bets across different time horizons and risk profiles &mdash; not every bet needs to pay off.</p>
+    </div>
+
+    <div class="practice-section">
+      <div class="section-toggle" onclick="toggleSection(this)">
+        <h4>&#128218; Tutorial</h4>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="section-content">
+        <p>Most leadership teams manage their strategic initiatives as a list of projects, each evaluated on its own merits. The Portfolio of Bets practice introduces a fundamentally different lens: the team manages its initiatives as a portfolio, where the composition matters as much as any individual bet.</p>
+        <p>The practice begins with mapping the current portfolio. Each initiative is placed along two dimensions: time horizon (near-term, medium-term, long-term) and risk profile (high-conviction/low-risk through to high-risk/high-reward). This mapping often reveals uncomfortable truths. Most leadership teams discover their portfolio is heavily weighted toward short-term, low-risk moves &mdash; the equivalent of an investment portfolio that is all bonds and no growth stocks.</p>
+        <p>The team then evaluates the portfolio as a whole. Is the mix right for where the organization needs to go? Are there enough long-term bets to ensure future relevance? Are there enough experiments to generate the learning needed for the next cycle? Is the team over-indexed on any single bet that could become an existential risk? The goal is not to eliminate risk but to manage it deliberately.</p>
+        <p>Regular portfolio reviews become a core team rhythm. At each review, the team asks three questions about each initiative: Should we scale this (allocate more resources because it's working)? Should we continue exploring (keep learning but don't commit further)? Should we stop this (cut losses and reallocate)? These are some of the hardest conversations a leadership team can have, because stopping something means acknowledging a bet didn't pay off.</p>
+        <p>Over time, teams that practice portfolio management develop a distinctive strategic capability. They become comfortable with the idea that some bets will fail &mdash; and that failure is not a problem as long as the portfolio as a whole is generating value and learning. This is the antifragile mindset: the portfolio gets stronger through the information generated by both successes and failures.</p>
+      </div>
+    </div>
+
+    <div class="practice-section">
+      <div class="section-toggle" onclick="toggleSection(this)">
+        <h4>&#128214; Resources &amp; Reading</h4>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="section-content">
+        <ul class="book-list">
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">The Alchemy of Growth</span> <span class="book-author">&mdash; Mehrdad Baghai, Stephen Coley &amp; David White</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Discovery-Driven Growth</span> <span class="book-author">&mdash; Rita McGrath &amp; Ian MacMillan</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Antifragile</span> <span class="book-author">&mdash; Nassim Nicholas Taleb</span></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="practice-action">
+      <span class="action-btn coming-soon">Coming Soon &mdash; Automated Tool in Development</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  Value Creating Teams &bull; Play 5: Value Creating
+</div>
+
+<script>
+  function toggleSection(toggle) {
+    const section = toggle.parentElement;
+    const content = section.querySelector('.section-content');
+    const isExpanded = content.classList.contains('expanded');
+
+    if (isExpanded) {
+      content.classList.remove('expanded');
+      toggle.classList.remove('expanded');
+    } else {
+      content.classList.add('expanded');
+      toggle.classList.add('expanded');
+    }
+  }
+</script>
+
+</body>
+</html>

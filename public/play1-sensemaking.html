@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play 1: Sensemaking - Value Creating Teams</title>
+<script src="auth.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --teal: #00897B;
+    --teal-dark: #006B5E;
+    --teal-light: #4DB6AC;
+    --gold: #D4A843;
+    --coral: #E07A5F;
+    --purple: #7C5CBF;
+    --blue: #4A90D9;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1B2A4A;
+    --text-secondary: #5A6B8A;
+    --border: #E2E8F0;
+    --shadow: 0 2px 8px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.12);
+    --accent: var(--teal);
+    --accent-dark: var(--teal-dark);
+    --accent-light: var(--teal-light);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--teal-dark) 100%);
+    color: white;
+    padding: 2rem 2rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at 70% 80%, rgba(0,137,123,0.25) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .header-content { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: white; }
+  .play-badge {
+    display: inline-block;
+    padding: 0.25rem 0.7rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+
+  /* Main */
+  .main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+  /* Description Card */
+  .description-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+    border-left: 4px solid var(--accent);
+  }
+  .description-card h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.75rem;
+  }
+  .description-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 0.75rem;
+  }
+  .description-card p:last-child { margin-bottom: 0; }
+  .key-points {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .key-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .key-point .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  /* Section Label */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-label h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .section-label .line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* Practice Card */
+  .practice-card {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: box-shadow 0.2s;
+  }
+  .practice-card:hover { box-shadow: var(--shadow-lg); }
+
+  .practice-header {
+    padding: 1.5rem 1.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .practice-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.4rem;
+  }
+  .practice-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .practice-number {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+  }
+  .practice-header p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .status-badge.available {
+    background: var(--accent);
+    color: white;
+  }
+  .status-badge.coming-soon {
+    background: var(--bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+
+  /* Practice Sections */
+  .practice-body {
+    padding: 0 1.75rem 1.5rem;
+  }
+
+  .practice-section {
+    padding-top: 1.25rem;
+  }
+  .practice-section + .practice-section {
+    border-top: 1px solid var(--border);
+    margin-top: 1.25rem;
+  }
+
+  .section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    padding: 0.25rem 0;
+  }
+  .section-toggle h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .toggle-icon {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+  }
+  .section-toggle.expanded .toggle-icon { transform: rotate(180deg); }
+
+  .section-content {
+    display: none;
+    padding-top: 0.75rem;
+  }
+  .section-content.expanded { display: block; }
+  .section-content p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 0.75rem;
+  }
+  .section-content p:last-child { margin-bottom: 0; }
+
+  /* Resources List */
+  .resources-list {
+    list-style: none;
+  }
+  .resources-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    background: var(--bg);
+    border-radius: 8px;
+  }
+  .resources-list li:last-child { margin-bottom: 0; }
+  .book-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 0.85rem;
+  }
+  .book-title { font-weight: 600; color: var(--navy); }
+  .book-author { color: var(--text-secondary); }
+  .resource-type {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    background: var(--accent);
+    color: white;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+  .resource-type.article { background: var(--blue); }
+  .resource-type.book { background: var(--navy-light); }
+
+  /* Action Buttons */
+  .practice-actions {
+    padding: 1rem 1.75rem 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+    cursor: pointer;
+    border: none;
+  }
+  .action-btn.primary {
+    background: var(--accent);
+    color: white;
+  }
+  .action-btn.primary:hover {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,137,123,0.3);
+  }
+  .action-btn.secondary {
+    background: var(--bg);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .action-btn.secondary:hover {
+    background: var(--accent);
+    color: white;
+  }
+  .action-btn.disabled {
+    background: var(--bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header h1 { font-size: 1.5rem; }
+    .main { padding: 1rem; }
+    .practice-header { padding: 1.25rem; }
+    .practice-body { padding: 0 1.25rem 1.25rem; }
+    .practice-actions { padding: 1rem 1.25rem 1.25rem; }
+    .key-points { grid-template-columns: 1fr; }
+    .practice-header-top { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-content">
+    <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
+    <div class="play-badge">Play 1 of 5</div>
+    <h1>Sensemaking</h1>
+    <p class="subtitle">Understanding Where We Are &mdash; building shared clarity about present reality before deciding what to do next.</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Description -->
+  <div class="description-card">
+    <h2>The Foundation of Strategic Action</h2>
+    <p>Sensemaking is the anchor for everything that follows. Before a team can imagine a future, navigate complexity, or collaborate effectively, it must first develop a shared understanding of present reality. Not a single, sanitized view &mdash; but an honest, sometimes uncomfortable picture of what is actually happening.</p>
+    <p>The practice demands that teams distinguish carefully between what they know and what they assume, between the signals that matter and the noise that distracts. This is harder than it sounds. Most leadership teams operate with a patchwork of individual perspectives, unexamined beliefs, and inherited truths that may have expired long ago.</p>
+    <p>Critically, disagreement during sensemaking is not dysfunction &mdash; it is data. When team members see reality differently, those divergences point directly to the places where understanding is incomplete and where assumptions need testing. Teams that learn to treat conflict as a map rather than a problem gain a significant advantage.</p>
+
+    <h2 style="margin-top: 1.25rem;">Core Principles</h2>
+    <div class="key-points">
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Separate foundational facts from deeply held beliefs that may or may not be true</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Identify the genuine signals worth acting on versus the attractive distractions that consume energy</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Treat disagreement as valuable intelligence about where reality is still unclear</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Categorize inputs: foundational facts, beliefs worth exploring, expired truths, shiny distractions</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Build shared understanding of what is known, what is believed, and what remains genuinely uncertain</span>
+      </div>
+      <div class="key-point">
+        <div class="dot"></div>
+        <span>Resist the urge to converge prematurely on a unified narrative before the evidence supports one</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Practices -->
+  <div class="section-label">
+    <h2>Core Practices</h2>
+    <div class="line"></div>
+  </div>
+
+  <!-- Practice 1: FBSN Exercise -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-number">Practice 1</div>
+      <div class="practice-header-top">
+        <h3>FBSN Exercise (Facts, Beliefs, Signals, Noise)</h3>
+        <span class="status-badge available">Automated</span>
+      </div>
+      <p>The signature sensemaking tool. Teams surface their individual perspectives, then use a structured 2&times;2 matrix to categorize and prioritize what they know, believe, and need to act on.</p>
+    </div>
+    <div class="practice-body">
+      <div class="practice-section">
+        <div class="section-toggle expanded" onclick="toggleSection(this)">
+          <h4>Tutorial</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content expanded">
+          <p>The FBSN Exercise is built around a 2&times;2 matrix with two critical axes. The horizontal axis measures <strong>Certainty</strong> &mdash; ranging from Fact (things we can verify and demonstrate) to Belief (things we hold to be true but cannot yet prove). The vertical axis measures <strong>Importance</strong> &mdash; from Signal (information that is genuinely consequential for our decisions) to Noise (information that is interesting but ultimately peripheral).</p>
+          <p>The process begins with individual input. Each team member contributes their perspective on a given strategic challenge or question &mdash; the raw observations, concerns, assumptions, and data points that shape how they see the situation. This divergent phase is critical: it captures the full range of perspectives before any filtering occurs.</p>
+          <p>Next, AI-assisted extraction identifies the distinct claims, observations, and assertions embedded in each contribution. This step transforms narrative input into discrete, categorizable items &mdash; making implicit assumptions visible and separating compound statements into their component parts.</p>
+          <p>The team then categorizes each item into the matrix. Facts that are also Signals become the bedrock of strategy &mdash; these are the things we know to be true and that genuinely matter. Beliefs that register as Signals are the most important items to test: they feel consequential, but we cannot yet be sure they are real. Facts that land as Noise are true but irrelevant. Beliefs that are Noise can be safely set aside.</p>
+          <p>Finally, the categorized matrix drives action planning. Items flow into three buckets: <strong>Must Do</strong> (actions demanded by confirmed, important facts), <strong>Might Do</strong> (experiments to test high-importance beliefs), and <strong>Won't Do</strong> (items the team consciously chooses to set aside). This discipline of explicit triage prevents the common failure of trying to act on everything simultaneously.</p>
+        </div>
+      </div>
+
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Resources &amp; Reading</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <ul class="resources-list">
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Making Sense of the Organization</span> <span class="resource-type book">Book</span><br><span class="book-author">Karl E. Weick</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Sensemaking in Organizations</span> <span class="resource-type book">Book</span><br><span class="book-author">Karl E. Weick</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">The Fifth Discipline</span> <span class="resource-type book">Book</span><br><span class="book-author">Peter Senge</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128196;</span>
+              <div><span class="book-title">The Art of Strategic Sensemaking</span> <span class="resource-type article">Article</span><br><span class="book-author">Harvard Business Review</span></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="practice-actions">
+      <a href="fbsn.html" class="action-btn primary">Launch Solo FBSN</a>
+      <a href="host.html" class="action-btn secondary">Host Live Multiplayer</a>
+    </div>
+  </div>
+
+  <!-- Practice 2: Three Horizons Scanning -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-number">Practice 2</div>
+      <div class="practice-header-top">
+        <h3>Three Horizons Scanning</h3>
+        <span class="status-badge coming-soon">Coming Soon</span>
+      </div>
+      <p>A framework for mapping the strategic landscape across three time horizons &mdash; what must be delivered today, what is emerging tomorrow, and what could transform the future.</p>
+    </div>
+    <div class="practice-body">
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Tutorial</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <p>The Three Horizons framework provides a structured way for teams to see beyond the immediate and consider the full arc of strategic possibility. It was developed to help organizations hold multiple time perspectives simultaneously &mdash; something that leadership teams chronically struggle with, typically defaulting to the urgent at the expense of the important.</p>
+          <p><strong>Horizon 1: Deliver Today.</strong> This is the current business &mdash; the products, services, processes, and capabilities that generate value right now. H1 work is about optimization, execution, and protecting what works. Every team spends most of its energy here, and for good reason. But H1 thinking alone leads to gradual decline as the world shifts around you.</p>
+          <p><strong>Horizon 2: Build Tomorrow.</strong> These are the emerging opportunities that the team can see forming but that are not yet fully realized. H2 represents the bridge between the current business and the future &mdash; new markets, capabilities under development, partnerships being explored. H2 work requires investment before the returns are clear, which makes it politically vulnerable in most organizations.</p>
+          <p><strong>Horizon 3: Create the Future.</strong> The transformational possibilities that could fundamentally reshape the organization or its industry. H3 thinking is speculative and generative &mdash; it explores what the world might look like in five, ten, or twenty years and what role the organization could play. Most teams dismiss H3 as impractical, but it is the source of breakthrough innovation.</p>
+          <p>In practice, teams use Three Horizons Scanning by mapping their current portfolio of initiatives, challenges, and strategic bets across all three horizons. The revealing question is not where the team is investing the most resources &mdash; but where it is investing the most <em>leadership attention</em>. Teams that starve H2 and H3 of senior focus are slowly writing their own obsolescence.</p>
+        </div>
+      </div>
+
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Resources &amp; Reading</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <ul class="resources-list">
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Three Horizons: The Patterning of Hope</span> <span class="resource-type book">Book</span><br><span class="book-author">Bill Sharpe</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">The Alchemy of Growth</span> <span class="resource-type book">Book</span><br><span class="book-author">Mehrdad Baghai, Stephen Coley &amp; David White</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128196;</span>
+              <div><span class="book-title">Three Horizons Methodology</span> <span class="resource-type article">Reference</span><br><span class="book-author">International Futures Forum (IFF)</span></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="practice-actions">
+      <span class="action-btn disabled">Coming Soon</span>
+    </div>
+  </div>
+
+  <!-- Practice 3: Assumption Mapping -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-number">Practice 3</div>
+      <div class="practice-header-top">
+        <h3>Assumption Mapping</h3>
+        <span class="status-badge coming-soon">Coming Soon</span>
+      </div>
+      <p>A rigorous practice for surfacing the implicit assumptions that silently drive strategic decisions &mdash; then deciding which ones most urgently need to be tested.</p>
+    </div>
+    <div class="practice-body">
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Tutorial</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <p>Every strategy rests on a foundation of assumptions, and most of those assumptions are invisible to the people who hold them. Assumption Mapping is the practice of making the implicit explicit &mdash; dragging hidden beliefs into the light where they can be examined, challenged, and tested.</p>
+          <p>The process begins with elicitation. Each team member identifies the assumptions underlying a specific strategic decision, initiative, or belief about the future. The facilitator pushes for specificity: not "we assume the market will grow" but "we assume the European mid-market segment will grow at 8-12% annually through 2027." Vague assumptions cannot be tested; precise ones can.</p>
+          <p>Once assumptions are surfaced, the team rates each on two dimensions: <strong>confidence</strong> (how certain are we that this is true?) and <strong>consequence</strong> (how much does our strategy depend on this being true?). Assumptions that score low on confidence but high on consequence are the most dangerous &mdash; they are the load-bearing beams of strategy that might be rotten.</p>
+          <p>The final step is designing tests. For each high-risk assumption, the team identifies what evidence would confirm or refute it, where that evidence might be found, and how quickly it can be obtained. Some assumptions can be tested in days through customer conversations or data analysis. Others require structured experiments over weeks or months. The discipline is in matching the testing approach to the assumption's risk profile rather than defaulting to analysis paralysis or reckless optimism.</p>
+        </div>
+      </div>
+
+      <div class="practice-section">
+        <div class="section-toggle" onclick="toggleSection(this)">
+          <h4>Resources &amp; Reading</h4>
+          <span class="toggle-icon">&#9660;</span>
+        </div>
+        <div class="section-content">
+          <ul class="resources-list">
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Thinking in Bets</span> <span class="resource-type book">Book</span><br><span class="book-author">Annie Duke</span></div>
+            </li>
+            <li>
+              <span class="book-icon">&#128214;</span>
+              <div><span class="book-title">Superforecasting: The Art and Science of Prediction</span> <span class="resource-type book">Book</span><br><span class="book-author">Philip Tetlock &amp; Dan Gardner</span></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="practice-actions">
+      <span class="action-btn disabled">Coming Soon</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  Value Creating Teams &bull; Play 1: Sensemaking
+</div>
+
+<script>
+  function toggleSection(el) {
+    const content = el.nextElementSibling;
+    const isExpanded = content.classList.contains('expanded');
+    if (isExpanded) {
+      content.classList.remove('expanded');
+      el.classList.remove('expanded');
+    } else {
+      content.classList.add('expanded');
+      el.classList.add('expanded');
+    }
+  }
+</script>
+
+</body>
+</html>

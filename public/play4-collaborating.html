@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play 4: Collaborating - Value Creating Teams</title>
+<script src="auth.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --teal: #00897B;
+    --teal-dark: #006B5E;
+    --teal-light: #4DB6AC;
+    --gold: #D4A843;
+    --gold-light: #E8C96A;
+    --coral: #E07A5F;
+    --purple: #7C5CBF;
+    --blue: #4A90D9;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1B2A4A;
+    --text-secondary: #5A6B8A;
+    --border: #E2E8F0;
+    --shadow: 0 2px 8px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.12);
+    --accent: var(--gold);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, #8B7A3A 100%);
+    color: white;
+    padding: 2rem 2rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at 70% 80%, rgba(212,168,67,0.2) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .header-content { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: white; }
+  .play-number {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+  }
+  .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+
+  /* Main */
+  .main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+  /* Description Card */
+  .description-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+    border-left: 4px solid var(--gold);
+  }
+  .description-card h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.75rem;
+  }
+  .description-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 0.75rem;
+  }
+  .description-card p:last-child { margin-bottom: 0; }
+  .description-points {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    margin-top: 1rem;
+  }
+  .description-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .description-point .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  /* Section Label */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-label h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .section-label .line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* Practice Card */
+  .practice-card {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--gold);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .practice-card:hover {
+    box-shadow: var(--shadow-lg);
+  }
+  .practice-header {
+    padding: 1.5rem 1.75rem;
+  }
+  .practice-header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .practice-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .coming-soon-badge {
+    display: inline-block;
+    padding: 0.25rem 0.65rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .practice-header p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  /* Collapsible Sections */
+  .practice-section {
+    border-top: 1px solid var(--border);
+  }
+  .section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.75rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    user-select: none;
+  }
+  .section-toggle:hover {
+    background: var(--bg);
+  }
+  .section-toggle h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-toggle .toggle-icon {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+  }
+  .section-toggle.expanded .toggle-icon {
+    transform: rotate(180deg);
+  }
+  .section-content {
+    display: none;
+    padding: 0 1.75rem 1.25rem;
+  }
+  .section-content.expanded {
+    display: block;
+  }
+  .section-content p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 0.75rem;
+  }
+  .section-content p:last-child { margin-bottom: 0; }
+
+  /* Book List */
+  .book-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .book-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg);
+    border-radius: 8px;
+  }
+  .book-list li:last-child { margin-bottom: 0; }
+  .book-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 0.85rem;
+  }
+  .book-title {
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .book-author {
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+
+  /* Action Button */
+  .practice-action {
+    padding: 1rem 1.75rem;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+    border: none;
+    cursor: default;
+  }
+  .action-btn.coming-soon {
+    background: var(--border);
+    color: var(--text-secondary);
+  }
+  .action-btn.available {
+    background: var(--gold);
+    color: white;
+    cursor: pointer;
+  }
+  .action-btn.available:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header h1 { font-size: 1.5rem; }
+    .main { padding: 1rem; }
+    .practice-header { padding: 1.25rem; }
+    .section-toggle { padding: 0.85rem 1.25rem; }
+    .section-content { padding: 0 1.25rem 1.25rem; }
+    .practice-action { padding: 1rem 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-content">
+    <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
+    <span class="play-number">Play 4</span>
+    <h1>Collaborating</h1>
+    <p class="subtitle">Establishing the Team's Unique Identity &mdash; developing a distinctive way of working that becomes "how we work here"</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Description -->
+  <div class="description-card">
+    <h2>How the Team Works Together</h2>
+    <p>The first three plays describe what value-creating teams do. Collaborating describes <strong>how they do it together</strong>. This is where the team develops its distinctive way of working &mdash; the patterns, rhythms, and practices that become "how we work here."</p>
+    <p>Like a musical ensemble that practices structured compositions to enable improvisation, teams build their collaborative capacity through deliberate practice. But there is a critical distinction: teams should not write down norms that are not already lived. Real norms emerge organically from experience.</p>
+    <div class="description-points">
+      <div class="description-point">
+        <div class="dot"></div>
+        <span>Helps teams see themselves clearly &mdash; hidden assumptions, personal histories, values that anchor perspectives</span>
+      </div>
+      <div class="description-point">
+        <div class="dot"></div>
+        <span>Continuous reflection woven into the team's rhythm, not quarterly off-sites</span>
+      </div>
+      <div class="description-point">
+        <div class="dot"></div>
+        <span>The team's operating system: refining how they run plays, adapting to new challenges, building a distinctive identity</span>
+      </div>
+      <div class="description-point">
+        <div class="dot"></div>
+        <span>Collaborating is where the team becomes more than the sum of its members</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Practices -->
+  <div class="section-label">
+    <h2>Core Practices</h2>
+    <div class="line"></div>
+  </div>
+
+  <!-- Practice 1: Team Operating System Design -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-header-top">
+        <h3>Team Operating System Design</h3>
+        <span class="coming-soon-badge">Coming Soon</span>
+      </div>
+      <p>A practice for designing the team's operating rhythms, rituals, and norms &mdash; built from what's already working, not what's prescribed.</p>
+    </div>
+
+    <div class="practice-section">
+      <div class="section-toggle" onclick="toggleSection(this)">
+        <h4>&#128218; Tutorial</h4>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="section-content">
+        <p>Instead of prescribing how the team should work, this practice helps the team observe what's already working, name it, and deliberately strengthen it. Too often, teams adopt generic operating models borrowed from management books or other organizations. The result is a set of norms that feel imposed rather than owned &mdash; and they quietly erode within weeks.</p>
+        <p>The practice begins with mapping. The team maps its current operating rhythms: meeting structures, decision forums, communication patterns, and learning mechanisms. This is descriptive, not aspirational. The goal is to see the system as it actually functions &mdash; including the informal channels, workarounds, and shadow structures that often carry the real work.</p>
+        <p>Next comes observation. Over a period of two to four weeks, the team pays deliberate attention to what works and what doesn't. Which meetings generate energy? Which drain it? Where do decisions actually get made? Where do they get stuck? The team collects these observations without rushing to fix anything.</p>
+        <p>Then comes design. Based on what the team has observed, they make deliberate choices: what to keep, what to stop, what to experiment with. This might mean changing the cadence of a meeting, creating a new decision forum, or establishing a practice they've been doing informally but haven't named. The key principle is that the operating system evolves as the team grows &mdash; it is never finished.</p>
+        <p>Finally, the team builds in a regular review. Every six to eight weeks, they revisit their operating system: What's still serving us? What needs to change? This prevents the common failure mode of designing a system once and watching it slowly become irrelevant.</p>
+      </div>
+    </div>
+
+    <div class="practice-section">
+      <div class="section-toggle" onclick="toggleSection(this)">
+        <h4>&#128214; Resources &amp; Reading</h4>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="section-content">
+        <ul class="book-list">
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">The Wisdom of Teams</span> <span class="book-author">&mdash; Jon Katzenbach &amp; Douglas Smith</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Team of Teams</span> <span class="book-author">&mdash; General Stanley McChrystal</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Teaming</span> <span class="book-author">&mdash; Amy Edmondson</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">The Five Dysfunctions of a Team</span> <span class="book-author">&mdash; Patrick Lencioni</span></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="practice-action">
+      <span class="action-btn coming-soon">Coming Soon &mdash; Automated Tool in Development</span>
+    </div>
+  </div>
+
+  <!-- Practice 2: Trust & Candor Protocol -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-header-top">
+        <h3>Trust &amp; Candor Protocol</h3>
+        <span class="coming-soon-badge">Coming Soon</span>
+      </div>
+      <p>Building psychological safety and productive candor &mdash; the foundation for teams that can challenge each other's thinking without damaging relationships.</p>
+    </div>
+
+    <div class="practice-section">
+      <div class="section-toggle" onclick="toggleSection(this)">
+        <h4>&#128218; Tutorial</h4>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="section-content">
+        <p>Psychological safety has become a popular concept, but most teams struggle to build it in practice. The Trust and Candor Protocol provides a structured, incremental approach. It begins with a simple premise: trust is built through small acts of vulnerability, not grand gestures of openness.</p>
+        <p>The protocol starts with low-stakes vulnerability exercises. Team members practice sharing what they don't know, what they're uncertain about, and where they need help &mdash; in domains where the risk feels manageable. This might begin with operational topics before moving to strategic or interpersonal ones. The key is that the team experiences what it feels like to be honest without consequence.</p>
+        <p>As trust builds, the protocol introduces productive candor practices. Teams learn to name what's not working without making it personal, to challenge each other's thinking without triggering defensiveness, and to admit uncertainty without losing credibility. Each of these is a specific skill that can be practiced and refined.</p>
+        <p>The protocol also addresses the most common failure mode: the gap between espoused values and actual behavior. Many teams say they value candor but punish it in practice. The protocol helps teams notice this gap &mdash; when someone raises a difficult truth, does the team lean in or pull back? When someone admits a mistake, is it held against them? These moments are where trust is either built or destroyed.</p>
+        <p>Over time, teams that practice this protocol develop a distinctive capacity: they can hold difficult conversations in real time, during the work, rather than needing separate "feedback sessions" or off-sites to say what's really on their minds. This is when candor becomes a competitive advantage &mdash; the team can course-correct faster because truth travels faster.</p>
+      </div>
+    </div>
+
+    <div class="practice-section">
+      <div class="section-toggle" onclick="toggleSection(this)">
+        <h4>&#128214; Resources &amp; Reading</h4>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="section-content">
+        <ul class="book-list">
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">The Fearless Organization</span> <span class="book-author">&mdash; Amy Edmondson</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Radical Candor</span> <span class="book-author">&mdash; Kim Scott</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">An Everyone Culture</span> <span class="book-author">&mdash; Robert Kegan &amp; Lisa Laskow Lahey</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Daring Greatly</span> <span class="book-author">&mdash; Bren&eacute; Brown</span></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="practice-action">
+      <span class="action-btn coming-soon">Coming Soon &mdash; Automated Tool in Development</span>
+    </div>
+  </div>
+
+  <!-- Practice 3: Collaborative Reflection -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <div class="practice-header-top">
+        <h3>Collaborative Reflection</h3>
+        <span class="coming-soon-badge">Coming Soon</span>
+      </div>
+      <p>Deeper inquiry into the team's patterns, blind spots, and emerging capabilities &mdash; not a standard retrospective, but a practice of learning to notice.</p>
+    </div>
+
+    <div class="practice-section">
+      <div class="section-toggle" onclick="toggleSection(this)">
+        <h4>&#128218; Tutorial</h4>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="section-content">
+        <p>After significant decisions or events, the team pauses to reflect: How did we make that choice? What did we miss? What would we do differently? This practice draws on the tradition of the U.S. Army's After Action Review, but goes deeper &mdash; it's not just about what happened, but about the patterns of thinking and behavior that shaped what happened.</p>
+        <p>The practice begins immediately after a significant team moment &mdash; a major decision, a difficult meeting, a strategic pivot, or an unexpected outcome. The facilitator (which can rotate among team members) guides the reflection through three layers. First, the factual layer: what actually happened, in sequence? Teams often discover they have surprisingly different accounts of the same event.</p>
+        <p>Second, the pattern layer: what patterns of team behavior shaped this outcome? Did the team rush to consensus? Did one voice dominate? Did important perspectives go unheard? Did the team avoid a difficult topic? This layer requires the trust built through the Candor Protocol &mdash; team members need to be honest about dynamics they may have contributed to.</p>
+        <p>Third, the learning layer: what does this tell us about ourselves as a team? What capabilities are we building? What blind spots keep recurring? What would we do differently next time &mdash; not in terms of the decision itself, but in terms of how we worked together to make it?</p>
+        <p>Over time, teams that practice Collaborative Reflection develop a remarkable ability: they begin to notice their own dynamics in real time, not just in retrospect. Someone will say, "I think we're rushing to consensus again" or "We haven't heard from the people closest to this problem." This real-time self-awareness is the hallmark of a team that has truly internalized the Collaborating play &mdash; the team's operating system becomes self-correcting.</p>
+      </div>
+    </div>
+
+    <div class="practice-section">
+      <div class="section-toggle" onclick="toggleSection(this)">
+        <h4>&#128214; Resources &amp; Reading</h4>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="section-content">
+        <ul class="book-list">
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Humble Inquiry</span> <span class="book-author">&mdash; Edgar Schein</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Reflective Practice</span> <span class="book-author">&mdash; Donald Sch&ouml;n</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">Action Science</span> <span class="book-author">&mdash; Chris Argyris, Robert Putnam &amp; Diana Smith</span></span>
+          </li>
+          <li>
+            <span class="book-icon">&#128213;</span>
+            <span><span class="book-title">U.S. Army After Action Review</span> <span class="book-author">&mdash; Methodology &amp; Field Guide</span></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="practice-action">
+      <span class="action-btn coming-soon">Coming Soon &mdash; Automated Tool in Development</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  Value Creating Teams &bull; Play 4: Collaborating
+</div>
+
+<script>
+  function toggleSection(toggle) {
+    const section = toggle.parentElement;
+    const content = section.querySelector('.section-content');
+    const isExpanded = content.classList.contains('expanded');
+
+    if (isExpanded) {
+      content.classList.remove('expanded');
+      toggle.classList.remove('expanded');
+    } else {
+      content.classList.add('expanded');
+      toggle.classList.add('expanded');
+    }
+  }
+</script>
+
+</body>
+</html>
