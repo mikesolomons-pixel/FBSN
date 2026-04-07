@@ -312,6 +312,83 @@
     color: var(--text-secondary);
   }
 
+  /* Cycle Layout */
+  .cycle-container {
+    position: relative;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto 2rem;
+    aspect-ratio: 700 / 620;
+  }
+  .cycle-arrows {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .cycle-node {
+    position: absolute;
+    width: 160px;
+    background: var(--card);
+    border-radius: 14px;
+    padding: 1.1rem 1rem;
+    box-shadow: var(--shadow);
+    border-top: 4px solid var(--accent);
+    text-decoration: none;
+    color: var(--text);
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 1;
+    cursor: pointer;
+  }
+  .cycle-node:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: var(--shadow-lg);
+  }
+  .cycle-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 0.75rem;
+    margin: 0 auto 0.5rem;
+  }
+  .cycle-node h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.2rem;
+  }
+  .cycle-node p {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  /* Pentagon positions (percentage based) */
+  .cycle-pos-1 { top: 5%; left: 50%; transform: translateX(-50%); }
+  .cycle-pos-2 { top: 22%; right: 5%; }
+  .cycle-pos-3 { top: 60%; right: 12%; }
+  .cycle-pos-4 { top: 60%; left: 12%; }
+  .cycle-pos-5 { top: 22%; left: 5%; }
+  .cycle-pos-1:hover { transform: translateX(-50%) translateY(-3px) scale(1.03); }
+
+  .plays-mobile { display: none; }
+
+  @media (max-width: 768px) {
+    .cycle-container { display: none; }
+    .plays-mobile {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+    .plays-mobile .play-card {
+      text-decoration: none;
+      color: var(--text);
+      margin-bottom: 0;
+    }
+  }
+
   /* Big Ideas Section */
   .big-ideas {
     display: grid;
@@ -624,139 +701,96 @@
     <div class="line"></div>
   </div>
 
-  <div style="background:var(--card);border-radius:14px;padding:1.75rem;box-shadow:var(--shadow);margin-bottom:1.5rem;">
-    <p style="font-size:0.92rem;color:var(--text);line-height:1.7;margin-bottom:0.75rem;">The plays are a cycle, not a sequence. Each builds a core capability, but the practices within them are intentionally porous &mdash; many exercise more than one muscle at once.</p>
+  <div style="background:var(--card);border-radius:14px;padding:1.5rem;box-shadow:var(--shadow);margin-bottom:1.5rem;text-align:center;">
+    <p style="font-size:0.92rem;color:var(--text);line-height:1.7;margin-bottom:0.5rem;">The plays are a cycle, not a sequence. The practices within them are intentionally porous &mdash; many exercise more than one muscle at once.</p>
     <p style="font-size:0.92rem;color:var(--navy);line-height:1.7;font-weight:600;">The magic: practices that build capability while solving real challenges. The work is the workout.</p>
   </div>
 
-  <div class="plays-grid">
-    <!-- Play 1: Sensemaking -->
-    <div class="play-card play-1" onclick="window.location.href='play1-sensemaking.html'">
-      <div class="play-number">Play 1 &middot; <a href="play1-sensemaking.html" style="color:inherit;font-size:0.65rem;letter-spacing:0;">View Play &rarr;</a></div>
+  <!-- Cycle Layout -->
+  <div class="cycle-container">
+    <svg class="cycle-arrows" viewBox="0 0 700 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="ah1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#00897B"/></marker>
+        <marker id="ah2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#7C5CBF"/></marker>
+        <marker id="ah3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#E07A5F"/></marker>
+        <marker id="ah4" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#D4A843"/></marker>
+        <marker id="ah5" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#1B2A4A"/></marker>
+      </defs>
+      <!-- 1→2 -->
+      <path d="M430,95 Q520,60 560,150" stroke="#00897B" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ah2)" opacity="0.5"/>
+      <!-- 2→3 -->
+      <path d="M590,310 Q580,410 520,460" stroke="#7C5CBF" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ah3)" opacity="0.5"/>
+      <!-- 3→4 -->
+      <path d="M360,540 Q270,560 200,480" stroke="#E07A5F" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ah4)" opacity="0.5"/>
+      <!-- 4→5 -->
+      <path d="M120,310 Q100,220 160,150" stroke="#D4A843" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ah5)" opacity="0.5"/>
+      <!-- 5→1 (completing the cycle) -->
+      <path d="M300,80 Q320,50 350,60" stroke="#1B2A4A" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ah1)" opacity="0.5"/>
+    </svg>
+
+    <!-- Top center: Sensemaking -->
+    <a href="play1-sensemaking.html" class="cycle-node cycle-pos-1" style="--accent:#00897B;">
+      <div class="cycle-num" style="background:#00897B;">1</div>
       <h3>Sensemaking</h3>
-      <p class="play-subtitle">Understanding where we are. Separating facts from beliefs, signals from noise to build shared clarity.</p>
-      <ul class="practices-list">
-        <li>
-          <a href="fbsn.html">
-            <span class="practice-icon">&#9670;</span>
-            FBSN Exercise
-            <span class="practice-badge">Live</span>
-          </a>
-        </li>
-        <li>
-          <a href="host.html">
-            <span class="practice-icon">&#9654;</span>
-            FBSN Live Session
-            <span class="practice-badge">Live</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" onclick="event.preventDefault()">
-            <span class="practice-icon">&#9673;</span>
-            Three Horizons Scan
-            <span class="practice-badge coming-soon">Soon</span>
-          </a>
-        </li>
-      </ul>
-    </div>
+      <p>Understanding where we are</p>
+    </a>
 
-    <!-- Play 2: Imagining -->
-    <div class="play-card play-2" onclick="window.location.href='play2-imagining.html'">
-      <div class="play-number">Play 2 &middot; <a href="play2-imagining.html" style="color:inherit;font-size:0.65rem;letter-spacing:0;">View Play &rarr;</a></div>
+    <!-- Top right: Imagining -->
+    <a href="play2-imagining.html" class="cycle-node cycle-pos-2" style="--accent:#7C5CBF;">
+      <div class="cycle-num" style="background:#7C5CBF;">2</div>
       <h3>Imagining</h3>
-      <p class="play-subtitle">Defining where we want to be. Creating a vivid, shared picture of the future that energizes the team.</p>
-      <ul class="practices-list">
-        <li>
-          <a href="#" onclick="event.preventDefault()">
-            <span class="practice-icon">&#9733;</span>
-            Future Visioning
-            <span class="practice-badge coming-soon">Soon</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" onclick="event.preventDefault()">
-            <span class="practice-icon">&#9672;</span>
-            Strategic Ambition Setting
-            <span class="practice-badge coming-soon">Soon</span>
-          </a>
-        </li>
-      </ul>
-    </div>
+      <p>Defining where we want to be</p>
+    </a>
 
-    <!-- Play 3: Navigating -->
-    <div class="play-card play-3" onclick="window.location.href='play3-navigating.html'">
-      <div class="play-number">Play 3 &middot; <a href="play3-navigating.html" style="color:inherit;font-size:0.65rem;letter-spacing:0;">View Play &rarr;</a></div>
+    <!-- Bottom right: Navigating -->
+    <a href="play3-navigating.html" class="cycle-node cycle-pos-3" style="--accent:#E07A5F;">
+      <div class="cycle-num" style="background:#E07A5F;">3</div>
       <h3>Navigating</h3>
-      <p class="play-subtitle">Maneuvering through the unknown. Making bold decisions under uncertainty and adapting as conditions change.</p>
-      <ul class="practices-list">
-        <li>
-          <a href="cynefin.html">
-            <span class="practice-icon">&#9670;</span>
-            Cynefin Navigator
-            <span class="practice-badge">Live</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" onclick="event.preventDefault()">
-            <span class="practice-icon">&#9656;</span>
-            Decision Architecture
-            <span class="practice-badge coming-soon">Soon</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" onclick="event.preventDefault()">
-            <span class="practice-icon">&#9651;</span>
-            Adaptive Strategy
-            <span class="practice-badge coming-soon">Soon</span>
-          </a>
-        </li>
-      </ul>
-    </div>
+      <p>Maneuvering through the unknown</p>
+    </a>
 
-    <!-- Play 4: Collaborating -->
-    <div class="play-card play-4" onclick="window.location.href='play4-collaborating.html'">
-      <div class="play-number">Play 4 &middot; <a href="play4-collaborating.html" style="color:inherit;font-size:0.65rem;letter-spacing:0;">View Play &rarr;</a></div>
+    <!-- Bottom left: Collaborating -->
+    <a href="play4-collaborating.html" class="cycle-node cycle-pos-4" style="--accent:#D4A843;">
+      <div class="cycle-num" style="background:#D4A843;">4</div>
       <h3>Collaborating</h3>
-      <p class="play-subtitle">Establishing the team's unique identity. Building the conditions for high-trust, high-performance teamwork.</p>
-      <ul class="practices-list">
-        <li>
-          <a href="#" onclick="event.preventDefault()">
-            <span class="practice-icon">&#9632;</span>
-            Team Operating System
-            <span class="practice-badge coming-soon">Soon</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" onclick="event.preventDefault()">
-            <span class="practice-icon">&#9830;</span>
-            Trust & Candor Protocol
-            <span class="practice-badge coming-soon">Soon</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-    <!-- Play 5: Value Creating -->
-    <div class="play-card play-5" onclick="window.location.href='play5-valuecreating.html'">
-      <div class="play-number">Play 5 &middot; <a href="play5-valuecreating.html" style="color:inherit;font-size:0.65rem;letter-spacing:0;">View Play &rarr;</a></div>
+      <p>Establishing the team's identity</p>
+    </a>
+
+    <!-- Top left: Value Creating -->
+    <a href="play5-valuecreating.html" class="cycle-node cycle-pos-5" style="--accent:#1B2A4A;">
+      <div class="cycle-num" style="background:#1B2A4A;">5</div>
       <h3>Value Creating</h3>
-      <p class="play-subtitle">Bringing it all together. Turning learning into impact and creating outcomes that only this team, in this moment, could produce.</p>
-      <ul class="practices-list">
-        <li>
-          <a href="#" onclick="event.preventDefault()">
-            <span class="practice-icon">&#9733;</span>
-            Value Creation Cycle
-            <span class="practice-badge coming-soon">Soon</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" onclick="event.preventDefault()">
-            <span class="practice-icon">&#9656;</span>
-            Impact Assessment
-            <span class="practice-badge coming-soon">Soon</span>
-          </a>
-        </li>
-      </ul>
-    </div>
+      <p>Bringing it all together</p>
+    </a>
+  </div>
+
+  <!-- Mobile fallback: simple list -->
+  <div class="plays-mobile">
+    <a href="play1-sensemaking.html" class="play-card play-1">
+      <div class="play-number">Play 1</div>
+      <h3>Sensemaking</h3>
+      <p class="play-subtitle">Understanding where we are</p>
+    </a>
+    <a href="play2-imagining.html" class="play-card play-2">
+      <div class="play-number">Play 2</div>
+      <h3>Imagining</h3>
+      <p class="play-subtitle">Defining where we want to be</p>
+    </a>
+    <a href="play3-navigating.html" class="play-card play-3">
+      <div class="play-number">Play 3</div>
+      <h3>Navigating</h3>
+      <p class="play-subtitle">Maneuvering through the unknown</p>
+    </a>
+    <a href="play4-collaborating.html" class="play-card play-4">
+      <div class="play-number">Play 4</div>
+      <h3>Collaborating</h3>
+      <p class="play-subtitle">Establishing the team's identity</p>
+    </a>
+    <a href="play5-valuecreating.html" class="play-card play-5">
+      <div class="play-number">Play 5</div>
+      <h3>Value Creating</h3>
+      <p class="play-subtitle">Bringing it all together</p>
+    </a>
   </div>
 
   <!-- Three Horizons -->
