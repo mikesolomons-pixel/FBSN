@@ -124,6 +124,34 @@
   .lifecycle-phase:hover {
     background: rgba(0,137,123,0.03);
   }
+  a.lifecycle-phase {
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+  a.lifecycle-phase:hover {
+    background: rgba(74,144,217,0.06);
+    box-shadow: inset 0 0 0 2px var(--blue);
+    border-radius: 4px;
+  }
+  a.lifecycle-phase:hover .lc-cta {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .lc-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--blue);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  @media (hover: none) {
+    .lc-cta { opacity: 1; transform: translateY(0); }
+  }
   .lc-icon {
     width: 40px;
     height: 40px;
@@ -585,6 +613,7 @@
       <h3>Calibration</h3>
       <div class="lc-time">First 30 - 60 Days</div>
       <p>Partnership with the CEO, observing the team in action, individual conversations, and a calibration event to establish a baseline understanding.</p>
+      <div class="lc-cta">View full workflow &#8594;</div>
       <div class="lifecycle-arrow">&#8594;</div>
     </a>
     <div class="lifecycle-phase lc-scaffolding">
