@@ -39,8 +39,8 @@
   document.head.appendChild(style);
 
   /* ── Colours ────────────────────────────────────────────── */
-  const PLAY_COLORS = { 1: '#00897B', 2: '#7C5CBF', 3: '#E07A5F', 4: '#D4A843', 5: '#1B2A4A' };
-  const PLAY_NAMES  = { 1: 'Sensemaking', 2: 'Imagining', 3: 'Navigating', 4: 'Collaborating', 5: 'Value Creating' };
+  const PLAY_COLORS = { 0: '#4A90D9', 1: '#00897B', 2: '#7C5CBF', 3: '#E07A5F', 4: '#D4A843', 5: '#1B2A4A' };
+  const PLAY_NAMES  = { 0: 'All of VCT', 1: 'Sensemaking', 2: 'Imagining', 3: 'Navigating', 4: 'Collaborating', 5: 'Value Creating' };
   const TYPE_COLORS = { book: '#00897B', article: '#4A90D9', reference: '#7C5CBF', video: '#E07A5F', podcast: '#D4A843', tool: '#1B2A4A' };
   const TYPE_ICONS  = { book: '\u{1F4D6}', article: '\u{1F4C4}', reference: '\u{1F517}', video: '\u{1F3A5}', podcast: '\u{1F3A7}', tool: '\u{1F6E0}' };
 
@@ -57,7 +57,7 @@
     const sb = await getClient();
     if (!sb) return [];
     let q = sb.from('resources').select('*').order('created_at', { ascending: true });
-    if (play) q = q.eq('play', play);
+    if (play) q = q.in('play', [play, 0]); // include play-specific + VCT-wide
     const { data, error } = await q;
     if (error) { console.warn('resources fetch error', error); return []; }
     return data || [];
@@ -83,9 +83,10 @@
     const showPlay = opts && opts.showPlay;
     const icon = TYPE_ICONS[r.resource_type] || TYPE_ICONS.book;
     const typeBg = TYPE_COLORS[r.resource_type] || TYPE_COLORS.book;
+    const playLabel = r.play === 0 ? 'VCT' : PLAY_NAMES[r.play];
     const playTag = showPlay
-      ? `<span class="resource-play-tag" style="background:${PLAY_COLORS[r.play]}">${PLAY_NAMES[r.play]}</span>`
-      : '';
+      ? `<span class="resource-play-tag" style="background:${PLAY_COLORS[r.play]}">${playLabel}</span>`
+      : (r.play === 0 ? `<span class="resource-play-tag" style="background:${PLAY_COLORS[0]}">VCT</span>` : '');
     return `<div class="resource-item" data-id="${r.id}">
       <span class="resource-icon">${icon}</span>
       <div class="resource-info">
@@ -111,12 +112,29 @@
     }
     const groups = {};
     resources.forEach(r => { (groups[r.play] = groups[r.play] || []).push(r); });
-    container.innerHTML = [1, 2, 3, 4, 5].filter(p => groups[p]).map(p => `
+    const order = [0, 1, 2, 3, 4, 5]; // VCT-wide first, then plays
+    container.innerHTML = order.filter(p => groups[p]).map(p => `
       <div class="resources-play-group">
-        <h3><span class="play-dot" style="background:${PLAY_COLORS[p]}"></span> Play ${p}: ${PLAY_NAMES[p]}</h3>
+        <h3><span class="play-dot" style="background:${PLAY_COLORS[p]}"></span> ${p === 0 ? 'Value Creating Teams (General)' : 'Play ' + p + ': ' + PLAY_NAMES[p]}</h3>
         <div class="resources-grid">${groups[p].map(r => renderItem(r, {})).join('')}</div>
       </div>
     `).join('');
+  }
+
+  function buildPlaySelect(currentPlay) {
+    // currentPlay: number if on a play page (1-5), null if on homepage
+    const options = [
+      { value: 0, label: 'All of VCT (general)' },
+      { value: 1, label: 'Play 1: Sensemaking' },
+      { value: 2, label: 'Play 2: Imagining' },
+      { value: 3, label: 'Play 3: Navigating' },
+      { value: 4, label: 'Play 4: Collaborating' },
+      { value: 5, label: 'Play 5: Value Creating' }
+    ];
+    const selected = currentPlay || 0;
+    return `<select class="res-play">${options.map(o =>
+      `<option value="${o.value}"${o.value === selected ? ' selected' : ''}>${o.label}</option>`
+    ).join('')}</select>`;
   }
 
   function renderAddForm(container, play) {
@@ -136,13 +154,7 @@
             <option value="podcast">Podcast</option>
             <option value="tool">Tool</option>
           </select>
-          ${play ? '' : `<select class="res-play">
-            <option value="1">Play 1: Sensemaking</option>
-            <option value="2">Play 2: Imagining</option>
-            <option value="3">Play 3: Navigating</option>
-            <option value="4">Play 4: Collaborating</option>
-            <option value="5">Play 5: Value Creating</option>
-          </select>`}
+          ${buildPlaySelect(play)}
           <button class="add-resource-btn">Add</button>
         </div>
       </div>`;
@@ -152,7 +164,7 @@
       if (!title) return;
       btn.disabled = true;
       btn.textContent = 'Adding\u2026';
-      const p = play || parseInt(container.querySelector('.res-play').value, 10);
+      const p = parseInt(container.querySelector('.res-play').value, 10);
       const result = await addResource({
         play: p,
         title: title,
@@ -164,7 +176,6 @@
       if (result) {
         container.querySelector('.res-title').value = '';
         container.querySelector('.res-author').value = '';
-        // refresh
         if (container._refreshFn) container._refreshFn();
       }
     };

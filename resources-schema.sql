@@ -4,7 +4,7 @@
 -- Resources table
 create table resources (
   id uuid default gen_random_uuid() primary key,
-  play integer not null check (play between 1 and 5),
+  play integer not null check (play between 0 and 5),  -- 0 = All of VCT
   title text not null,
   author text,
   resource_type text not null default 'book' check (resource_type in ('book','article','reference','video','podcast','tool')),
