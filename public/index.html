@@ -463,51 +463,6 @@
     line-height: 1.45;
   }
 
-  /* Three Horizons */
-  .horizons {
-    display: flex;
-    gap: 0;
-    background: var(--card);
-    border-radius: 16px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    margin-bottom: 2rem;
-  }
-  .horizon {
-    flex: 1;
-    padding: 1.5rem;
-    position: relative;
-  }
-  .horizon:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 15%;
-    height: 70%;
-    width: 1px;
-    background: var(--border);
-  }
-  .horizon-tag {
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
-  .horizon-1 .horizon-tag { color: var(--teal); }
-  .horizon-2 .horizon-tag { color: var(--blue); }
-  .horizon-3 .horizon-tag { color: var(--purple); }
-  .horizon h4 {
-    font-size: 0.95rem;
-    font-weight: 700;
-    margin-bottom: 0.4rem;
-    color: var(--navy);
-  }
-  .horizon p {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
-  }
 
   /* Quick Launch */
   .quick-launch {
@@ -671,14 +626,6 @@
       height: 1px;
     }
     .lifecycle-arrow { display: none; }
-    .horizons { flex-direction: column; }
-    .horizon:not(:last-child)::after {
-      right: 15%;
-      top: auto;
-      bottom: 0;
-      width: 70%;
-      height: 1px;
-    }
     .quick-launch { flex-direction: column; text-align: center; }
     .quick-launch-btns { justify-content: center; }
     .plays-grid { grid-template-columns: 1fr; }
@@ -806,29 +753,6 @@
     </a>
   </div>
 
-  <!-- Three Horizons -->
-  <div class="section-header">
-    <h2>Three Horizons Framework</h2>
-    <div class="line"></div>
-  </div>
-
-  <div class="horizons">
-    <div class="horizon horizon-1">
-      <div class="horizon-tag">Horizon 1</div>
-      <h4>Deliver Today</h4>
-      <p>Managing the current business. Optimizing what exists, meeting commitments, and maintaining performance in the core.</p>
-    </div>
-    <div class="horizon horizon-2">
-      <div class="horizon-tag">Horizon 2</div>
-      <h4>Build Tomorrow</h4>
-      <p>Developing emerging opportunities. Investing in adjacencies and new capabilities that will drive future growth.</p>
-    </div>
-    <div class="horizon horizon-3">
-      <div class="horizon-tag">Horizon 3</div>
-      <h4>Create the Future</h4>
-      <p>Imagining transformational possibilities. Seeding ideas that may redefine the business and its role in the world.</p>
-    </div>
-  </div>
 
   <!-- Principles & Beliefs -->
   <div class="section-header">
