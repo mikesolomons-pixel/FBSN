@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Play 5: Value Creating - Value Creating Teams</title>
 <script src="auth.js"></script>
+<script type="module" src="supabase-config.js"></script>
+<script src="admin.js"></script>
 <style>
   :root {
     --navy: #1B2A4A;
@@ -378,8 +380,8 @@
   <div class="header-content">
     <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
     <span class="play-number">Play 5</span>
-    <h1>Value Creating <span style="font-weight:400;font-size:1rem;opacity:0.7;margin-left:0.5rem;">Long-lasting impact for all stakeholders</span></h1>
-    <p class="subtitle">Turning learning into impact, creating outcomes that only this team, in this moment, could produce.</p>
+    <h1 data-editable="header-title">Value Creating <span style="font-weight:400;font-size:1rem;opacity:0.7;margin-left:0.5rem;">Long-lasting impact for all stakeholders</span></h1>
+    <p class="subtitle" data-editable="header-subtitle">Turning learning into impact, creating outcomes that only this team, in this moment, could produce.</p>
   </div>
 </div>
 
@@ -387,25 +389,25 @@
 
   <!-- Description -->
   <div class="description-card">
-    <h2>The Integration Play</h2>
-    <p>The final play integrates everything. It's where the team creates outcomes that only this team, in this moment, could produce. But value creation isn't just about organizational performance &mdash; it's about <strong>creating value for everyone</strong>. Better lives, not just better returns.</p>
-    <p>If organizations honestly evaluated whether they're truly creating value across all their stakeholders &mdash; employees, customers, communities, shareholders, the broader ecosystem &mdash; most would find they are falling far short. That's why this work matters. The central discipline is knowing when to expand learning, when to test hypotheses, when to hold options open, and when to go big &mdash; always with multi-stakeholder value creation as the measure of success.</p>
+    <h2 data-editable="desc-title">The Integration Play</h2>
+    <p data-editable="desc-p1">The final play integrates everything. It's where the team creates outcomes that only this team, in this moment, could produce. But value creation isn't just about organizational performance &mdash; it's about <strong>creating value for everyone</strong>. Better lives, not just better returns.</p>
+    <p data-editable="desc-p2">If organizations honestly evaluated whether they're truly creating value across all their stakeholders &mdash; employees, customers, communities, shareholders, the broader ecosystem &mdash; most would find they are falling far short. That's why this work matters. The central discipline is knowing when to expand learning, when to test hypotheses, when to hold options open, and when to go big &mdash; always with multi-stakeholder value creation as the measure of success.</p>
     <div class="description-points">
       <div class="description-point">
         <div class="dot"></div>
-        <span>Teams develop the ability to sense the right moment through repeated practice of the earlier plays &mdash; what momentum feels like, what coherence feels like, what readiness feels like</span>
+        <span data-editable="desc-principle-1">Teams develop the ability to sense the right moment through repeated practice of the earlier plays &mdash; what momentum feels like, what coherence feels like, what readiness feels like</span>
       </div>
       <div class="description-point">
         <div class="dot"></div>
-        <span>After significant value creation, the cycle begins anew: Sensemaking, Imagining, Navigating, Collaborating, Value Creating</span>
+        <span data-editable="desc-principle-2">After significant value creation, the cycle begins anew: Sensemaking, Imagining, Navigating, Collaborating, Value Creating</span>
       </div>
       <div class="description-point">
         <div class="dot"></div>
-        <span>This is why it's a play, not an outcome &mdash; a repeatable capability</span>
+        <span data-editable="desc-principle-3">This is why it's a play, not an outcome &mdash; a repeatable capability</span>
       </div>
       <div class="description-point">
         <div class="dot"></div>
-        <span>Teams that master this become engines of sustained value creation</span>
+        <span data-editable="desc-principle-4">Teams that master this become engines of sustained value creation</span>
       </div>
     </div>
   </div>
@@ -420,58 +422,26 @@
   <div class="practice-card">
     <div class="practice-header">
       <div class="practice-header-top">
-        <h3>Value Creation Cycle</h3>
+        <h3 data-editable="practice-1-title">Value Creation Cycle</h3>
         <span class="coming-soon-badge">Coming Soon</span>
       </div>
-      <p>The full integration practice &mdash; reviewing all five plays, identifying momentum, and assessing readiness for decisive action.</p>
+      <p data-editable="practice-1-desc">The full integration practice &mdash; reviewing all five plays, identifying momentum, and assessing readiness for decisive action.</p>
     </div>
 
-    <div class="practice-section">
-      <div class="section-toggle" onclick="toggleSection(this)">
-        <h4>&#128218; Tutorial</h4>
-        <span class="toggle-icon">&#9660;</span>
+    <div class="practice-body">
+      <div class="practice-section">
+        <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>
+        <div class="key-points">
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-outcome-1">Integrated view of how the team creates value across stakeholders</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-outcome-2">Clarity on value drivers</span></div>
+        </div>
       </div>
-      <div class="section-content">
-        <p>The Value Creation Cycle is the integrative practice that brings together everything the team has built across the first four plays. It is not a planning exercise &mdash; it is a readiness assessment and a decision-making discipline. The team reviews where they are across all five plays and makes a judgment: are we ready to commit?</p>
-        <p>The cycle begins with a structured review. The team examines each play in sequence, asking specific questions. For Sensemaking: Do we understand reality clearly enough? Are we seeing the landscape as it is, or as we wish it were? For Imagining: Is our ambition sharp and compelling? Does it energize the team and stretch us beyond the obvious? For Navigating: Are we learning fast enough? Are our experiments yielding insight? For Collaborating: Is the team working at its best? Are we being honest with each other?</p>
-        <p>If all signals point to readiness, the team enters the commitment phase. This is the "go big" moment &mdash; scaling what works, allocating significant resources, and making moves that are difficult to reverse. The sophistication lies in distinguishing genuine readiness from impatience. Teams that commit too early waste resources. Teams that wait too long miss the window. The ability to sense the right moment is developed through repeated practice, not through analysis alone.</p>
-        <p>After a major commitment, the cycle resets. The landscape has changed &mdash; perhaps dramatically &mdash; and the team returns to Sensemaking with fresh eyes. What is the new reality? What has shifted? This is not going back to the beginning; it is spiraling upward, with deeper capabilities and sharper pattern recognition each time through.</p>
-        <p>Teams should run a lightweight version of this cycle regularly &mdash; perhaps monthly &mdash; and a deeper version at key inflection points. Over time, the cycle becomes intuitive. The team develops a shared sense of where they are in the cycle without needing to be formal about it. That is mastery.</p>
-      </div>
-    </div>
-
-    <div class="practice-section">
-      <div class="section-toggle" onclick="toggleSection(this)">
-        <h4>&#128214; Resources &amp; Reading</h4>
-        <span class="toggle-icon">&#9660;</span>
-      </div>
-      <div class="section-content">
-        <ul class="book-list">
-          <li>
-            <span class="book-icon">&#128213;</span>
-            <span><span class="book-title">Playing to Win</span> <span class="book-author">&mdash; A.G. Lafley &amp; Roger Martin</span></span>
-          </li>
-          <li>
-            <span class="book-icon">&#128213;</span>
-            <span><span class="book-title">The Innovator's Dilemma</span> <span class="book-author">&mdash; Clayton Christensen</span></span>
-          </li>
-          <li>
-            <span class="book-icon">&#128213;</span>
-            <span><span class="book-title">Blue Ocean Strategy</span> <span class="book-author">&mdash; W. Chan Kim &amp; Ren&eacute;e Mauborgne</span></span>
-          </li>
-          <li>
-            <span class="book-icon">&#128213;</span>
-            <span><span class="book-title">Loonshots</span> <span class="book-author">&mdash; Safi Bahcall</span></span>
-          </li>
-          <li>
-            <span class="book-icon">&#128213;</span>
-            <span><span class="book-title">Humanocracy</span> <span class="book-author">&mdash; Gary Hamel &amp; Michele Zanini</span></span>
-          </li>
-          <li>
-            <span class="book-icon">&#128213;</span>
-            <span><span class="book-title">Who Can You Trust?</span> <span class="book-author">&mdash; Rachel Botsman</span></span>
-          </li>
-        </ul>
+      <div class="practice-section" style="margin-top:1rem;">
+        <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>
+        <div class="key-points">
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-output-1">Value creation map</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-output-2">Stakeholder impact assessment</span></div>
+        </div>
       </div>
     </div>
 
@@ -484,46 +454,26 @@
   <div class="practice-card">
     <div class="practice-header">
       <div class="practice-header-top">
-        <h3>Impact Assessment</h3>
+        <h3 data-editable="practice-2-title">Impact Assessment</h3>
         <span class="coming-soon-badge">Coming Soon</span>
       </div>
-      <p>A forward-looking practice that evaluates outcomes and feeds directly back into Sensemaking &mdash; resetting the cycle for the next round of value creation.</p>
+      <p data-editable="practice-2-desc">A forward-looking practice that evaluates outcomes and feeds directly back into Sensemaking &mdash; resetting the cycle for the next round of value creation.</p>
     </div>
 
-    <div class="practice-section">
-      <div class="section-toggle" onclick="toggleSection(this)">
-        <h4>&#128218; Tutorial</h4>
-        <span class="toggle-icon">&#9660;</span>
+    <div class="practice-body">
+      <div class="practice-section">
+        <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>
+        <div class="key-points">
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-outcome-1">Honest evaluation of the team's impact</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-outcome-2">Identified gaps between intention and reality</span></div>
+        </div>
       </div>
-      <div class="section-content">
-        <p>After a major value-creating move, the team must evaluate what happened &mdash; but not in the way most organizations do it. Traditional post-mortems focus on what went wrong. Impact Assessment is fundamentally forward-looking: what happened, what changed, and what does it mean for what comes next?</p>
-        <p>The assessment begins with outcomes. What value was actually created? This requires honest measurement, not spin. Did revenue grow? Did market position shift? Did capability improve? Did the organization learn something it didn't know before? The team examines both intended and unintended consequences &mdash; sometimes the most valuable outcome is something no one anticipated.</p>
-        <p>Next, the team examines the landscape. What changed as a result of the move? How did competitors respond? How did customers or stakeholders react? What new opportunities or threats emerged? This is where the assessment begins to feed back into Sensemaking &mdash; the landscape is different now, and the team needs to update its understanding.</p>
-        <p>Then comes the capability assessment. What new capabilities did the team build through this cycle? What did the team learn about how it works together? What surprised the team about its own performance? This connects back to Collaborating &mdash; each value creation cycle should leave the team stronger, not just the organization.</p>
-        <p>The final step is explicit: the assessment becomes the input for the next cycle. The team identifies the new questions that need answering, the new opportunities worth exploring, and the new ambitions worth pursuing. This is what makes Value Creating a play rather than an outcome &mdash; it is never finished, and each cycle raises the bar for what comes next.</p>
-      </div>
-    </div>
-
-    <div class="practice-section">
-      <div class="section-toggle" onclick="toggleSection(this)">
-        <h4>&#128214; Resources &amp; Reading</h4>
-        <span class="toggle-icon">&#9660;</span>
-      </div>
-      <div class="section-content">
-        <ul class="book-list">
-          <li>
-            <span class="book-icon">&#128213;</span>
-            <span><span class="book-title">Measure What Matters</span> <span class="book-author">&mdash; John Doerr</span></span>
-          </li>
-          <li>
-            <span class="book-icon">&#128213;</span>
-            <span><span class="book-title">The Lean Startup</span> <span class="book-author">&mdash; Eric Ries (Build-Measure-Learn cycle)</span></span>
-          </li>
-          <li>
-            <span class="book-icon">&#128213;</span>
-            <span><span class="book-title">Outcomes Over Output</span> <span class="book-author">&mdash; Josh Seiden</span></span>
-          </li>
-        </ul>
+      <div class="practice-section" style="margin-top:1rem;">
+        <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>
+        <div class="key-points">
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-output-1">Multi-stakeholder impact scorecard</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-output-2">Priority areas for improvement</span></div>
+        </div>
       </div>
     </div>
 
@@ -536,10 +486,10 @@
   <div class="practice-card">
     <div class="practice-header">
       <div class="practice-header-top">
-        <h3>Portfolio of Bets</h3>
+        <h3 data-editable="practice-3-title">Portfolio of Bets</h3>
         <span class="coming-soon-badge">Coming Soon</span>
       </div>
-      <p>Managing strategic initiatives as a portfolio of bets across different time horizons and risk profiles &mdash; not every bet needs to pay off.</p>
+      <p data-editable="practice-3-desc">Managing strategic initiatives as a portfolio of bets across different time horizons and risk profiles &mdash; not every bet needs to pay off.</p>
     </div>
 
     <div class="practice-section">

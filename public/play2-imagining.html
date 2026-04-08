@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Play 2: Imagining - Value Creating Teams</title>
 <script src="auth.js"></script>
+<script type="module" src="supabase-config.js"></script>
+<script src="admin.js"></script>
 <style>
   :root {
     --navy: #1B2A4A;
@@ -229,80 +231,6 @@
     margin-top: 1.25rem;
   }
 
-  .section-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    user-select: none;
-    padding: 0.25rem 0;
-  }
-  .section-toggle h4 {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--navy);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  .toggle-icon {
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-    transition: transform 0.2s;
-  }
-  .section-toggle.expanded .toggle-icon { transform: rotate(180deg); }
-
-  .section-content {
-    display: none;
-    padding-top: 0.75rem;
-  }
-  .section-content.expanded { display: block; }
-  .section-content p {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    line-height: 1.65;
-    margin-bottom: 0.75rem;
-  }
-  .section-content p:last-child { margin-bottom: 0; }
-
-  /* Resources List */
-  .resources-list {
-    list-style: none;
-  }
-  .resources-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    font-size: 0.82rem;
-    color: var(--text);
-    line-height: 1.5;
-    margin-bottom: 0.5rem;
-    padding: 0.4rem 0.6rem;
-    background: var(--bg);
-    border-radius: 8px;
-  }
-  .resources-list li:last-child { margin-bottom: 0; }
-  .book-icon {
-    flex-shrink: 0;
-    margin-top: 1px;
-    font-size: 0.85rem;
-  }
-  .book-title { font-weight: 600; color: var(--navy); }
-  .book-author { color: var(--text-secondary); }
-  .resource-type {
-    display: inline-block;
-    font-size: 0.6rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 0.1rem 0.4rem;
-    border-radius: 4px;
-    background: var(--accent);
-    color: white;
-    margin-left: 0.4rem;
-    vertical-align: middle;
-  }
-  .resource-type.article { background: var(--blue); }
-  .resource-type.book { background: var(--navy-light); }
 
   /* Action Buttons */
   .practice-actions {
@@ -378,8 +306,8 @@
   <div class="header-content">
     <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
     <div class="play-badge">Play 2 of 5</div>
-    <h1>Imagining <span style="font-weight:400;font-size:1rem;opacity:0.7;margin-left:0.5rem;">Defining where we want to be</span></h1>
-    <p class="subtitle">Cultivating shared ambition that pulls the team toward futures worth creating.</p>
+    <h1 data-editable="header-title">Imagining <span style="font-weight:400;font-size:1rem;opacity:0.7;margin-left:0.5rem;">Defining where we want to be</span></h1>
+    <p class="subtitle" data-editable="header-subtitle">Cultivating shared ambition that pulls the team toward futures worth creating.</p>
   </div>
 </div>
 
@@ -387,36 +315,36 @@
 
   <!-- Description -->
   <div class="description-card">
-    <h2>From Clarity to Ambition</h2>
-    <p>If Sensemaking illuminates where the team stands, Imagining shapes where it wants to go. But this is not traditional goal-setting. Teams do not simply define a single destination and march toward it. Instead, they cultivate shared ambition &mdash; a generative, evolving sense of what "impossibly good" could look like for the organization and its stakeholders.</p>
-    <p>Shared ambition is an ongoing practice, not a one-time articulation etched into a strategy document. It invites leaders to tell stories about possible futures, to explore contradictory possibilities without needing to resolve them immediately, and to stretch far beyond the incremental improvements that feel safe and predictable.</p>
-    <p>Strategy is often rational; ambition is often visceral. The most effective leadership teams develop emotional clarity about what meaningful progress should look and feel like &mdash; not just the metrics, but the lived experience of an organization that is genuinely thriving. This emotional dimension is what transforms a strategic plan from a document into a force.</p>
+    <h2 data-editable="desc-title">From Clarity to Ambition</h2>
+    <p data-editable="desc-p1">If Sensemaking illuminates where the team stands, Imagining shapes where it wants to go. But this is not traditional goal-setting. Teams do not simply define a single destination and march toward it. Instead, they cultivate shared ambition &mdash; a generative, evolving sense of what "impossibly good" could look like for the organization and its stakeholders.</p>
+    <p data-editable="desc-p2">Shared ambition is an ongoing practice, not a one-time articulation etched into a strategy document. It invites leaders to tell stories about possible futures, to explore contradictory possibilities without needing to resolve them immediately, and to stretch far beyond the incremental improvements that feel safe and predictable.</p>
+    <p data-editable="desc-p3">Strategy is often rational; ambition is often visceral. The most effective leadership teams develop emotional clarity about what meaningful progress should look and feel like &mdash; not just the metrics, but the lived experience of an organization that is genuinely thriving. This emotional dimension is what transforms a strategic plan from a document into a force.</p>
 
-    <h2 style="margin-top: 1.25rem;">Core Principles</h2>
+    <h2 style="margin-top: 1.25rem;" data-editable="desc-principles-title">Core Principles</h2>
     <div class="key-points">
       <div class="key-point">
         <div class="dot"></div>
-        <span>Break the habit of under-reaching &mdash; open to possibilities far greater than static strategic planning permits</span>
+        <span data-editable="desc-principle-1">Break the habit of under-reaching &mdash; open to possibilities far greater than static strategic planning permits</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Explore multiple possible futures before converging, resisting the pressure to commit too early</span>
+        <span data-editable="desc-principle-2">Explore multiple possible futures before converging, resisting the pressure to commit too early</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Create pull, not push &mdash; a future people want to move toward willingly rather than being driven toward</span>
+        <span data-editable="desc-principle-3">Create pull, not push &mdash; a future people want to move toward willingly rather than being driven toward</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Shared ambition evolves as sensemaking deepens &mdash; it is never truly finished</span>
+        <span data-editable="desc-principle-4">Shared ambition evolves as sensemaking deepens &mdash; it is never truly finished</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Combine rational analysis with emotional clarity about what progress should feel like</span>
+        <span data-editable="desc-principle-5">Combine rational analysis with emotional clarity about what progress should feel like</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Stretch beyond what feels realistic to discover what might actually be possible</span>
+        <span data-editable="desc-principle-6">Stretch beyond what feels realistic to discover what might actually be possible</span>
       </div>
     </div>
   </div>
@@ -432,24 +360,24 @@
     <div class="practice-header">
       <div class="practice-number">Practice 1</div>
       <div class="practice-header-top">
-        <h3>Future Visioning</h3>
+        <h3 data-editable="practice-1-title">Future Visioning</h3>
         <span class="status-badge coming-soon">Coming Soon</span>
       </div>
-      <p>A collaborative exercise where the team constructs vivid, narrative-rich descriptions of multiple possible futures &mdash; not just where the numbers land, but what the organization actually looks, feels, and operates like.</p>
+      <p data-editable="practice-1-desc">A collaborative exercise where the team constructs vivid, narrative-rich descriptions of multiple possible futures &mdash; not just where the numbers land, but what the organization actually looks, feels, and operates like.</p>
     </div>
     <div class="practice-body">
       <div class="practice-section">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Shared picture of a compelling future state</span></div>
-          <div class="key-point"><div class="dot"></div><span>Expanded sense of what's possible</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-outcome-1">Shared picture of a compelling future state</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-outcome-2">Expanded sense of what's possible</span></div>
         </div>
       </div>
       <div class="practice-section" style="margin-top:1rem;">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Future vision narrative</span></div>
-          <div class="key-point"><div class="dot"></div><span>Key elements of the desired future state</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-output-1">Future vision narrative</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-output-2">Key elements of the desired future state</span></div>
         </div>
       </div>
     </div>
@@ -464,24 +392,24 @@
     <div class="practice-header">
       <div class="practice-number">Practice 2</div>
       <div class="practice-header-top">
-        <h3>Strategic Ambition Setting</h3>
+        <h3 data-editable="practice-2-title">Strategic Ambition Setting</h3>
         <span class="status-badge coming-soon">Coming Soon</span>
       </div>
-      <p>Moving beyond conventional goal-setting to generative ambition &mdash; articulating what "impossibly good" looks like, then working backward to identify the conditions that would make it real.</p>
+      <p data-editable="practice-2-desc">Moving beyond conventional goal-setting to generative ambition &mdash; articulating what "impossibly good" looks like, then working backward to identify the conditions that would make it real.</p>
     </div>
     <div class="practice-body">
       <div class="practice-section">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Clarity on what the team is trying to achieve and why</span></div>
-          <div class="key-point"><div class="dot"></div><span>Aligned ambition that stretches but grounds</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-outcome-1">Clarity on what the team is trying to achieve and why</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-outcome-2">Aligned ambition that stretches but grounds</span></div>
         </div>
       </div>
       <div class="practice-section" style="margin-top:1rem;">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Strategic ambition statement</span></div>
-          <div class="key-point"><div class="dot"></div><span>Success criteria and milestones</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-output-1">Strategic ambition statement</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-output-2">Success criteria and milestones</span></div>
         </div>
       </div>
     </div>
@@ -496,41 +424,24 @@
     <div class="practice-header">
       <div class="practice-number">Practice 3</div>
       <div class="practice-header-top">
-        <h3>Backcasting</h3>
+        <h3 data-editable="practice-3-title">Backcasting</h3>
         <span class="status-badge coming-soon">Coming Soon</span>
       </div>
-      <p>Starting from a vivid future state and reasoning backward to identify the milestones, decisions, and capabilities required to get there &mdash; the inverse of traditional forecasting.</p>
+      <p data-editable="practice-3-desc">Starting from a vivid future state and reasoning backward to identify the milestones, decisions, and capabilities required to get there &mdash; the inverse of traditional forecasting.</p>
     </div>
     <div class="practice-body">
       <div class="practice-section">
-        <div class="section-toggle" onclick="toggleSection(this)">
-          <h4>Tutorial</h4>
-          <span class="toggle-icon">&#9660;</span>
-        </div>
-        <div class="section-content">
-          <p>Forecasting asks: "Given where we are today, where will we end up?" Backcasting reverses the question entirely: "Given where we want to be, what must have happened along the way to get there?" This simple inversion produces profoundly different strategic thinking. Forecasting is constrained by current trajectory; backcasting is liberated by desired outcomes.</p>
-          <p>The practice begins with a clearly articulated future state &mdash; ideally one developed through Future Visioning or Strategic Ambition Setting. The team then works backward in defined time steps (typically year by year). At each step, they ask: "For this future to be possible, what must be true one year earlier? What decisions must have been made? What capabilities must have been built? What relationships must have been formed?"</p>
-          <p>This backward reasoning often reveals <strong>critical path dependencies</strong> that forward planning misses. Teams discover that certain capabilities take years to develop, certain relationships require early investment, or certain decisions have long lead times. These insights reorder priorities: actions that seemed distant suddenly become urgent because they are prerequisites for everything else.</p>
-          <p>Backcasting also surfaces the <strong>decision points</strong> where the team will face genuine forks in the road. By mapping these in advance, the team can prepare criteria for making those decisions wisely when they arrive, rather than being caught off guard. The output is not a rigid plan but a strategic map showing the key waypoints, dependencies, and choice points between now and the desired future.</p>
+        <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>
+        <div class="key-points">
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-3-outcome-1">Clear path from desired future back to present</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-3-outcome-2">Identified critical moves and dependencies</span></div>
         </div>
       </div>
-
-      <div class="practice-section">
-        <div class="section-toggle" onclick="toggleSection(this)">
-          <h4>Resources &amp; Reading</h4>
-          <span class="toggle-icon">&#9660;</span>
-        </div>
-        <div class="section-content">
-          <ul class="resources-list">
-            <li>
-              <span class="book-icon">&#128214;</span>
-              <div><span class="book-title">The Natural Step for Business</span> <span class="resource-type book">Book</span><br><span class="book-author">Karl-Henrik Rob&egrave;rt</span></div>
-            </li>
-            <li>
-              <span class="book-icon">&#128196;</span>
-              <div><span class="book-title">Backcasting: A Framework for Strategic Planning</span> <span class="resource-type article">Research</span><br><span class="book-author">John B. Robinson</span></div>
-            </li>
-          </ul>
+      <div class="practice-section" style="margin-top:1rem;">
+        <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>
+        <div class="key-points">
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-3-output-1">Reverse timeline with key milestones</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-3-output-2">Near-term actions connected to long-term vision</span></div>
         </div>
       </div>
     </div>
@@ -540,6 +451,14 @@
     </div>
   </div>
 
+  <!-- Dynamic Resources -->
+  <div class="section-label">
+    <h2>Resources</h2>
+    <div class="line"></div>
+  </div>
+  <div id="resources-list" class="resources-grid"></div>
+  <div id="resources-form" style="margin-bottom:2rem;"></div>
+
 </div>
 
 <!-- Footer -->
@@ -547,18 +466,11 @@
   Value Creating Teams &bull; Play 2: Imagining
 </div>
 
+<script src="resources.js"></script>
 <script>
-  function toggleSection(el) {
-    const content = el.nextElementSibling;
-    const isExpanded = content.classList.contains('expanded');
-    if (isExpanded) {
-      content.classList.remove('expanded');
-      el.classList.remove('expanded');
-    } else {
-      content.classList.add('expanded');
-      el.classList.add('expanded');
-    }
-  }
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() { VCTResources.init(2); }, 500);
+  });
 </script>
 
 </body>

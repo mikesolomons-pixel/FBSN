@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Value Creating Teams</title>
 <script src="auth.js"></script>
+<script type="module" src="supabase-config.js"></script>
+<script src="admin.js"></script>
 <style>
   :root {
     --navy: #1B2A4A;
@@ -638,8 +640,8 @@
 <!-- Hero -->
 <div class="hero">
   <div class="hero-content">
-    <h1>Value Creating Teams</h1>
-    <p class="tagline">Helping executive teams solve their most intractable challenges through structured plays, proven practices, and sustained capability building.</p>
+    <h1 data-editable="hero-title">Value Creating Teams</h1>
+    <p class="tagline" data-editable="hero-tagline">Helping executive teams solve their most intractable challenges through structured plays, proven practices, and sustained capability building.</p>
   </div>
 </div>
 
@@ -656,7 +658,7 @@
       <div class="lc-icon">&#9678;</div>
       <h3>Calibration</h3>
       <div class="lc-time">First 30 - 60 Days</div>
-      <p>Partnership with the CEO, observing the team in action, individual conversations, and a calibration event to establish a baseline understanding.</p>
+      <p data-editable="lc-calibration-desc">Partnership with the CEO, observing the team in action, individual conversations, and a calibration event to establish a baseline understanding.</p>
       <div class="lc-cta">View full workflow &#8594;</div>
       <div class="lifecycle-arrow">&#8594;</div>
     </a>
@@ -664,14 +666,14 @@
       <div class="lc-icon">&#9632;</div>
       <h3>Designing Scaffolding</h3>
       <div class="lc-time">Building the Structure</div>
-      <p>Establishing rhythm, focus, supports, team design, and signals. Creating the conditions for the team to do their best work together.</p>
+      <p data-editable="lc-scaffolding-desc">Establishing rhythm, focus, supports, team design, and signals. Creating the conditions for the team to do their best work together.</p>
       <div class="lifecycle-arrow">&#8594;</div>
     </div>
     <div class="lifecycle-phase lc-ongoing">
       <div class="lc-icon">&#9733;</div>
       <h3>Ongoing Practice</h3>
       <div class="lc-time">Building Capability</div>
-      <p>Building capability, not dependency. The team internalizes the practices and continues to create value independently.</p>
+      <p data-editable="lc-ongoing-desc">Building capability, not dependency. The team internalizes the practices and continues to create value independently.</p>
     </div>
   </div>
 
@@ -682,8 +684,8 @@
   </div>
 
   <div style="background:var(--card);border-radius:14px;padding:1.5rem;box-shadow:var(--shadow);margin-bottom:1.5rem;text-align:center;">
-    <p style="font-size:0.92rem;color:var(--text);line-height:1.7;margin-bottom:0.5rem;">The plays are a cycle, not a sequence. The practices within them are intentionally porous &mdash; many exercise more than one muscle at once.</p>
-    <p style="font-size:0.92rem;color:var(--navy);line-height:1.7;font-weight:600;">The magic: practices that build capability while solving real challenges. The work is the workout.</p>
+    <p style="font-size:0.92rem;color:var(--text);line-height:1.7;margin-bottom:0.5rem;" data-editable="plays-intro-1">The plays are a cycle, not a sequence. The practices within them are intentionally porous &mdash; many exercise more than one muscle at once.</p>
+    <p style="font-size:0.92rem;color:var(--navy);line-height:1.7;font-weight:600;" data-editable="plays-intro-2">The magic: practices that build capability while solving real challenges. The work is the workout.</p>
   </div>
 
   <!-- Cycle Flow Layout -->
@@ -764,78 +766,78 @@
     <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;">
       <span style="font-size:0.65rem;text-transform:uppercase;letter-spacing:2px;padding:0.25rem 0.65rem;background:rgba(212,168,67,0.25);border:1px solid rgba(212,168,67,0.4);border-radius:5px;color:var(--gold-light);font-weight:600;">Work in Progress</span>
     </div>
-    <p style="font-size:0.9rem;opacity:0.8;line-height:1.65;">These principles and beliefs are evolving. They represent our current thinking about what makes executive teams capable of creating extraordinary value &mdash; shaped by experience, research, and ongoing conversation.</p>
+    <p style="font-size:0.9rem;opacity:0.8;line-height:1.65;" data-editable="principles-intro">These principles and beliefs are evolving. They represent our current thinking about what makes executive teams capable of creating extraordinary value &mdash; shaped by experience, research, and ongoing conversation.</p>
   </div>
 
   <div class="big-ideas">
     <div class="big-idea-card">
       <div class="bi-num">1</div>
       <div>
-        <h4>Leadership is a Team Sport</h4>
-        <p>The most critical unit of leadership in any organization is the top team, not the individual at the top.</p>
+        <h4 data-editable="belief-1-title">Leadership is a Team Sport</h4>
+        <p data-editable="belief-1-desc">The most critical unit of leadership in any organization is the top team, not the individual at the top.</p>
       </div>
     </div>
     <div class="big-idea-card">
       <div class="bi-num">2</div>
       <div>
-        <h4>Value Creation Means Better Lives</h4>
-        <p>Not just shareholder returns. Teams exist to create value across all stakeholders. If we're honest, most organizations are falling short.</p>
+        <h4 data-editable="belief-2-title">Value Creation Means Better Lives</h4>
+        <p data-editable="belief-2-desc">Not just shareholder returns. Teams exist to create value across all stakeholders. If we're honest, most organizations are falling short.</p>
       </div>
     </div>
     <div class="big-idea-card">
       <div class="bi-num">3</div>
       <div>
-        <h4>Plays, Not Prescriptions</h4>
-        <p>Like a sports team, executive teams need a playbook of adaptable moves, not rigid processes.</p>
+        <h4 data-editable="belief-3-title">Plays, Not Prescriptions</h4>
+        <p data-editable="belief-3-desc">Like a sports team, executive teams need a playbook of adaptable moves, not rigid processes.</p>
       </div>
     </div>
     <div class="big-idea-card">
       <div class="bi-num">4</div>
       <div>
-        <h4>Scaffolding, Not Dependency</h4>
-        <p>The goal is to build the team's own capability, not create reliance on external advisors.</p>
+        <h4 data-editable="belief-4-title">Scaffolding, Not Dependency</h4>
+        <p data-editable="belief-4-desc">The goal is to build the team's own capability, not create reliance on external advisors.</p>
       </div>
     </div>
     <div class="big-idea-card">
       <div class="bi-num">5</div>
       <div>
-        <h4>Calibration Before Action</h4>
-        <p>Invest in deeply understanding the team's context before prescribing solutions.</p>
+        <h4 data-editable="belief-5-title">Calibration Before Action</h4>
+        <p data-editable="belief-5-desc">Invest in deeply understanding the team's context before prescribing solutions.</p>
       </div>
     </div>
     <div class="big-idea-card">
       <div class="bi-num">6</div>
       <div>
-        <h4>Practice Makes Permanent</h4>
-        <p>Real change comes through repeated practice, not one-off events or workshops.</p>
+        <h4 data-editable="belief-6-title">Practice Makes Permanent</h4>
+        <p data-editable="belief-6-desc">Real change comes through repeated practice, not one-off events or workshops.</p>
       </div>
     </div>
     <div class="big-idea-card">
       <div class="bi-num">7</div>
       <div>
-        <h4>The CEO Partnership</h4>
-        <p>Effective team transformation requires a genuine partnership with the CEO as co-architect of change.</p>
+        <h4 data-editable="belief-7-title">The CEO Partnership</h4>
+        <p data-editable="belief-7-desc">Effective team transformation requires a genuine partnership with the CEO as co-architect of change.</p>
       </div>
     </div>
     <div class="big-idea-card">
       <div class="bi-num">8</div>
       <div>
-        <h4>Personal and Professional are Inseparable</h4>
-        <p>Who you are shapes how you lead. The whole person shows up &mdash; and that's what makes the work real.</p>
+        <h4 data-editable="belief-8-title">Personal and Professional are Inseparable</h4>
+        <p data-editable="belief-8-desc">Who you are shapes how you lead. The whole person shows up &mdash; and that's what makes the work real.</p>
       </div>
     </div>
     <div class="big-idea-card">
       <div class="bi-num">9</div>
       <div>
-        <h4>Conflict is Data, Not Dysfunction</h4>
-        <p>Divergent views tell us where reality is unclear and where assumptions differ. The goal isn't consensus &mdash; it's shared clarity.</p>
+        <h4 data-editable="belief-9-title">Conflict is Data, Not Dysfunction</h4>
+        <p data-editable="belief-9-desc">Divergent views tell us where reality is unclear and where assumptions differ. The goal isn't consensus &mdash; it's shared clarity.</p>
       </div>
     </div>
     <div class="big-idea-card">
       <div class="bi-num">10</div>
       <div>
-        <h4>Bring Love to What You Do</h4>
-        <p>The best teams are driven not just by strategy but by genuine care &mdash; for each other, for their people, and for the impact they have on the world.</p>
+        <h4 data-editable="belief-10-title">Bring Love to What You Do</h4>
+        <p data-editable="belief-10-desc">The best teams are driven not just by strategy but by genuine care &mdash; for each other, for their people, and for the impact they have on the world.</p>
       </div>
     </div>
   </div>
@@ -856,7 +858,6 @@
   Value Creating Teams &bull; Helping teams solve their most intractable challenges
 </div>
 
-<script type="module" src="supabase-config.js"></script>
 <script src="resources.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {

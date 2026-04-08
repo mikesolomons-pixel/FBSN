@@ -91,6 +91,7 @@
     const titleHtml = r.url
       ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="resource-title" style="text-decoration:none;color:var(--navy,#1B2A4A);">${esc(r.title)}<span style="font-size:.7rem;opacity:.5;margin-left:.3rem;">&#8599;</span></a>`
       : `<span class="resource-title">${esc(r.title)}</span>`;
+    const deleteBtn = `<button class="resource-delete" data-delete-id="${r.id}" title="Delete resource">&times;</button>`;
     return `<div class="resource-item" data-id="${r.id}">
       <span class="resource-icon">${icon}</span>
       <div class="resource-info">
@@ -98,6 +99,7 @@
         <span class="resource-type-badge" style="background:${typeBg}">${r.resource_type}</span>
         ${r.author ? `<br><span class="resource-author">${esc(r.author)}</span>` : ''}
       </div>
+      ${deleteBtn}
     </div>`;
   }
 
@@ -107,6 +109,7 @@
       return;
     }
     container.innerHTML = resources.map(r => renderItem(r, opts)).join('');
+    wireDeleteButtons(container);
   }
 
   function renderGrouped(resources, container) {
@@ -123,6 +126,7 @@
         <div class="resources-grid">${groups[p].map(r => renderItem(r, {})).join('')}</div>
       </div>
     `).join('');
+    wireDeleteButtons(container);
   }
 
   function buildPlaySelect(currentPlay) {
@@ -224,6 +228,22 @@
       renderAddForm(formEl, null);
       formEl._refreshFn = refresh;
     }
+  }
+
+  function wireDeleteButtons(container) {
+    container.querySelectorAll('.resource-delete').forEach(btn => {
+      btn.onclick = async function (e) {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-delete-id');
+        if (!confirm('Delete this resource?')) return;
+        btn.textContent = '\u2026';
+        const ok = await deleteResource(id);
+        if (ok) {
+          const item = btn.closest('.resource-item');
+          if (item) item.remove();
+        }
+      };
+    });
   }
 
   function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }

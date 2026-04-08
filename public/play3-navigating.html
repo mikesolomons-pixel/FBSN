@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Play 3: Navigating - Value Creating Teams</title>
 <script src="auth.js"></script>
+<script type="module" src="supabase-config.js"></script>
+<script src="admin.js"></script>
 <style>
   :root {
     --navy: #1B2A4A;
@@ -378,8 +380,8 @@
   <div class="header-content">
     <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
     <div class="play-badge">Play 3 of 5</div>
-    <h1>Navigating <span style="font-weight:400;font-size:1rem;opacity:0.7;margin-left:0.5rem;">Maneuvering through the unknown</span></h1>
-    <p class="subtitle">Learning at speed and in motion, building the adaptive capacity to thrive in uncertainty.</p>
+    <h1 data-editable="header-title">Navigating <span style="font-weight:400;font-size:1rem;opacity:0.7;margin-left:0.5rem;">Maneuvering through the unknown</span></h1>
+    <p class="subtitle" data-editable="header-subtitle">Learning at speed and in motion, building the adaptive capacity to thrive in uncertainty.</p>
   </div>
 </div>
 
@@ -387,36 +389,36 @@
 
   <!-- Description -->
   <div class="description-card">
-    <h2>Moving Between Where We Are and Where We Want to Be</h2>
-    <p>Navigating is the play where strategy meets reality. It is how teams move between present conditions and future ambitions when the path is unclear, the terrain is shifting, and the map is incomplete. Most teams fail here &mdash; either paralyzed by the desire for certainty that never arrives, or charging ahead recklessly before they understand the landscape.</p>
-    <p>Effective navigation requires rhythm rather than rigid cadence. The pace of work should be driven by the nature of the challenge, not the calendar. Some problems demand rapid experimentation over days; others require patient observation over months. Teams that default to fixed quarterly planning cycles regardless of context are navigating by calendar, not by conditions &mdash; and the difference matters enormously.</p>
-    <p>A healthy team accumulates a growing scrap heap of failed experiments. This is not waste; it is evidence of genuine learning. Teams that never fail are not navigating &mdash; they are following well-worn paths that no longer lead anywhere interesting. The practice of set-based design helps here: holding multiple paths open simultaneously, testing hypotheses in parallel, and resisting the organizational pressure to commit to a single approach before the evidence supports it.</p>
+    <h2 data-editable="desc-title">Moving Between Where We Are and Where We Want to Be</h2>
+    <p data-editable="desc-p1">Navigating is the play where strategy meets reality. It is how teams move between present conditions and future ambitions when the path is unclear, the terrain is shifting, and the map is incomplete. Most teams fail here &mdash; either paralyzed by the desire for certainty that never arrives, or charging ahead recklessly before they understand the landscape.</p>
+    <p data-editable="desc-p2">Effective navigation requires rhythm rather than rigid cadence. The pace of work should be driven by the nature of the challenge, not the calendar. Some problems demand rapid experimentation over days; others require patient observation over months. Teams that default to fixed quarterly planning cycles regardless of context are navigating by calendar, not by conditions &mdash; and the difference matters enormously.</p>
+    <p data-editable="desc-p3">A healthy team accumulates a growing scrap heap of failed experiments. This is not waste; it is evidence of genuine learning. Teams that never fail are not navigating &mdash; they are following well-worn paths that no longer lead anywhere interesting. The practice of set-based design helps here: holding multiple paths open simultaneously, testing hypotheses in parallel, and resisting the organizational pressure to commit to a single approach before the evidence supports it.</p>
 
-    <h2 style="margin-top: 1.25rem;">Core Principles</h2>
+    <h2 style="margin-top: 1.25rem;" data-editable="desc-principles-title">Core Principles</h2>
     <div class="key-points">
       <div class="key-point">
         <div class="dot"></div>
-        <span>Rhythm over cadence &mdash; let the nature of the challenge dictate the pace, not the calendar</span>
+        <span data-editable="desc-principle-1">Rhythm over cadence &mdash; let the nature of the challenge dictate the pace, not the calendar</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>A growing scrap heap of failed experiments signals real learning, not dysfunction</span>
+        <span data-editable="desc-principle-2">A growing scrap heap of failed experiments signals real learning, not dysfunction</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Hold multiple paths open through set-based design rather than committing too early</span>
+        <span data-editable="desc-principle-3">Hold multiple paths open through set-based design rather than committing too early</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Match the decision approach to the nature of the problem &mdash; not all challenges are alike</span>
+        <span data-editable="desc-principle-4">Match the decision approach to the nature of the problem &mdash; not all challenges are alike</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Build adaptive capacity: the ability to navigate uncertainty repeatedly, not just once</span>
+        <span data-editable="desc-principle-5">Build adaptive capacity: the ability to navigate uncertainty repeatedly, not just once</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Resist the twin traps of analysis paralysis and reckless commitment</span>
+        <span data-editable="desc-principle-6">Resist the twin traps of analysis paralysis and reckless commitment</span>
       </div>
     </div>
   </div>
@@ -432,24 +434,24 @@
     <div class="practice-header">
       <div class="practice-number">Practice 1</div>
       <div class="practice-header-top">
-        <h3>Cynefin Navigator</h3>
+        <h3 data-editable="practice-1-title">Cynefin Navigator</h3>
         <span class="status-badge available">Automated</span>
       </div>
-      <p>A decision framework based on Dave Snowden's Cynefin model that helps teams classify challenges by their nature and choose the right approach for each &mdash; because not all problems respond to the same kind of thinking.</p>
+      <p data-editable="practice-1-desc">A decision framework based on Dave Snowden's Cynefin model that helps teams classify challenges by their nature and choose the right approach for each &mdash; because not all problems respond to the same kind of thinking.</p>
     </div>
     <div class="practice-body">
       <div class="practice-section">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Challenges classified by complexity domain</span></div>
-          <div class="key-point"><div class="dot"></div><span>Appropriate response strategies identified for each domain</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-outcome-1">Challenges classified by complexity domain</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-outcome-2">Appropriate response strategies identified for each domain</span></div>
         </div>
       </div>
       <div class="practice-section" style="margin-top:1rem;">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Cynefin domain map of current challenges</span></div>
-          <div class="key-point"><div class="dot"></div><span>Domain-specific action plans</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-output-1">Cynefin domain map of current challenges</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-output-2">Domain-specific action plans</span></div>
         </div>
       </div>
     </div>
@@ -464,24 +466,24 @@
     <div class="practice-header">
       <div class="practice-number">Practice 2</div>
       <div class="practice-header-top">
-        <h3>Safe-to-Fail Experiments</h3>
+        <h3 data-editable="practice-2-title">Safe-to-Fail Experiments</h3>
         <span class="status-badge coming-soon">Coming Soon</span>
       </div>
-      <p>Designing structured probes for complex challenges &mdash; small, bounded experiments that generate real learning while limiting downside risk. Partially available through the Cynefin Navigator.</p>
+      <p data-editable="practice-2-desc">Designing structured probes for complex challenges &mdash; small, bounded experiments that generate real learning while limiting downside risk. Partially available through the Cynefin Navigator.</p>
     </div>
     <div class="practice-body">
       <div class="practice-section">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Hypotheses tested in low-risk ways</span></div>
-          <div class="key-point"><div class="dot"></div><span>Learning accelerated through structured experimentation</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-outcome-1">Hypotheses tested in low-risk ways</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-outcome-2">Learning accelerated through structured experimentation</span></div>
         </div>
       </div>
       <div class="practice-section" style="margin-top:1rem;">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Experiment designs with sensing mechanisms</span></div>
-          <div class="key-point"><div class="dot"></div><span>Amplify/dampen decision criteria</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-output-1">Experiment designs with sensing mechanisms</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-output-2">Amplify/dampen decision criteria</span></div>
         </div>
       </div>
     </div>
@@ -497,45 +499,24 @@
     <div class="practice-header">
       <div class="practice-number">Practice 3</div>
       <div class="practice-header-top">
-        <h3>Decision Architecture</h3>
+        <h3 data-editable="practice-3-title">Decision Architecture</h3>
         <span class="status-badge coming-soon">Coming Soon</span>
       </div>
-      <p>Structuring how the team makes high-stakes decisions &mdash; defining decision rights, matching speed to stakes, and building decision logs that accelerate organizational learning.</p>
+      <p data-editable="practice-3-desc">Structuring how the team makes high-stakes decisions &mdash; defining decision rights, matching speed to stakes, and building decision logs that accelerate organizational learning.</p>
     </div>
     <div class="practice-body">
       <div class="practice-section">
-        <div class="section-toggle" onclick="toggleSection(this)">
-          <h4>Tutorial</h4>
-          <span class="toggle-icon">&#9660;</span>
-        </div>
-        <div class="section-content">
-          <p>Most leadership teams make decisions poorly not because the individuals lack judgment, but because the <em>architecture</em> of decision-making is poorly designed. Decision Architecture is the practice of deliberately structuring how a team approaches consequential choices &mdash; who decides, how fast, with what information, and how the outcome is captured for future learning.</p>
-          <p>The first principle is <strong>distinguishing reversible from irreversible decisions</strong>. Reversible decisions (what Amazon calls "two-way doors") should be made quickly by individuals or small groups close to the information. Irreversible decisions ("one-way doors") deserve slower deliberation, broader input, and more careful analysis. Most organizations make this distinction poorly: they deliberate endlessly on reversible decisions and rush through irreversible ones under time pressure.</p>
-          <p>The second principle is <strong>explicit decision rights</strong>. For any given decision, the team should be clear about who has the authority to decide, who must be consulted before the decision is made, who needs to be informed after, and who is responsible for executing. Ambiguity about decision rights is one of the most common sources of organizational friction &mdash; it produces either paralysis (no one decides) or conflict (multiple people decide differently).</p>
-          <p>The third principle is the <strong>decision log</strong>. After each significant decision, the team records what was decided, what the key considerations were, what alternatives were rejected and why, and what they expected to happen. Over time, the decision log becomes the team's most powerful learning tool &mdash; allowing them to see where their judgment was strong, where it was weak, and what patterns of error recur. Teams that build this discipline systematically improve their decision quality over months and years.</p>
+        <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>
+        <div class="key-points">
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-3-outcome-1">Better decision processes matched to decision types</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-3-outcome-2">Reduced decision fatigue and bias</span></div>
         </div>
       </div>
-
-      <div class="practice-section">
-        <div class="section-toggle" onclick="toggleSection(this)">
-          <h4>Resources &amp; Reading</h4>
-          <span class="toggle-icon">&#9660;</span>
-        </div>
-        <div class="section-content">
-          <ul class="resources-list">
-            <li>
-              <span class="book-icon">&#128214;</span>
-              <div><span class="book-title">Thinking, Fast and Slow</span> <span class="resource-type book">Book</span><br><span class="book-author">Daniel Kahneman</span></div>
-            </li>
-            <li>
-              <span class="book-icon">&#128214;</span>
-              <div><span class="book-title">Decisive: How to Make Better Choices in Life and Work</span> <span class="resource-type book">Book</span><br><span class="book-author">Chip Heath &amp; Dan Heath</span></div>
-            </li>
-            <li>
-              <span class="book-icon">&#128214;</span>
-              <div><span class="book-title">How Big Things Get Done</span> <span class="resource-type book">Book</span><br><span class="book-author">Bent Flyvbjerg &amp; Dan Gardner</span></div>
-            </li>
-          </ul>
+      <div class="practice-section" style="margin-top:1rem;">
+        <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>
+        <div class="key-points">
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-3-output-1">Decision framework for the team</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-3-output-2">Categorized decision rights and processes</span></div>
         </div>
       </div>
     </div>
@@ -547,23 +528,26 @@
 
 </div>
 
+  <!-- Dynamic Resources -->
+  <div class="section-label">
+    <h2>Resources</h2>
+    <div class="line"></div>
+  </div>
+  <div id="resources-list" class="resources-grid"></div>
+  <div id="resources-form" style="margin-bottom:2rem;"></div>
+
+</div>
+
 <!-- Footer -->
 <div class="footer">
   Value Creating Teams &bull; Play 3: Navigating
 </div>
 
+<script src="resources.js"></script>
 <script>
-  function toggleSection(el) {
-    const content = el.nextElementSibling;
-    const isExpanded = content.classList.contains('expanded');
-    if (isExpanded) {
-      content.classList.remove('expanded');
-      el.classList.remove('expanded');
-    } else {
-      content.classList.add('expanded');
-      el.classList.add('expanded');
-    }
-  }
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() { VCTResources.init(3); }, 500);
+  });
 </script>
 
 </body>

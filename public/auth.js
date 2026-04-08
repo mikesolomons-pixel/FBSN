@@ -1,6 +1,8 @@
 (function() {
-  const PASS_HASH = 'b89ca00e'; // simple hash of the password
+  const PASS_HASH = 'b89ca00e'; // GoYankees1990s
+  const ADMIN_HASH = '6c221976'; // GoYankees1990sDylan
   const STORAGE_KEY = 'vct_auth';
+  const ADMIN_KEY = 'vct_admin';
 
   function simpleHash(str) {
     let hash = 0;
@@ -13,7 +15,7 @@
   }
 
   // Check if already authenticated this session
-  if (sessionStorage.getItem(STORAGE_KEY) === PASS_HASH) {
+  if (sessionStorage.getItem(STORAGE_KEY) === PASS_HASH || sessionStorage.getItem(ADMIN_KEY) === ADMIN_HASH) {
     return; // already authed
   }
 
@@ -44,7 +46,13 @@
     function tryAuth() {
       var input = document.getElementById('auth-pass');
       var hash = simpleHash(input.value);
-      if (hash === PASS_HASH) {
+      if (hash === ADMIN_HASH) {
+        sessionStorage.setItem(STORAGE_KEY, PASS_HASH);
+        sessionStorage.setItem(ADMIN_KEY, ADMIN_HASH);
+        overlay.remove();
+        document.body.style.visibility = 'visible';
+        document.body.classList.add('vct-admin');
+      } else if (hash === PASS_HASH) {
         sessionStorage.setItem(STORAGE_KEY, PASS_HASH);
         overlay.remove();
         document.body.style.visibility = 'visible';
@@ -60,4 +68,9 @@
       if (e.key === 'Enter') tryAuth();
     });
   });
+
+  // Expose admin check globally
+  window.isVCTAdmin = function() {
+    return sessionStorage.getItem('vct_admin') === ADMIN_HASH;
+  };
 })();

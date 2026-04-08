@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Play 1: Sensemaking - Value Creating Teams</title>
 <script src="auth.js"></script>
+<script type="module" src="supabase-config.js"></script>
+<script src="admin.js"></script>
 <style>
   :root {
     --navy: #1B2A4A;
@@ -376,8 +378,8 @@
   <div class="header-content">
     <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
     <div class="play-badge">Play 1 of 5</div>
-    <h1>Sensemaking <span style="font-weight:400;font-size:1rem;opacity:0.7;margin-left:0.5rem;">Understanding where we are</span></h1>
-    <p class="subtitle">Building a shared view of current reality before deciding where to go next.</p>
+    <h1 data-editable="header-title">Sensemaking <span style="font-weight:400;font-size:1rem;opacity:0.7;margin-left:0.5rem;">Understanding where we are</span></h1>
+    <p class="subtitle" data-editable="header-subtitle">Building a shared view of current reality before deciding where to go next.</p>
   </div>
 </div>
 
@@ -385,40 +387,40 @@
 
   <!-- Description -->
   <div class="description-card">
-    <h2>The Foundation for Strategic Action</h2>
-    <p>Sensemaking is how a team builds a shared view of current reality before deciding what to do next. Before a team can set direction, solve the right problems, or move with confidence, it needs an honest understanding of what is happening now.</p>
-    <p>This means slowing down long enough to separate facts from assumptions, signals from noise, and real uncertainty from stories we may be telling ourselves. Most teams are not starting from one shared picture. They are starting from partial views, different interpretations, and beliefs that may no longer hold.</p>
-    <p>That is why disagreement matters. When people see reality differently, it reveals where understanding is incomplete and where assumptions need to be tested. In this play, the goal is not immediate agreement. The goal is sharper collective understanding.</p>
+    <h2 data-editable="desc-title">The Foundation for Strategic Action</h2>
+    <p data-editable="desc-p1">Sensemaking is how a team builds a shared view of current reality before deciding what to do next. Before a team can set direction, solve the right problems, or move with confidence, it needs an honest understanding of what is happening now.</p>
+    <p data-editable="desc-p2">This means slowing down long enough to separate facts from assumptions, signals from noise, and real uncertainty from stories we may be telling ourselves. Most teams are not starting from one shared picture. They are starting from partial views, different interpretations, and beliefs that may no longer hold.</p>
+    <p data-editable="desc-p3">That is why disagreement matters. When people see reality differently, it reveals where understanding is incomplete and where assumptions need to be tested. In this play, the goal is not immediate agreement. The goal is sharper collective understanding.</p>
 
-    <h2 style="margin-top: 1.25rem;">Core Principles</h2>
+    <h2 style="margin-top: 1.25rem;" data-editable="desc-principles-title">Core Principles</h2>
     <div class="key-points">
       <div class="key-point">
         <div class="dot"></div>
-        <span>Separate facts, interpretations, assumptions, and unknowns</span>
+        <span data-editable="desc-principle-1">Separate facts, interpretations, assumptions, and unknowns</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Look for the signals that matter most, not just the loudest inputs</span>
+        <span data-editable="desc-principle-2">Look for the signals that matter most, not just the loudest inputs</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Use differences in perspective to deepen understanding</span>
+        <span data-editable="desc-principle-3">Use differences in perspective to deepen understanding</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Build a shared view of current reality before jumping to solutions</span>
+        <span data-editable="desc-principle-4">Build a shared view of current reality before jumping to solutions</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Resist premature alignment when key questions are still unresolved</span>
+        <span data-editable="desc-principle-5">Resist premature alignment when key questions are still unresolved</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Treat uncertainty as something to clarify, not something to hide</span>
+        <span data-editable="desc-principle-6">Treat uncertainty as something to clarify, not something to hide</span>
       </div>
       <div class="key-point">
         <div class="dot"></div>
-        <span>Resist the urge to converge prematurely on a unified narrative before the evidence supports one</span>
+        <span data-editable="desc-principle-7">Resist the urge to converge prematurely on a unified narrative before the evidence supports one</span>
       </div>
     </div>
   </div>
@@ -434,26 +436,26 @@
     <div class="practice-header">
       <div class="practice-number">Practice 1</div>
       <div class="practice-header-top">
-        <h3>FBSN Exercise (Facts, Beliefs, Signals, Noise)</h3>
+        <h3 data-editable="practice-1-title">FBSN Exercise (Facts, Beliefs, Signals, Noise)</h3>
         <span class="status-badge available">Automated</span>
       </div>
-      <p>The signature sensemaking tool. Teams surface their individual perspectives, then use a structured 2&times;2 matrix to categorize and prioritize what they know, believe, and need to act on.</p>
+      <p data-editable="practice-1-desc">The signature sensemaking tool. Teams surface their individual perspectives, then use a structured 2&times;2 matrix to categorize and prioritize what they know, believe, and need to act on.</p>
     </div>
     <div class="practice-body">
       <div class="practice-section">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Shared understanding of current reality</span></div>
-          <div class="key-point"><div class="dot"></div><span>Hidden assumptions surfaced and examined</span></div>
-          <div class="key-point"><div class="dot"></div><span>Alignment on which signals matter most</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-outcome-1">Shared understanding of current reality</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-outcome-2">Hidden assumptions surfaced and examined</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-outcome-3">Alignment on which signals matter most</span></div>
         </div>
       </div>
       <div class="practice-section" style="margin-top:1rem;">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Completed FBSN 2x2 matrix</span></div>
-          <div class="key-point"><div class="dot"></div><span>Prioritized list of signals to act on</span></div>
-          <div class="key-point"><div class="dot"></div><span>Identified beliefs to test</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-output-1">Completed FBSN 2x2 matrix</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-output-2">Prioritized list of signals to act on</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-1-output-3">Identified beliefs to test</span></div>
         </div>
       </div>
     </div>
@@ -469,24 +471,24 @@
     <div class="practice-header">
       <div class="practice-number">Practice 2</div>
       <div class="practice-header-top">
-        <h3>Three Horizons Scanning</h3>
+        <h3 data-editable="practice-2-title">Three Horizons Scanning</h3>
         <span class="status-badge coming-soon">Coming Soon</span>
       </div>
-      <p>A framework for mapping the strategic landscape across three time horizons &mdash; what must be delivered today, what is emerging tomorrow, and what could transform the future.</p>
+      <p data-editable="practice-2-desc">A framework for mapping the strategic landscape across three time horizons &mdash; what must be delivered today, what is emerging tomorrow, and what could transform the future.</p>
     </div>
     <div class="practice-body">
       <div class="practice-section">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Shared view of current, emerging, and future landscape</span></div>
-          <div class="key-point"><div class="dot"></div><span>Alignment on where to invest attention</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-outcome-1">Shared view of current, emerging, and future landscape</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-outcome-2">Alignment on where to invest attention</span></div>
         </div>
       </div>
       <div class="practice-section" style="margin-top:1rem;">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Three Horizons map</span></div>
-          <div class="key-point"><div class="dot"></div><span>Key shifts and emerging patterns identified</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-output-1">Three Horizons map</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-2-output-2">Key shifts and emerging patterns identified</span></div>
         </div>
       </div>
     </div>
@@ -501,24 +503,24 @@
     <div class="practice-header">
       <div class="practice-number">Practice 3</div>
       <div class="practice-header-top">
-        <h3>Assumption Mapping</h3>
+        <h3 data-editable="practice-3-title">Assumption Mapping</h3>
         <span class="status-badge coming-soon">Coming Soon</span>
       </div>
-      <p>A rigorous practice for surfacing the implicit assumptions that silently drive strategic decisions &mdash; then deciding which ones most urgently need to be tested.</p>
+      <p data-editable="practice-3-desc">A rigorous practice for surfacing the implicit assumptions that silently drive strategic decisions &mdash; then deciding which ones most urgently need to be tested.</p>
     </div>
     <div class="practice-body">
       <div class="practice-section">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Critical assumptions identified and ranked</span></div>
-          <div class="key-point"><div class="dot"></div><span>Shared awareness of what the team takes for granted</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-3-outcome-1">Critical assumptions identified and ranked</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-3-outcome-2">Shared awareness of what the team takes for granted</span></div>
         </div>
       </div>
       <div class="practice-section" style="margin-top:1rem;">
         <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>
         <div class="key-points">
-          <div class="key-point"><div class="dot"></div><span>Assumption map with confidence and impact ratings</span></div>
-          <div class="key-point"><div class="dot"></div><span>Test plan for highest-risk assumptions</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-3-output-1">Assumption map with confidence and impact ratings</span></div>
+          <div class="key-point"><div class="dot"></div><span data-editable="practice-3-output-2">Test plan for highest-risk assumptions</span></div>
         </div>
       </div>
     </div>
@@ -543,7 +545,6 @@
   Value Creating Teams &bull; Play 1: Sensemaking
 </div>
 
-<script type="module" src="supabase-config.js"></script>
 <script src="resources.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
