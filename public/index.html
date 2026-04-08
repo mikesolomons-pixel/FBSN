@@ -840,6 +840,15 @@
     </div>
   </div>
 
+  <!-- Resources -->
+  <div class="section-header">
+    <h2>Resources</h2>
+    <div class="line"></div>
+  </div>
+
+  <div id="all-resources-list"></div>
+  <div id="all-resources-form" style="margin-bottom:2rem;"></div>
+
 </div>
 
 <!-- Footer -->
@@ -847,6 +856,13 @@
   Value Creating Teams &bull; Helping teams solve their most intractable challenges
 </div>
 
+<script type="module" src="supabase-config.js"></script>
+<script src="resources.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() { VCTResources.initAll(); }, 500);
+  });
+</script>
 
 </body>
 </html>
