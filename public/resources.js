@@ -18,6 +18,7 @@
     .resource-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
     .resource-info{min-width:0}
     .resource-title{font-weight:600;font-size:.82rem;color:var(--navy,#1B2A4A)}
+    a.resource-title:hover{color:var(--teal,#00897B)}
     .resource-author{font-size:.75rem;color:var(--text-secondary,#5A6B8A)}
     .resource-type-badge{display:inline-block;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:.1rem .4rem;border-radius:4px;color:#fff;margin-left:.4rem;vertical-align:middle}
     .resource-play-tag{display:inline-block;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:.12rem .45rem;border-radius:4px;margin-right:.5rem;color:#fff}
@@ -87,10 +88,13 @@
     const playTag = showPlay
       ? `<span class="resource-play-tag" style="background:${PLAY_COLORS[r.play]}">${playLabel}</span>`
       : (r.play === 0 ? `<span class="resource-play-tag" style="background:${PLAY_COLORS[0]}">VCT</span>` : '');
+    const titleHtml = r.url
+      ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="resource-title" style="text-decoration:none;color:var(--navy,#1B2A4A);">${esc(r.title)}<span style="font-size:.7rem;opacity:.5;margin-left:.3rem;">&#8599;</span></a>`
+      : `<span class="resource-title">${esc(r.title)}</span>`;
     return `<div class="resource-item" data-id="${r.id}">
       <span class="resource-icon">${icon}</span>
       <div class="resource-info">
-        ${playTag}<span class="resource-title">${esc(r.title)}</span>
+        ${playTag}${titleHtml}
         <span class="resource-type-badge" style="background:${typeBg}">${r.resource_type}</span>
         ${r.author ? `<br><span class="resource-author">${esc(r.author)}</span>` : ''}
       </div>
@@ -146,6 +150,9 @@
           <input type="text" placeholder="Author (optional)" class="res-author">
         </div>
         <div class="form-row">
+          <input type="url" placeholder="URL — Amazon link, article URL, etc. (optional)" class="res-url" style="flex:1;">
+        </div>
+        <div class="form-row">
           <select class="res-type">
             <option value="book">Book</option>
             <option value="article">Article</option>
@@ -169,13 +176,15 @@
         play: p,
         title: title,
         author: container.querySelector('.res-author').value.trim() || null,
-        resource_type: container.querySelector('.res-type').value
+        resource_type: container.querySelector('.res-type').value,
+        url: container.querySelector('.res-url').value.trim() || null
       });
       btn.disabled = false;
       btn.textContent = 'Add';
       if (result) {
         container.querySelector('.res-title').value = '';
         container.querySelector('.res-author').value = '';
+        container.querySelector('.res-url').value = '';
         if (container._refreshFn) container._refreshFn();
       }
     };
