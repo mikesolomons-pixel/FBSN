@@ -19,17 +19,17 @@
   const style = document.createElement('style');
   style.textContent = `
     /* Admin toolbar */
-    .admin-badge{position:fixed;top:12px;right:12px;z-index:10000;background:linear-gradient(135deg,#E07A5F,#D4A843);color:#fff;padding:.35rem .85rem;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;box-shadow:0 2px 12px rgba(224,122,95,.4);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;cursor:default;display:flex;align-items:center;gap:.5rem}
+    .admin-badge{position:fixed;bottom:12px;left:12px;z-index:10000;background:linear-gradient(135deg,#E07A5F,#D4A843);color:#fff;padding:.35rem .85rem;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;box-shadow:0 2px 12px rgba(224,122,95,.4);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;cursor:default;display:flex;align-items:center;gap:.5rem}
     .admin-badge button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.2rem .5rem;border-radius:4px;font-size:.6rem;font-weight:600;cursor:pointer;font-family:inherit}
     .admin-badge button:hover{background:rgba(255,255,255,.35)}
 
     /* Admin login button (for non-admin users) */
-    .admin-login-btn{position:fixed;top:12px;right:12px;z-index:10000;background:rgba(27,42,74,0.08);border:1px solid rgba(27,42,74,0.12);color:#5A6B8A;padding:.35rem .7rem;border-radius:20px;font-size:.65rem;font-weight:600;letter-spacing:.5px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;transition:all .2s;display:flex;align-items:center;gap:.35rem}
-    .admin-login-btn:hover{background:rgba(27,42,74,0.14);color:#1B2A4A}
-    .admin-login-btn svg{width:12px;height:12px;opacity:.6}
+    .admin-login-btn{position:fixed;bottom:12px;left:12px;z-index:10000;background:rgba(27,42,74,0.06);border:1px solid rgba(27,42,74,0.1);color:#9AA5B8;padding:.3rem .6rem;border-radius:16px;font-size:.6rem;font-weight:600;letter-spacing:.5px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;transition:all .2s;display:flex;align-items:center;gap:.3rem;opacity:.5}
+    .admin-login-btn:hover{opacity:1;background:rgba(27,42,74,0.1);color:#5A6B8A}
+    .admin-login-btn svg{width:10px;height:10px;opacity:.6}
 
     /* Admin login popover */
-    .admin-popover{position:fixed;top:48px;right:12px;z-index:10001;background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 8px 32px rgba(27,42,74,0.18);border:1px solid #E2E8F0;width:260px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;display:none}
+    .admin-popover{position:fixed;bottom:44px;left:12px;z-index:10001;background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 8px 32px rgba(27,42,74,0.18);border:1px solid #E2E8F0;width:260px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;display:none}
     .admin-popover.open{display:block}
     .admin-popover h4{font-size:.8rem;font-weight:700;color:#1B2A4A;margin:0 0 .1rem 0}
     .admin-popover .ap-sub{font-size:.7rem;color:#5A6B8A;margin:0 0 .75rem 0}
