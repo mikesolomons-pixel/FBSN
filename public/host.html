@@ -145,6 +145,23 @@
   .full-matrix .m-cell-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--teal-light); letter-spacing: 0.5px; margin-bottom: 0.25rem; }
   .full-matrix .m-tag { font-size: 0.9rem; padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.08); border-radius: 6px; line-height: 1.3; }
 
+  /* Perspective management controls */
+  .persp-controls { display: flex; gap: 0.4rem; align-items: center; justify-content: center; margin-top: 0.75rem; }
+  .persp-ctrl-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: var(--text-secondary); padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 0.3rem; }
+  .persp-ctrl-btn:hover { background: rgba(255,255,255,0.2); color: var(--text); }
+  .persp-ctrl-btn.danger:hover { background: rgba(239,83,80,0.2); color: #EF5350; border-color: rgba(239,83,80,0.3); }
+  .persp-edit-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; }
+  .persp-edit-overlay.active { display: flex; }
+  .persp-edit-modal { background: var(--card); border-radius: 12px; padding: 1.5rem; max-width: 600px; width: 90%; }
+  .persp-edit-modal h3 { font-size: 1rem; color: var(--teal-light); margin-bottom: 0.75rem; }
+  .persp-edit-modal textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 8px; font-size: 1rem; font-family: inherit; min-height: 80px; resize: vertical; }
+  .persp-edit-modal textarea:focus { outline: none; border-color: var(--teal); }
+  .persp-edit-modal .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.75rem; }
+  .persp-add-row { display: flex; gap: 0.4rem; margin-top: 0.5rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+  .persp-add-row input { flex: 1; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.85rem; font-family: inherit; }
+  .persp-add-row input:focus { outline: none; border-color: var(--teal); }
+  .persp-add-row button { padding: 0.5rem 1rem; background: var(--teal); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; }
+
   .action-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
   .a-col { border-radius: 12px; padding: 1.25rem; }
   .a-col.must { background: rgba(0,137,123,0.15); border: 2px solid var(--teal); }
@@ -249,6 +266,15 @@
       <div class="persp-counter" id="perspCounter"></div>
       <div class="persp-progress"><div class="persp-progress-fill" id="perspProgressFill"></div></div>
       <div class="persp-text" id="perspText"></div>
+      <div class="persp-controls" id="perspControls">
+        <button class="persp-ctrl-btn" onclick="editCurrentPersp()">&#9998; Edit</button>
+        <button class="persp-ctrl-btn danger" onclick="deleteCurrentPersp()">&#215; Delete</button>
+        <button class="persp-ctrl-btn" onclick="toggleAddPersp()">&#43; Add New</button>
+      </div>
+      <div class="persp-add-row" id="perspAddRow" style="display:none">
+        <input type="text" id="liveAddInput" placeholder="New perspective...">
+        <button onclick="addLivePersp()">Add</button>
+      </div>
       <div style="margin-bottom:1.5rem">
         <button class="btn btn-ghost" style="font-size:0.85rem" onclick="factCheckCurrent()">Fact Check with AI</button>
         <div id="factCheckResult" style="display:none;margin-top:0.75rem;max-width:700px;background:rgba(0,137,123,0.1);border-radius:10px;padding:1rem;font-size:0.9rem;line-height:1.5;border-left:4px solid var(--teal);text-align:left"></div>
@@ -772,6 +798,83 @@ async function factCheckCurrent() {
   } catch (e) { resultEl.innerHTML = 'Fact check failed: ' + esc(e.message); }
 }
 
+// ========== PERSPECTIVE MANAGEMENT (LIVE) ==========
+function editCurrentPersp() {
+  const overlay = document.getElementById('editOverlay');
+  const textarea = document.getElementById('editPerspText');
+  textarea.value = perspectives[currentIndex];
+  overlay.classList.add('active');
+  textarea.focus();
+}
+
+function cancelEditPersp() {
+  document.getElementById('editOverlay').classList.remove('active');
+}
+
+async function saveEditPersp() {
+  const newText = document.getElementById('editPerspText').value.trim();
+  if (!newText) return;
+  perspectives[currentIndex] = newText;
+  document.getElementById('perspText').textContent = newText;
+  document.getElementById('editOverlay').classList.remove('active');
+
+  // Sync to Supabase
+  await supabaseClient.from('rooms').update({ perspectives }).eq('id', roomId);
+  channel.send({ type: 'broadcast', event: 'perspective_changed', payload: { perspectiveIndex: currentIndex, perspective: newText, totalPerspectives: perspectives.length } });
+}
+
+async function deleteCurrentPersp() {
+  if (perspectives.length <= 1) { alert('Cannot delete the last perspective.'); return; }
+  if (!confirm('Delete this perspective?')) return;
+
+  // Remove any final decision for this index and shift later ones
+  const newDecisions = {};
+  Object.keys(finalDecisions).forEach(k => {
+    const ki = parseInt(k);
+    if (ki < currentIndex) newDecisions[ki] = finalDecisions[ki];
+    else if (ki > currentIndex) newDecisions[ki - 1] = finalDecisions[ki];
+    // skip ki === currentIndex (deleted)
+  });
+  finalDecisions = newDecisions;
+
+  perspectives.splice(currentIndex, 1);
+  if (currentIndex >= perspectives.length) currentIndex = perspectives.length - 1;
+
+  // Sync to Supabase
+  await supabaseClient.from('rooms').update({ perspectives, current_index: currentIndex, final_decisions: finalDecisions, revealed: false }).eq('id', roomId);
+  showPerspective(perspectives[currentIndex], currentIndex, perspectives.length);
+  renderMiniMatrix();
+  channel.send({ type: 'broadcast', event: 'perspective_changed', payload: { perspectiveIndex: currentIndex, perspective: perspectives[currentIndex], totalPerspectives: perspectives.length } });
+}
+
+function toggleAddPersp() {
+  const row = document.getElementById('perspAddRow');
+  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+  if (row.style.display === 'flex') document.getElementById('liveAddInput').focus();
+}
+
+async function addLivePersp() {
+  const input = document.getElementById('liveAddInput');
+  const text = input.value.trim();
+  if (!text) return;
+  perspectives.push(text);
+  input.value = '';
+  document.getElementById('perspAddRow').style.display = 'none';
+
+  // Sync to Supabase
+  await supabaseClient.from('rooms').update({ perspectives }).eq('id', roomId);
+
+  // Update counter display
+  showPerspective(perspectives[currentIndex], currentIndex, perspectives.length);
+}
+
+// Enter key for live add input
+document.addEventListener('keydown', function(e) {
+  if (e.target.id === 'liveAddInput' && e.key === 'Enter') { e.preventDefault(); addLivePersp(); }
+  if (e.target.id === 'editPerspText' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveEditPersp(); }
+  if (e.key === 'Escape' && document.getElementById('editOverlay').classList.contains('active')) { cancelEditPersp(); }
+});
+
 // ========== UTILS ==========
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -792,6 +895,12 @@ window.addHostAction = addHostAction;
 window.removeHostAction = removeHostAction;
 window.perspectives = perspectives;
 window.renderPerspList = renderPerspList;
+window.editCurrentPersp = editCurrentPersp;
+window.cancelEditPersp = cancelEditPersp;
+window.saveEditPersp = saveEditPersp;
+window.deleteCurrentPersp = deleteCurrentPersp;
+window.toggleAddPersp = toggleAddPersp;
+window.addLivePersp = addLivePersp;
 
 // ========== TEMPLATES ==========
 const TEMPLATES = {
@@ -827,5 +936,17 @@ const TEMPLATES = {
 
 renderPerspList();
 </script>
+
+<div class="persp-edit-overlay" id="editOverlay">
+  <div class="persp-edit-modal">
+    <h3>Edit Perspective</h3>
+    <textarea id="editPerspText"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="cancelEditPersp()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditPersp()">Save</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

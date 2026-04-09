@@ -399,6 +399,140 @@
     gap: 0.15rem;
   }
 
+  /* Perspective management drawer */
+  .persp-drawer-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.85rem;
+    background: var(--teal-bg);
+    border: 1px solid var(--teal-pale);
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--teal-dark);
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 0.75rem;
+    width: 100%;
+    justify-content: center;
+  }
+  .persp-drawer-toggle:hover { background: var(--teal-pale); }
+
+  .persp-drawer {
+    display: none;
+    margin-top: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .persp-drawer.open { display: block; }
+
+  .persp-drawer-add {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0.6rem;
+    background: var(--teal-bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .persp-drawer-add input {
+    flex: 1;
+    padding: 0.45rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-family: inherit;
+  }
+  .persp-drawer-add input:focus { outline: none; border-color: var(--teal); }
+  .persp-drawer-add button {
+    padding: 0.45rem 0.75rem;
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .persp-drawer-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    transition: background 0.15s;
+  }
+  .persp-drawer-item:last-child { border-bottom: none; }
+  .persp-drawer-item:hover { background: var(--teal-bg); }
+  .persp-drawer-item.current { background: rgba(0,137,123,0.08); border-left: 3px solid var(--teal); }
+  .persp-drawer-item.categorized { opacity: 0.6; }
+
+  .persp-drawer-num {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--border);
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+  .persp-drawer-item.current .persp-drawer-num { background: var(--teal); color: white; }
+  .persp-drawer-item.categorized .persp-drawer-num { background: var(--teal-light); color: white; }
+
+  .persp-drawer-text {
+    flex: 1;
+    cursor: text;
+    padding: 0.15rem 0.3rem;
+    border-radius: 4px;
+    transition: background 0.15s;
+    min-height: 1.2em;
+  }
+  .persp-drawer-text:hover { background: rgba(0,0,0,0.04); }
+  .persp-drawer-text:focus { outline: none; background: white; box-shadow: 0 0 0 2px var(--teal-pale); }
+
+  .persp-drawer-badge {
+    flex-shrink: 0;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    color: white;
+  }
+  .persp-drawer-badge.fact-signal { background: var(--fact-signal); }
+  .persp-drawer-badge.fact-noise { background: var(--fact-noise); }
+  .persp-drawer-badge.belief-signal { background: var(--belief-signal); }
+  .persp-drawer-badge.belief-noise { background: var(--belief-noise); }
+
+  .persp-drawer-actions {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+  .persp-drawer-btn {
+    background: none;
+    border: none;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 0.1rem 0.25rem;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    line-height: 1;
+  }
+  .persp-drawer-btn:hover { background: rgba(0,0,0,0.06); }
+  .persp-drawer-btn.delete:hover { color: var(--wont-do); background: rgba(239,83,80,0.1); }
+
   /* Collapsible panels */
   .collapsible-header {
     display: flex;
@@ -1007,6 +1141,16 @@
               <button class="btn btn-ghost" onclick="skipPerspective()">Skip</button>
               <button class="btn btn-primary confirm-btn" id="confirmBtn" disabled onclick="confirmPerspective()">Place in Matrix</button>
             </div>
+            <div class="persp-drawer-toggle" onclick="togglePerspDrawer()">
+              <span id="perspDrawerIcon">&#9660;</span> Manage Perspectives (<span id="perspDrawerCount">0</span>)
+            </div>
+            <div class="persp-drawer" id="perspDrawer">
+              <div class="persp-drawer-add">
+                <input type="text" id="drawerAddInput" placeholder="Add new perspective...">
+                <button onclick="drawerAddPerspective()">Add</button>
+              </div>
+              <div id="perspDrawerList"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1515,6 +1659,118 @@ function renderLiveMatrix() {
 function skipPerspective() {
   state.currentIndex++;
   showCurrentPerspective();
+}
+
+// ========== PERSPECTIVE MANAGEMENT DRAWER ==========
+function togglePerspDrawer() {
+  const drawer = document.getElementById('perspDrawer');
+  const icon = document.getElementById('perspDrawerIcon');
+  const isOpen = drawer.classList.toggle('open');
+  icon.innerHTML = isOpen ? '&#9650;' : '&#9660;';
+  if (isOpen) renderPerspDrawer();
+}
+
+function renderPerspDrawer() {
+  const list = document.getElementById('perspDrawerList');
+  const count = document.getElementById('perspDrawerCount');
+  count.textContent = state.perspectives.length;
+
+  list.innerHTML = state.perspectives.map((text, i) => {
+    const cat = state.categorized.find(c => c.text === text);
+    const isCurrent = i === state.currentIndex;
+    const isCategorized = !!cat;
+    let cls = 'persp-drawer-item';
+    if (isCurrent && !isCategorized) cls += ' current';
+    if (isCategorized) cls += ' categorized';
+
+    let badge = '';
+    if (cat) {
+      badge = `<span class="persp-drawer-badge ${cat.certainty}-${cat.importance}">${cat.certainty[0].toUpperCase()}+${cat.importance[0].toUpperCase()}</span>`;
+    }
+
+    return `<div class="${cls}">
+      <span class="persp-drawer-num">${i + 1}</span>
+      <span class="persp-drawer-text" contenteditable="true" data-persp-idx="${i}" onblur="drawerEditPerspective(${i}, this)">${escapeHtml(text)}</span>
+      ${badge}
+      <div class="persp-drawer-actions">
+        <button class="persp-drawer-btn delete" title="Delete" onclick="drawerDeletePerspective(${i})">&#215;</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function drawerAddPerspective() {
+  const input = document.getElementById('drawerAddInput');
+  const text = input.value.trim();
+  if (!text) return;
+  state.perspectives.push(text);
+  input.value = '';
+  renderPerspDrawer();
+  renderPerspectiveList();
+  showCurrentPerspective();
+  autoSave();
+}
+
+// Enter key for drawer add
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    var input = document.getElementById('drawerAddInput');
+    if (input) input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); drawerAddPerspective(); }
+    });
+  }, 100);
+});
+
+function drawerEditPerspective(idx, el) {
+  const newText = el.textContent.trim();
+  if (!newText) {
+    el.textContent = state.perspectives[idx]; // revert if empty
+    return;
+  }
+  if (newText === state.perspectives[idx]) return;
+
+  // Also update in categorized if it was already categorized
+  const oldText = state.perspectives[idx];
+  const catItem = state.categorized.find(c => c.text === oldText);
+  if (catItem) catItem.text = newText;
+
+  state.perspectives[idx] = newText;
+
+  // Update current perspective display if editing the active one
+  if (idx === state.currentIndex) {
+    document.getElementById('currentPerspective').textContent = newText;
+  }
+
+  renderLiveMatrix();
+  renderMatrix();
+  autoSave();
+}
+
+function drawerDeletePerspective(idx) {
+  const text = state.perspectives[idx];
+
+  // Remove from categorized if it was categorized
+  state.categorized = state.categorized.filter(c => c.text !== text);
+
+  // Remove from perspectives
+  state.perspectives.splice(idx, 1);
+
+  // Adjust currentIndex if needed
+  if (idx < state.currentIndex) {
+    state.currentIndex--;
+  } else if (idx === state.currentIndex) {
+    // Stay at same index (which now points to the next perspective)
+    // but don't go past the end
+    if (state.currentIndex >= state.perspectives.length) {
+      state.currentIndex = Math.max(0, state.perspectives.length - 1);
+    }
+  }
+
+  renderPerspDrawer();
+  renderPerspectiveList();
+  renderLiveMatrix();
+  showCurrentPerspective();
+  autoSave();
 }
 
 // ========== MATRIX ==========
