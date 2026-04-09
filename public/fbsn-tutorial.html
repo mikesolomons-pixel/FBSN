@@ -221,13 +221,217 @@
   .cell-bn { background: rgba(128,203,196,0.08); }
   .cell-bn h4 { color: var(--belief-noise); }
 
-  /* Netflix perspectives */
-  .perspective-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.6rem;
-    margin: 1rem 0;
+  /* Interactive categorization exercise */
+  .exercise-intro {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1rem;
   }
+
+  .perspectives-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    margin-bottom: 1.25rem;
+    min-height: 60px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .perspectives-pool.drag-over {
+    border-color: var(--teal);
+    background: rgba(0,137,123,0.04);
+  }
+  .pool-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    display: block;
+    width: 100%;
+  }
+  .pool-empty {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    font-style: italic;
+    padding: 0.5rem;
+    display: none;
+  }
+  .perspectives-pool:empty .pool-empty,
+  .perspectives-pool .pool-empty:only-child { display: block; }
+
+  .draggable-persp {
+    padding: 0.55rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--navy);
+    font-weight: 500;
+    background: white;
+    border: 1.5px solid var(--border);
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    touch-action: none;
+  }
+  .draggable-persp:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(27,42,74,0.12);
+  }
+  .draggable-persp:active { cursor: grabbing; }
+  .draggable-persp.dragging { opacity: 0.4; }
+
+  .draggable-persp.correct {
+    background: rgba(0,137,123,0.12);
+    border-color: var(--teal);
+    color: var(--teal-dark);
+  }
+  .draggable-persp.incorrect {
+    background: rgba(239,83,80,0.1);
+    border-color: #EF5350;
+    color: #C62828;
+  }
+  .draggable-persp .result-icon {
+    display: none;
+    margin-left: 0.3rem;
+    font-size: 0.75rem;
+  }
+  .draggable-persp.correct .result-icon,
+  .draggable-persp.incorrect .result-icon { display: inline; }
+
+  .drop-matrix {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+    grid-template-rows: auto 1fr 1fr;
+    gap: 0;
+    margin: 0 0 1.25rem;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+  }
+  .drop-matrix .matrix-corner,
+  .drop-matrix .matrix-col-header,
+  .drop-matrix .matrix-row-header {
+    padding: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    background: var(--bg);
+  }
+  .drop-matrix .matrix-col-header {
+    text-align: center;
+    border-bottom: 1.5px solid var(--border);
+  }
+  .drop-matrix .matrix-row-header {
+    border-right: 1.5px solid var(--border);
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    text-align: center;
+  }
+
+  .drop-zone {
+    padding: 0.75rem;
+    min-height: 120px;
+    border: 0.5px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-content: flex-start;
+    transition: background 0.2s;
+  }
+  .drop-zone.drag-over { outline: 2px dashed var(--teal); outline-offset: -2px; }
+  .drop-zone.zone-fs { background: rgba(0,137,123,0.06); }
+  .drop-zone.zone-fn { background: rgba(77,182,172,0.06); }
+  .drop-zone.zone-bs { background: rgba(0,107,94,0.06); }
+  .drop-zone.zone-bn { background: rgba(128,203,196,0.06); }
+
+  .drop-zone .zone-label {
+    width: 100%;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.5;
+    margin-bottom: 0.25rem;
+  }
+  .zone-fs .zone-label { color: var(--fact-signal); }
+  .zone-fn .zone-label { color: var(--fact-noise); }
+  .zone-bs .zone-label { color: var(--belief-signal); }
+  .zone-bn .zone-label { color: var(--belief-noise); }
+
+  .exercise-controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  .exercise-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .exercise-btn.check {
+    background: var(--teal);
+    color: white;
+  }
+  .exercise-btn.check:hover {
+    background: var(--teal-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,137,123,0.3);
+  }
+  .exercise-btn.check:disabled {
+    opacity: 0.5;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+  }
+  .exercise-btn.reset {
+    background: var(--bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .exercise-btn.reset:hover {
+    background: var(--border);
+  }
+  .exercise-btn.reveal {
+    background: var(--navy);
+    color: white;
+  }
+  .exercise-btn.reveal:hover {
+    background: var(--navy-light);
+  }
+
+  .score-display {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-top: 0.75rem;
+  }
+  .score-display.visible { display: flex; }
+  .score-display.great { background: rgba(0,137,123,0.1); color: var(--teal-dark); }
+  .score-display.good { background: rgba(212,168,67,0.1); color: #9A7B2D; }
+  .score-display.try-again { background: rgba(239,83,80,0.1); color: #C62828; }
+
+  /* Legacy static perspectives (kept for reveal) */
   .persp {
     padding: 0.65rem 0.85rem;
     border-radius: 8px;
@@ -445,58 +649,44 @@
     <p data-editable="step4-p3">Imagine you're on the Netflix executive committee in 2008. You're hearing a range of perspectives in a strategy meeting. Some are data-driven, some are speculative. Which deserve attention &mdash; and which don't?</p>
   </div>
 
-  <!-- Step 5: Netflix Categorized -->
-  <div class="step netflix">
+  <!-- Step 5: Interactive Categorization -->
+  <div class="step netflix" id="step5">
     <div class="step-num">5</div>
-    <h2 data-editable="step5-title">Categorizing Netflix's Perspectives</h2>
-    <p data-editable="step5-p1">Here's how those perspectives might land in the FBSN matrix:</p>
+    <h2 data-editable="step5-title">Categorize Netflix's Perspectives</h2>
+    <p class="exercise-intro" data-editable="step5-p1">Now it's your turn. Drag each perspective from the pool below into the quadrant where you think it belongs. Is it a Fact or a Belief? A Signal or Noise?</p>
 
-    <div class="perspective-grid">
-      <div class="persp fs">
-        <span class="persp-label">Fact + Signal</span>
-        Broadband adoption is accelerating
+    <div class="perspectives-pool" id="persp-pool">
+      <span class="pool-label">Unsorted Perspectives — drag these into the matrix</span>
+    </div>
+
+    <div class="drop-matrix">
+      <div class="matrix-corner"></div>
+      <div class="matrix-col-header">Signal (Important)</div>
+      <div class="matrix-col-header">Noise (Unimportant)</div>
+
+      <div class="matrix-row-header">Fact (Certain)</div>
+      <div class="drop-zone zone-fs" id="zone-fs" data-zone="fs">
+        <span class="zone-label">Fact + Signal</span>
       </div>
-      <div class="persp fs">
-        <span class="persp-label">Fact + Signal</span>
-        Customers want on-demand access
+      <div class="drop-zone zone-fn" id="zone-fn" data-zone="fn">
+        <span class="zone-label">Fact + Noise</span>
       </div>
-      <div class="persp fs">
-        <span class="persp-label">Fact + Signal</span>
-        Streaming is scalable and reduces delivery cost
+
+      <div class="matrix-row-header">Belief (Uncertain)</div>
+      <div class="drop-zone zone-bs" id="zone-bs" data-zone="bs">
+        <span class="zone-label">Belief + Signal</span>
       </div>
-      <div class="persp bs">
-        <span class="persp-label">Belief + Signal</span>
-        We can secure long-term studio deals
-      </div>
-      <div class="persp bs">
-        <span class="persp-label">Belief + Signal</span>
-        Users will accept streaming over DVDs
-      </div>
-      <div class="persp bs">
-        <span class="persp-label">Belief + Signal</span>
-        Subscription-based models will be sustainable
-      </div>
-      <div class="persp fn">
-        <span class="persp-label">Fact + Noise</span>
-        The DVD business is currently profitable
-      </div>
-      <div class="persp fn">
-        <span class="persp-label">Fact + Noise</span>
-        Most current customers use mail rentals
-      </div>
-      <div class="persp bn">
-        <span class="persp-label">Belief + Noise</span>
-        Streaming is a temporary fad
-      </div>
-      <div class="persp bn">
-        <span class="persp-label">Belief + Noise</span>
-        Older customers will reject digital
-      </div>
-      <div class="persp bn">
-        <span class="persp-label">Belief + Noise</span>
-        Competitors won't adapt fast enough
+      <div class="drop-zone zone-bn" id="zone-bn" data-zone="bn">
+        <span class="zone-label">Belief + Noise</span>
       </div>
     </div>
+
+    <div class="exercise-controls">
+      <button class="exercise-btn check" id="btn-check" disabled>✓ Check My Answers</button>
+      <button class="exercise-btn reset" id="btn-reset">↺ Reset</button>
+      <button class="exercise-btn reveal" id="btn-reveal">Show Answers</button>
+    </div>
+    <div class="score-display" id="score-display"></div>
   </div>
 
   <!-- Step 6: From Matrix to Action -->
@@ -587,6 +777,271 @@
 <div class="footer">
   Value Creating Teams &bull; FBSN Tutorial
 </div>
+
+<script>
+(function() {
+  // Perspective data: text + correct quadrant
+  var perspectives = [
+    { id: 'p1',  text: 'Broadband adoption is accelerating',            answer: 'fs' },
+    { id: 'p2',  text: 'Customers want on-demand access',               answer: 'fs' },
+    { id: 'p3',  text: 'Streaming is scalable and reduces delivery cost',answer: 'fs' },
+    { id: 'p4',  text: 'We can secure long-term studio deals',          answer: 'bs' },
+    { id: 'p5',  text: 'Users will accept streaming over DVDs',         answer: 'bs' },
+    { id: 'p6',  text: 'Subscription-based models will be sustainable', answer: 'bs' },
+    { id: 'p7',  text: 'The DVD business is currently profitable',      answer: 'fn' },
+    { id: 'p8',  text: 'Most current customers use mail rentals',       answer: 'fn' },
+    { id: 'p9',  text: 'Streaming is a temporary fad',                  answer: 'bn' },
+    { id: 'p10', text: 'Older customers will reject digital',           answer: 'bn' },
+    { id: 'p11', text: 'Competitors won\'t adapt fast enough',          answer: 'bn' }
+  ];
+
+  var pool = document.getElementById('persp-pool');
+  var zones = {
+    fs: document.getElementById('zone-fs'),
+    fn: document.getElementById('zone-fn'),
+    bs: document.getElementById('zone-bs'),
+    bn: document.getElementById('zone-bn')
+  };
+  var btnCheck = document.getElementById('btn-check');
+  var btnReset = document.getElementById('btn-reset');
+  var btnReveal = document.getElementById('btn-reveal');
+  var scoreEl = document.getElementById('score-display');
+  var checked = false;
+
+  // Shuffle array
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  // Create a draggable perspective chip
+  function createChip(p) {
+    var el = document.createElement('div');
+    el.className = 'draggable-persp';
+    el.setAttribute('draggable', 'true');
+    el.setAttribute('data-id', p.id);
+    el.setAttribute('data-answer', p.answer);
+    el.innerHTML = p.text + '<span class="result-icon"></span>';
+
+    // Desktop drag events
+    el.addEventListener('dragstart', function(e) {
+      el.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', p.id);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', function() {
+      el.classList.remove('dragging');
+    });
+
+    // Touch support
+    var touchData = null;
+    el.addEventListener('touchstart', function(e) {
+      if (checked) return;
+      var touch = e.touches[0];
+      touchData = {
+        el: el,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        clone: null,
+        moved: false
+      };
+    }, { passive: true });
+
+    el.addEventListener('touchmove', function(e) {
+      if (!touchData) return;
+      e.preventDefault();
+      var touch = e.touches[0];
+      var dx = touch.clientX - touchData.startX;
+      var dy = touch.clientY - touchData.startY;
+
+      if (!touchData.moved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+        touchData.moved = true;
+        var clone = el.cloneNode(true);
+        clone.style.position = 'fixed';
+        clone.style.zIndex = '9999';
+        clone.style.pointerEvents = 'none';
+        clone.style.width = el.offsetWidth + 'px';
+        clone.style.opacity = '0.85';
+        clone.style.transform = 'scale(1.05)';
+        clone.style.boxShadow = '0 8px 24px rgba(0,0,0,0.2)';
+        document.body.appendChild(clone);
+        touchData.clone = clone;
+        el.style.opacity = '0.3';
+      }
+
+      if (touchData.clone) {
+        touchData.clone.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
+        touchData.clone.style.top = (touch.clientY - 20) + 'px';
+      }
+
+      // Highlight drop zones
+      clearHighlights();
+      var target = getDropTarget(touch.clientX, touch.clientY);
+      if (target) target.classList.add('drag-over');
+    }, { passive: false });
+
+    el.addEventListener('touchend', function(e) {
+      if (!touchData) return;
+      if (touchData.clone) {
+        document.body.removeChild(touchData.clone);
+        el.style.opacity = '';
+      }
+      clearHighlights();
+      if (touchData.moved) {
+        var touch = e.changedTouches[0];
+        var target = getDropTarget(touch.clientX, touch.clientY);
+        if (target) {
+          target.appendChild(el);
+        } else if (pool) {
+          pool.appendChild(el);
+        }
+        updateCheckButton();
+      }
+      touchData = null;
+    });
+
+    return el;
+  }
+
+  function getDropTarget(x, y) {
+    var allTargets = [pool, zones.fs, zones.fn, zones.bs, zones.bn];
+    for (var i = 0; i < allTargets.length; i++) {
+      var rect = allTargets[i].getBoundingClientRect();
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        return allTargets[i];
+      }
+    }
+    return null;
+  }
+
+  function clearHighlights() {
+    pool.classList.remove('drag-over');
+    for (var k in zones) zones[k].classList.remove('drag-over');
+  }
+
+  // Drop zone handlers
+  function setupDropZone(el) {
+    el.addEventListener('dragover', function(e) {
+      if (checked) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', function() {
+      el.classList.remove('drag-over');
+    });
+    el.addEventListener('drop', function(e) {
+      if (checked) return;
+      e.preventDefault();
+      el.classList.remove('drag-over');
+      var id = e.dataTransfer.getData('text/plain');
+      var chip = document.querySelector('[data-id="' + id + '"]');
+      if (chip) el.appendChild(chip);
+      updateCheckButton();
+    });
+  }
+
+  setupDropZone(pool);
+  for (var k in zones) setupDropZone(zones[k]);
+
+  function updateCheckButton() {
+    if (checked) return;
+    // Enable check if all perspectives are placed in zones (not in pool)
+    var inPool = pool.querySelectorAll('.draggable-persp').length;
+    btnCheck.disabled = inPool > 0;
+  }
+
+  // Build the pool with shuffled perspectives
+  function buildPool() {
+    checked = false;
+    scoreEl.className = 'score-display';
+    scoreEl.textContent = '';
+    btnCheck.disabled = true;
+    btnReveal.textContent = 'Show Answers';
+
+    // Remove any existing chips
+    document.querySelectorAll('.draggable-persp').forEach(function(c) { c.remove(); });
+
+    var shuffled = shuffle(perspectives.slice());
+    shuffled.forEach(function(p) {
+      pool.appendChild(createChip(p));
+    });
+  }
+
+  // Check answers
+  btnCheck.addEventListener('click', function() {
+    if (checked) return;
+    checked = true;
+    var correct = 0;
+    var total = perspectives.length;
+
+    document.querySelectorAll('.draggable-persp').forEach(function(chip) {
+      var answer = chip.getAttribute('data-answer');
+      var parent = chip.parentElement;
+      var zone = parent ? parent.getAttribute('data-zone') : null;
+      var icon = chip.querySelector('.result-icon');
+
+      if (zone === answer) {
+        chip.classList.add('correct');
+        icon.textContent = ' ✓';
+        correct++;
+      } else {
+        chip.classList.add('incorrect');
+        var labels = { fs: 'Fact+Signal', fn: 'Fact+Noise', bs: 'Belief+Signal', bn: 'Belief+Noise' };
+        icon.textContent = ' ✗ → ' + labels[answer];
+      }
+    });
+
+    var pct = Math.round((correct / total) * 100);
+    scoreEl.textContent = correct + ' of ' + total + ' correct (' + pct + '%)';
+    if (pct >= 80) {
+      scoreEl.className = 'score-display visible great';
+      scoreEl.textContent += ' — Excellent strategic instincts!';
+    } else if (pct >= 50) {
+      scoreEl.className = 'score-display visible good';
+      scoreEl.textContent += ' — Good start. Review the ones you missed.';
+    } else {
+      scoreEl.className = 'score-display visible try-again';
+      scoreEl.textContent += ' — Keep practicing! Re-read Steps 1–3 and try again.';
+    }
+
+    btnCheck.disabled = true;
+  });
+
+  // Reset
+  btnReset.addEventListener('click', function() {
+    buildPool();
+  });
+
+  // Reveal answers
+  btnReveal.addEventListener('click', function() {
+    checked = true;
+    btnCheck.disabled = true;
+
+    // Remove all chips, then place them correctly
+    document.querySelectorAll('.draggable-persp').forEach(function(c) { c.remove(); });
+
+    perspectives.forEach(function(p) {
+      var chip = createChip(p);
+      chip.classList.add('correct');
+      chip.querySelector('.result-icon').textContent = ' ✓';
+      chip.setAttribute('draggable', 'false');
+      chip.style.cursor = 'default';
+      zones[p.answer].appendChild(chip);
+    });
+
+    scoreEl.className = 'score-display visible great';
+    scoreEl.textContent = 'Answers revealed — study the placements, then reset to try again.';
+    btnReveal.textContent = 'Answers Shown';
+  });
+
+  // Initialize
+  buildPool();
+})();
+</script>
 
 </body>
 </html>
