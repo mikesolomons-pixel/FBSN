@@ -20,6 +20,7 @@
     .resource-title{font-weight:600;font-size:.82rem;color:var(--navy,#1B2A4A)}
     a.resource-title:hover{color:var(--teal,#00897B)}
     .resource-author{font-size:.75rem;color:var(--text-secondary,#5A6B8A)}
+    .resource-note{font-size:.72rem;color:var(--text-secondary,#5A6B8A);line-height:1.4;margin-top:.3rem;font-style:italic;opacity:.85}
     .resource-type-badge{display:inline-block;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:.1rem .4rem;border-radius:4px;color:#fff;margin-left:.4rem;vertical-align:middle}
     .resource-play-tag{display:inline-block;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:.12rem .45rem;border-radius:4px;margin-right:.5rem;color:#fff}
     .add-resource-form{background:var(--card,#fff);border-radius:12px;padding:1.25rem;box-shadow:0 2px 8px rgba(27,42,74,.08);border:1px solid var(--border,#E2E8F0)}
@@ -98,6 +99,7 @@
         ${playTag}${titleHtml}
         <span class="resource-type-badge" style="background:${typeBg}">${r.resource_type}</span>
         ${r.author ? `<br><span class="resource-author">${esc(r.author)}</span>` : ''}
+        ${r.description ? `<div class="resource-note">${esc(r.description)}</div>` : ''}
       </div>
       ${deleteBtn}
     </div>`;
@@ -157,6 +159,9 @@
           <input type="url" placeholder="URL — Amazon link, article URL, etc. (optional)" class="res-url" style="flex:1;">
         </div>
         <div class="form-row">
+          <input type="text" placeholder="What makes this interesting? (optional)" class="res-desc" style="flex:1;">
+        </div>
+        <div class="form-row">
           <select class="res-type">
             <option value="book">Book</option>
             <option value="article">Article</option>
@@ -181,7 +186,8 @@
         title: title,
         author: container.querySelector('.res-author').value.trim() || null,
         resource_type: container.querySelector('.res-type').value,
-        url: container.querySelector('.res-url').value.trim() || null
+        url: container.querySelector('.res-url').value.trim() || null,
+        description: container.querySelector('.res-desc').value.trim() || null
       });
       btn.disabled = false;
       btn.textContent = 'Add';
@@ -189,6 +195,7 @@
         container.querySelector('.res-title').value = '';
         container.querySelector('.res-author').value = '';
         container.querySelector('.res-url').value = '';
+        container.querySelector('.res-desc').value = '';
         if (container._refreshFn) container._refreshFn();
       }
     };

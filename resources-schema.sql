@@ -9,6 +9,7 @@ create table resources (
   author text,
   resource_type text not null default 'book' check (resource_type in ('book','article','reference','video','podcast','tool')),
   url text,
+  description text,
   created_at timestamptz default now()
 );
 
