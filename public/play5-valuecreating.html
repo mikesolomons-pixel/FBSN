@@ -190,14 +190,38 @@
     background: linear-gradient(90deg, var(--border), transparent);
   }
 
+  /* Key Points */
+  .key-points {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .key-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .key-point .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--navy);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
   /* Practice Card */
   .practice-card {
     background: var(--card);
     border-radius: 16px;
     box-shadow: var(--shadow);
     margin-bottom: 1.5rem;
-    border-left: 4px solid var(--navy);
     overflow: hidden;
+    border: 1px solid var(--border);
     transition: box-shadow 0.2s;
   }
   .practice-card:hover {
@@ -205,32 +229,27 @@
   }
   .practice-header {
     padding: 1.5rem 1.75rem;
+    border-bottom: 1px solid var(--border);
   }
   .practice-header-top {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
   }
   .practice-header h3 {
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--navy);
   }
-  .coming-soon-badge {
-    display: inline-block;
-    padding: 0.25rem 0.65rem;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 20px;
+  .practice-number {
     font-size: 0.65rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    letter-spacing: 0.5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
-    white-space: nowrap;
-    flex-shrink: 0;
+    color: var(--navy);
+    margin-bottom: 0.25rem;
   }
   .practice-header p {
     font-size: 0.85rem;
@@ -238,117 +257,84 @@
     line-height: 1.55;
   }
 
-  /* Collapsible Sections */
-  .practice-section {
-    border-top: 1px solid var(--border);
-  }
-  .section-toggle {
-    display: flex;
+  .status-badge {
+    display: inline-flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0.85rem 1.75rem;
-    cursor: pointer;
-    transition: background 0.15s;
-    user-select: none;
-  }
-  .section-toggle:hover {
-    background: var(--bg);
-  }
-  .section-toggle h4 {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--navy);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .section-toggle .toggle-icon {
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
     font-size: 0.7rem;
-    color: var(--text-secondary);
-    transition: transform 0.2s;
-  }
-  .section-toggle.expanded .toggle-icon {
-    transform: rotate(180deg);
-  }
-  .section-content {
-    display: none;
-    padding: 0 1.75rem 1.25rem;
-  }
-  .section-content.expanded {
-    display: block;
-  }
-  .section-content p {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    line-height: 1.65;
-    margin-bottom: 0.75rem;
-  }
-  .section-content p:last-child { margin-bottom: 0; }
-
-  /* Book List */
-  .book-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  .book-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    font-size: 0.85rem;
-    color: var(--text);
-    line-height: 1.5;
-    margin-bottom: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background: var(--bg);
-    border-radius: 8px;
-  }
-  .book-list li:last-child { margin-bottom: 0; }
-  .book-icon {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
     flex-shrink: 0;
-    margin-top: 1px;
-    font-size: 0.85rem;
   }
-  .book-title {
-    font-weight: 600;
-    color: var(--navy);
+  .status-badge.available {
+    background: var(--navy);
+    color: white;
   }
-  .book-author {
+  .status-badge.coming-soon {
+    background: var(--bg);
     color: var(--text-secondary);
-    font-weight: 400;
+    border: 1px solid var(--border);
   }
 
-  /* Action Button */
-  .practice-action {
-    padding: 1rem 1.75rem;
+  /* Practice Sections */
+  .practice-body {
+    padding: 0 1.75rem 1.5rem;
+  }
+  .practice-section {
+    padding-top: 1.25rem;
+  }
+  .practice-section + .practice-section {
     border-top: 1px solid var(--border);
-    background: var(--bg);
+    margin-top: 1.25rem;
+  }
+
+  /* Action Buttons */
+  .practice-actions {
+    padding: 1rem 1.75rem 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
   }
   .action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     padding: 0.6rem 1.25rem;
-    border-radius: 8px;
-    font-size: 0.8rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.15s;
+    cursor: pointer;
     border: none;
-    cursor: default;
   }
-  .action-btn.coming-soon {
-    background: var(--border);
-    color: var(--text-secondary);
-  }
-  .action-btn.available {
+  .action-btn.primary {
     background: var(--navy);
     color: white;
-    cursor: pointer;
   }
-  .action-btn.available:hover {
+  .action-btn.primary:hover {
     opacity: 0.9;
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(27,42,74,0.3);
+  }
+  .action-btn.secondary {
+    background: var(--bg);
+    color: var(--navy);
+    border: 1px solid var(--navy);
+  }
+  .action-btn.secondary:hover {
+    background: var(--navy);
+    color: white;
+  }
+  .action-btn.disabled {
+    background: var(--bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    cursor: default;
+    opacity: 0.7;
   }
 
   /* Footer */
@@ -365,9 +351,10 @@
     .header h1 { font-size: 1.5rem; }
     .main { padding: 1rem; }
     .practice-header { padding: 1.25rem; }
-    .section-toggle { padding: 0.85rem 1.25rem; }
-    .section-content { padding: 0 1.25rem 1.25rem; }
-    .practice-action { padding: 1rem 1.25rem; }
+    .practice-body { padding: 0 1.25rem 1.25rem; }
+    .practice-actions { padding: 1rem 1.25rem 1.25rem; }
+    .key-points { grid-template-columns: 1fr; }
+    .practice-header-top { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
     .cycle-steps { gap: 0.35rem; }
     .cycle-step { font-size: 0.7rem; padding: 0.4rem 0.65rem; }
   }
