@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future Backwards - Value Creating Teams</title>
+<script src="auth.js"></script>
+<script type="module" src="supabase-config.js"></script>
+<script src="admin.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --teal: #00897B;
+    --teal-dark: #006B5E;
+    --teal-light: #4DB6AC;
+    --gold: #D4A843;
+    --coral: #E07A5F;
+    --purple: #7C5CBF;
+    --purple-light: #9B7FD4;
+    --purple-bg: #F3EEFB;
+    --blue: #4A90D9;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1B2A4A;
+    --text-secondary: #5A6B8A;
+    --border: #E2E8F0;
+    --shadow: 0 2px 8px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.12);
+    --utopia: #43A047;
+    --utopia-light: #66BB6A;
+    --utopia-bg: #E8F5E9;
+    --dystopia: #EF5350;
+    --dystopia-light: #EF9A9A;
+    --dystopia-bg: #FFEBEE;
+    --accident: #D4A843;
+    --accident-bg: #FFF8E1;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--purple) 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    position: relative;
+  }
+  .header-inner { max-width: 1200px; margin: 0 auto; }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.8rem;
+    margin-bottom: 0.75rem; transition: color 0.15s;
+  }
+  .back-link:hover { color: white; }
+  .header h1 { font-size: 1.6rem; font-weight: 800; }
+  .header .subtitle { font-size: 0.85rem; opacity: 0.85; margin-top: 0.2rem; }
+
+  /* Progress */
+  .progress-bar {
+    display: flex; align-items: center; gap: 0; padding: 0.75rem 2rem;
+    background: white; border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .progress-step {
+    display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem;
+    color: var(--text-secondary); white-space: nowrap;
+  }
+  .progress-step .step-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--border); color: var(--text-secondary);
+    font-weight: 600; font-size: 0.7rem; flex-shrink: 0;
+  }
+  .progress-step.active .step-num { background: var(--purple); color: white; }
+  .progress-step.done .step-num { background: var(--purple-light); color: white; }
+  .progress-step.active { color: var(--navy); font-weight: 600; }
+  .progress-connector {
+    flex: 1; height: 2px; background: var(--border);
+    margin: 0 0.6rem; min-width: 16px;
+  }
+  .progress-connector.done { background: var(--purple-light); }
+
+  /* Main */
+  .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .phase { display: none; animation: fadeIn 0.3s ease; }
+  .phase.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Cards */
+  .card {
+    background: var(--card); border-radius: 14px; padding: 1.75rem;
+    box-shadow: var(--shadow); margin-bottom: 1.25rem;
+  }
+  .card h2 { font-size: 1.2rem; font-weight: 700; color: var(--navy); margin-bottom: 0.4rem; }
+  .card p.desc { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.55; margin-bottom: 1.25rem; }
+
+  /* Form */
+  textarea, input[type="text"] {
+    width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: 0.9rem; font-family: inherit;
+    transition: border-color 0.2s; background: white;
+  }
+  textarea:focus, input[type="text"]:focus { outline: none; border-color: var(--purple); }
+  textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+  label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.85rem; }
+  .form-group { margin-bottom: 1rem; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.7rem 1.4rem; border-radius: 8px; font-size: 0.85rem;
+    font-weight: 600; cursor: pointer; border: none; font-family: inherit;
+    transition: transform 0.1s, box-shadow 0.15s;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--purple); color: white; }
+  .btn-primary:hover { background: #6B4DAE; }
+  .btn-secondary { background: var(--border); color: var(--text); }
+  .btn-ghost { background: transparent; color: var(--text-secondary); }
+  .btn-ghost:hover { background: #F0F0F0; }
+  .btn-sm { padding: 0.45rem 0.85rem; font-size: 0.78rem; }
+  .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+
+  /* Example card */
+  .example-card {
+    background: linear-gradient(135deg, #1B2A4A 0%, #7C5CBF 100%);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.25rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .example-card-info h3 { font-size: 1.1rem; margin-bottom: 0.2rem; }
+  .example-card-info p { font-size: 0.82rem; opacity: 0.8; }
+  .example-card .btn-example {
+    padding: 0.6rem 1.25rem;
+    background: white;
+    color: #1B2A4A;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .example-card .btn-example:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+  /* Sessions */
+  .sessions-card {
+    background: var(--card); border-radius: 12px; padding: 1.5rem 2rem;
+    box-shadow: var(--shadow); margin-bottom: 1.25rem;
+  }
+  .sessions-card h2 { font-size: 1.2rem; color: var(--navy); margin-bottom: 0.25rem; }
+  .sessions-card p.desc { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem; }
+  .session-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .session-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 1rem; background: var(--purple-bg); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+  }
+  .session-item:hover { border-color: var(--purple); }
+  .session-item-info { flex: 1; min-width: 0; }
+  .session-item-title { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .session-item-meta { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.15rem; }
+  .session-item-badge {
+    font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.5rem;
+    border-radius: 4px; white-space: nowrap;
+  }
+  .session-item-badge.in-progress { background: #FFF8E1; color: #F57F17; }
+  .session-item-badge.complete { background: var(--utopia-bg); color: var(--utopia); }
+  .session-item .remove-btn {
+    background: none; border: none; color: var(--text-secondary);
+    cursor: pointer; font-size: 1.1rem; padding: 0.25rem; line-height: 1;
+  }
+  .session-item .remove-btn:hover { color: var(--dystopia); }
+
+  /* Hexagon chips */
+  .hex-list { list-style: none; display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.75rem; }
+  .hex-chip {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1rem; border-radius: 8px;
+    font-size: 0.82rem; font-weight: 500; color: white;
+    position: relative; transition: transform 0.15s, box-shadow 0.15s;
+    line-height: 1.4; max-width: 100%;
+  }
+  .hex-chip:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .hex-chip .hex-text { flex: 1; word-break: break-word; }
+  .hex-chip .remove-hex {
+    background: none; border: none; color: rgba(255,255,255,0.7);
+    cursor: pointer; font-size: 1rem; padding: 0 0.15rem; line-height: 1;
+    flex-shrink: 0;
+  }
+  .hex-chip .remove-hex:hover { color: white; }
+  .hex-chip.current-state { background: var(--navy); }
+  .hex-chip.historical { background: var(--teal); }
+  .hex-chip.utopia { background: var(--utopia); }
+  .hex-chip.dystopia { background: var(--dystopia); }
+  .hex-chip.utopia-path { background: var(--utopia-light); color: #1B5E20; }
+  .hex-chip.dystopia-path { background: var(--dystopia-light); color: #B71C1C; }
+  .hex-chip.accident { background: var(--accident); color: #4E342E; }
+
+  /* Add row */
+  .add-row { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+  .add-row input { flex: 1; padding: 0.6rem 0.85rem; font-size: 0.85rem; }
+  .add-row .date-input { max-width: 180px; }
+  .add-row button {
+    padding: 0.55rem 1rem; border: none; border-radius: 8px;
+    font-size: 0.82rem; font-weight: 600; color: white; cursor: pointer;
+    flex-shrink: 0; transition: all 0.15s;
+  }
+  .add-row button:hover { transform: translateY(-1px); }
+
+  /* Historical event item */
+  .history-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+  .history-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.6rem 0.85rem; border-radius: 8px; font-size: 0.85rem;
+    background: rgba(0,137,123,0.08); border: 1.5px solid rgba(0,137,123,0.2);
+  }
+  .history-item .history-date {
+    font-weight: 700; color: var(--teal); white-space: nowrap; min-width: 50px;
+  }
+  .history-item .history-text { flex: 1; line-height: 1.4; }
+  .history-item .remove-btn {
+    background: none; border: none; color: var(--text-secondary);
+    cursor: pointer; font-size: 1rem; padding: 0 0.2rem; line-height: 1;
+  }
+  .history-item .remove-btn:hover { color: var(--dystopia); }
+
+  /* Two-column layout for futures */
+  .futures-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+  }
+  .future-column {
+    background: var(--card); border-radius: 12px; padding: 1.25rem;
+    box-shadow: var(--shadow); border-top: 4px solid;
+  }
+  .future-column.utopia-col { border-top-color: var(--utopia); }
+  .future-column.dystopia-col { border-top-color: var(--dystopia); }
+  .future-column h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.15rem; }
+  .future-column.utopia-col h3 { color: var(--utopia); }
+  .future-column.dystopia-col h3 { color: var(--dystopia); }
+  .future-column .future-subtitle {
+    font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.75rem;
+  }
+  .future-column .add-row button.utopia-btn { background: var(--utopia); }
+  .future-column .add-row button.utopia-btn:hover { background: #388E3C; }
+  .future-column .add-row button.dystopia-btn { background: var(--dystopia); }
+  .future-column .add-row button.dystopia-btn:hover { background: #E53935; }
+
+  /* Pathway section */
+  .pathway-section {
+    background: var(--card); border-radius: 12px; padding: 1.25rem;
+    box-shadow: var(--shadow); margin-bottom: 1rem; border-left: 4px solid;
+  }
+  .pathway-section.utopia-pathway { border-left-color: var(--utopia-light); }
+  .pathway-section.dystopia-pathway { border-left-color: var(--dystopia-light); }
+  .pathway-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.15rem; }
+  .pathway-section.utopia-pathway h3 { color: var(--utopia); }
+  .pathway-section.dystopia-pathway h3 { color: var(--dystopia); }
+  .pathway-section .pathway-subtitle {
+    font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.75rem;
+  }
+  .pathway-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+  .pathway-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 0.75rem; border-radius: 8px; font-size: 0.82rem;
+    line-height: 1.4;
+  }
+  .pathway-item.utopia-path-item { background: rgba(102,187,106,0.12); border: 1.5px solid rgba(102,187,106,0.3); }
+  .pathway-item.dystopia-path-item { background: rgba(239,154,154,0.2); border: 1.5px solid rgba(239,154,154,0.4); }
+  .pathway-item.accident-item { background: var(--accident-bg); border: 1.5px solid rgba(212,168,67,0.3); }
+  .pathway-item .path-label {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 0.12rem 0.4rem; border-radius: 4px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .pathway-item .path-label.turning { background: rgba(102,187,106,0.2); color: #2E7D32; }
+  .pathway-item .path-label.turning-d { background: rgba(239,154,154,0.3); color: #C62828; }
+  .pathway-item .path-label.accident-label { background: rgba(212,168,67,0.25); color: #795548; }
+  .pathway-item .path-text { flex: 1; }
+  .pathway-item .path-connect {
+    font-size: 0.72rem; color: var(--text-secondary); font-style: italic;
+  }
+  .pathway-item .remove-btn {
+    background: none; border: none; color: var(--text-secondary);
+    cursor: pointer; font-size: 1rem; padding: 0 0.2rem; line-height: 1;
+  }
+  .pathway-item .remove-btn:hover { color: var(--dystopia); }
+
+  .connect-select {
+    padding: 0.4rem 0.6rem; border: 1.5px solid var(--border); border-radius: 6px;
+    font-size: 0.78rem; font-family: inherit; background: white;
+    max-width: 250px;
+  }
+  .connect-select:focus { outline: none; border-color: var(--purple); }
+
+  .accident-toggle {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-top: 0.5rem; font-size: 0.82rem; color: var(--text-secondary);
+  }
+  .accident-toggle input[type="checkbox"] { accent-color: var(--gold); }
+
+  /* Visual Map */
+  .map-container {
+    position: relative; width: 100%; min-height: 600px;
+    background: white; border-radius: 16px; box-shadow: var(--shadow-lg);
+    overflow: hidden; padding: 2rem;
+  }
+  .map-label {
+    position: absolute; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary);
+    opacity: 0.5;
+  }
+  .map-node {
+    position: absolute; padding: 0.5rem 0.85rem; border-radius: 8px;
+    font-size: 0.72rem; font-weight: 600; color: white;
+    max-width: 180px; text-align: center; line-height: 1.3;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 2;
+  }
+  .map-node:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(0,0,0,0.2); z-index: 10; }
+  .map-svg {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 1;
+  }
+
+  /* Insights */
+  .insight-prompts {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .insight-prompt {
+    background: var(--bg); border-radius: 10px; padding: 1rem;
+    border: 1.5px solid var(--border); transition: border-color 0.2s;
+  }
+  .insight-prompt:focus-within { border-color: var(--purple); }
+  .insight-prompt h4 {
+    font-size: 0.85rem; color: var(--purple); margin-bottom: 0.4rem;
+  }
+  .insight-prompt textarea {
+    border: none; background: transparent; padding: 0;
+    min-height: 60px; font-size: 0.85rem; resize: vertical;
+  }
+  .insight-prompt textarea:focus { outline: none; }
+
+  .actions-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .action-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 0.85rem; background: var(--purple-bg); border-radius: 8px;
+    border: 1.5px solid rgba(124,92,191,0.15);
+  }
+  .action-item .action-num {
+    width: 24px; height: 24px; border-radius: 50%; background: var(--purple);
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700; flex-shrink: 0;
+  }
+  .action-item .action-text { flex: 1; font-size: 0.85rem; }
+  .action-item .remove-btn {
+    background: none; border: none; color: var(--text-secondary);
+    cursor: pointer; font-size: 1rem; padding: 0 0.2rem; line-height: 1;
+  }
+  .action-item .remove-btn:hover { color: var(--dystopia); }
+
+  /* Hex count badge */
+  .count-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 22px; border-radius: 11px; padding: 0 0.4rem;
+    font-size: 0.7rem; font-weight: 700; margin-left: 0.4rem;
+  }
+  .count-badge.navy-badge { background: rgba(27,42,74,0.12); color: var(--navy); }
+  .count-badge.teal-badge { background: rgba(0,137,123,0.12); color: var(--teal); }
+  .count-badge.green-badge { background: rgba(67,160,71,0.12); color: var(--utopia); }
+  .count-badge.red-badge { background: rgba(239,83,80,0.12); color: var(--dystopia); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center; padding: 1.5rem;
+    color: var(--text-secondary); font-size: 0.85rem;
+    font-style: italic;
+  }
+
+  /* Instruction callout */
+  .instruction-callout {
+    background: var(--purple-bg); border-radius: 10px; padding: 1rem 1.25rem;
+    margin-bottom: 1rem; border-left: 4px solid var(--purple);
+  }
+  .instruction-callout p {
+    font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55;
+  }
+  .instruction-callout p strong { color: var(--navy); }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .futures-grid { grid-template-columns: 1fr; }
+    .insight-prompts { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .main { padding: 1rem; }
+    .progress-step span:not(.step-num) { display: none; }
+    .map-container { min-height: 500px; padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <a href="index.html" class="back-link">&#8592; Back to Home</a>
+    <h1>Future Backwards</h1>
+    <div class="subtitle">Based on Dave Snowden's method from the Cynefin framework</div>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar">
+  <div class="progress-step active" data-step="1"><span class="step-num">1</span><span>Context</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="2"><span class="step-num">2</span><span>Present</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="3"><span class="step-num">3</span><span>History</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="4"><span class="step-num">4</span><span>Futures</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="5"><span class="step-num">5</span><span>Pathways</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="6"><span class="step-num">6</span><span>Map</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="7"><span class="step-num">7</span><span>Insights</span></div>
+</div>
+
+<div class="main">
+
+  <!-- PHASE 1: Context Setup -->
+  <div class="phase active" id="phase-1">
+
+    <!-- Tutorial example -->
+    <div class="example-card">
+      <div class="example-card-info">
+        <h3>&#127758; FBSN Strategic Innovation Practice</h3>
+        <p>Explore how a consulting firm navigates the future of strategic innovation facilitation.</p>
+      </div>
+      <button class="btn-example" onclick="loadTemplate()">Run Tutorial &#8594;</button>
+    </div>
+
+    <!-- Saved sessions -->
+    <div class="sessions-card" id="sessionsCard" style="display:none">
+      <h2>Saved Sessions</h2>
+      <p class="desc">Resume a previous exercise or start a new one below.</p>
+      <ul class="session-list" id="sessionList"></ul>
+    </div>
+
+    <!-- New exercise -->
+    <div class="card">
+      <h2>New Exercise</h2>
+      <p class="desc">Set the context for your Future Backwards exercise. What system, organization, or challenge are you exploring?</p>
+      <div class="form-group">
+        <label>Exercise Title</label>
+        <input type="text" id="titleInput" placeholder="e.g. Our department's strategic direction, The future of our industry">
+      </div>
+      <div class="form-group">
+        <label>Context / Background</label>
+        <textarea id="contextInput" placeholder="Describe the background context. What is the situation you are exploring? What makes this important right now?"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="startExercise()">Next: Current State &#8594;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2: Current State -->
+  <div class="phase" id="phase-2">
+    <div class="card">
+      <h2>Current State <span class="count-badge navy-badge" id="currentCount">0</span></h2>
+      <p class="desc">Describe the current state of affairs. What defines where you are right now? Aim for 5-7 statements that capture the present reality.</p>
+      <div class="instruction-callout">
+        <p><strong>Instructions:</strong> Think about what is true today. Consider your capabilities, challenges, relationships, resources, and market position. Each statement should be a concise snapshot of the present.</p>
+      </div>
+      <div class="add-row">
+        <input type="text" id="addCurrentState" placeholder="Describe a current state condition..." onkeydown="if(event.key==='Enter')addCurrentItem()">
+        <button onclick="addCurrentItem()" style="background:var(--navy)">+ Add</button>
+      </div>
+      <ul class="hex-list" id="currentStateList"></ul>
+      <div class="empty-state" id="currentStateEmpty">No current state items yet. Add 3-7 statements above.</div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goToPhase(1)">&#8592; Back</button>
+        <button class="btn btn-primary" onclick="goToPhase(3)">Next: Historical Pathway &#8594;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3: Historical Pathway -->
+  <div class="phase" id="phase-3">
+    <div class="card">
+      <h2>Historical Pathway <span class="count-badge teal-badge" id="historyCount">0</span></h2>
+      <p class="desc">Starting from the present, work backward. What was the most significant event in the immediate past? Then keep going further back. Think about the key turning points that led to where you are now.</p>
+      <div class="instruction-callout">
+        <p><strong>Instructions:</strong> Work backward chronologically from the most recent significant event to the oldest. Each event should be a turning point or milestone. Add an approximate date or time period for each.</p>
+      </div>
+      <div class="add-row">
+        <input type="text" class="date-input" id="addHistoryDate" placeholder="e.g. 2024, Q3 2023" onkeydown="if(event.key==='Enter')addHistoryItem()">
+        <input type="text" id="addHistoryText" placeholder="Describe the historical event..." onkeydown="if(event.key==='Enter')addHistoryItem()">
+        <button onclick="addHistoryItem()" style="background:var(--teal)">+ Add</button>
+      </div>
+      <ul class="history-list" id="historyList"></ul>
+      <div class="empty-state" id="historyEmpty">No historical events yet. Add events from most recent to oldest.</div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goToPhase(2)">&#8592; Back</button>
+        <button class="btn btn-primary" onclick="goToPhase(4)">Next: Future States &#8594;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4: Future States -->
+  <div class="phase" id="phase-4">
+    <div class="card" style="margin-bottom:1rem">
+      <h2>Future States</h2>
+      <p class="desc">Now imagine two extreme futures. Don't hold back &mdash; stretch beyond "likely" into "impossibly good" and "impossibly bad". These are not predictions; they're boundary conditions that reveal hidden assumptions.</p>
+    </div>
+
+    <div class="futures-grid">
+      <!-- Utopia -->
+      <div class="future-column utopia-col">
+        <h3>Utopia <span class="count-badge green-badge" id="utopiaCount">0</span></h3>
+        <div class="future-subtitle">An impossibly good future &mdash; everything goes perfectly and beyond.</div>
+        <div class="add-row">
+          <input type="text" id="addUtopia" placeholder="Describe an impossibly good outcome..." onkeydown="if(event.key==='Enter')addUtopiaItem()">
+          <button class="utopia-btn" onclick="addUtopiaItem()">+ Add</button>
+        </div>
+        <ul class="hex-list" id="utopiaList"></ul>
+        <div class="empty-state" id="utopiaEmpty">No utopia items yet. Aim for 3-7.</div>
+      </div>
+
+      <!-- Dystopia -->
+      <div class="future-column dystopia-col">
+        <h3>Dystopia <span class="count-badge red-badge" id="dystopiaCount">0</span></h3>
+        <div class="future-subtitle">An impossibly bad future &mdash; everything goes wrong beyond belief.</div>
+        <div class="add-row">
+          <input type="text" id="addDystopia" placeholder="Describe an impossibly bad outcome..." onkeydown="if(event.key==='Enter')addDystopiaItem()">
+          <button class="dystopia-btn" onclick="addDystopiaItem()">+ Add</button>
+        </div>
+        <ul class="hex-list" id="dystopiaList"></ul>
+        <div class="empty-state" id="dystopiaEmpty">No dystopia items yet. Aim for 3-7.</div>
+      </div>
+    </div>
+
+    <div class="btn-row" style="margin-top:1.25rem">
+      <button class="btn btn-ghost" onclick="goToPhase(3)">&#8592; Back</button>
+      <button class="btn btn-primary" onclick="goToPhase(5)">Next: Fictional Pathways &#8594;</button>
+    </div>
+  </div>
+
+  <!-- PHASE 5: Fictional Pathways -->
+  <div class="phase" id="phase-5">
+    <div class="card" style="margin-bottom:1rem">
+      <h2>Fictional Pathways</h2>
+      <p class="desc">Trace each future backward to a point in the past. The pathway must connect to a historical event, NOT the current state. One accident or unexpected event is allowed per pathway.</p>
+    </div>
+
+    <!-- Utopia Pathway -->
+    <div class="pathway-section utopia-pathway">
+      <h3>Pathway to Utopia</h3>
+      <div class="pathway-subtitle">How could the impossibly good future come about? Trace backward from utopia to a historical event.</div>
+
+      <div class="add-row" style="margin-top:0.75rem">
+        <input type="text" id="addUtopiaPath" placeholder="Describe a turning point toward utopia..." onkeydown="if(event.key==='Enter')addPathItem('utopia')">
+        <select class="connect-select" id="utopiaPathConnect">
+          <option value="">Connects to...</option>
+        </select>
+        <button onclick="addPathItem('utopia')" style="background:var(--utopia-light);color:#1B5E20">+ Add</button>
+      </div>
+      <div class="accident-toggle">
+        <input type="checkbox" id="utopiaAccidentCheck" onchange="toggleAccidentInput('utopia')">
+        <label for="utopiaAccidentCheck" style="font-weight:normal;margin:0">Add an accident (unexpected event)</label>
+      </div>
+      <div class="add-row" id="utopiaAccidentRow" style="display:none;margin-top:0.5rem">
+        <input type="text" id="addUtopiaAccident" placeholder="Describe the unexpected event..." onkeydown="if(event.key==='Enter')addAccident('utopia')">
+        <button onclick="addAccident('utopia')" style="background:var(--accident);color:#4E342E">+ Accident</button>
+      </div>
+      <ul class="pathway-list" id="utopiaPathList"></ul>
+      <div class="empty-state" id="utopiaPathEmpty">No pathway events yet. Add 2-5 turning points.</div>
+    </div>
+
+    <!-- Dystopia Pathway -->
+    <div class="pathway-section dystopia-pathway">
+      <h3>Pathway to Dystopia</h3>
+      <div class="pathway-subtitle">How could the impossibly bad future come about? Trace backward from dystopia to a historical event.</div>
+
+      <div class="add-row" style="margin-top:0.75rem">
+        <input type="text" id="addDystopiaPath" placeholder="Describe a turning point toward dystopia..." onkeydown="if(event.key==='Enter')addPathItem('dystopia')">
+        <select class="connect-select" id="dystopiaPathConnect">
+          <option value="">Connects to...</option>
+        </select>
+        <button onclick="addPathItem('dystopia')" style="background:var(--dystopia-light);color:#B71C1C">+ Add</button>
+      </div>
+      <div class="accident-toggle">
+        <input type="checkbox" id="dystopiaAccidentCheck" onchange="toggleAccidentInput('dystopia')">
+        <label for="dystopiaAccidentCheck" style="font-weight:normal;margin:0">Add an accident (unexpected event)</label>
+      </div>
+      <div class="add-row" id="dystopiaAccidentRow" style="display:none;margin-top:0.5rem">
+        <input type="text" id="addDystopiaAccident" placeholder="Describe the unexpected event..." onkeydown="if(event.key==='Enter')addAccident('dystopia')">
+        <button onclick="addAccident('dystopia')" style="background:var(--accident);color:#4E342E">+ Accident</button>
+      </div>
+      <ul class="pathway-list" id="dystopiaPathList"></ul>
+      <div class="empty-state" id="dystopiaPathEmpty">No pathway events yet. Add 2-5 turning points.</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goToPhase(4)">&#8592; Back</button>
+      <button class="btn btn-primary" onclick="goToPhase(6)">Next: Visual Map &#8594;</button>
+    </div>
+  </div>
+
+  <!-- PHASE 6: Visual Map -->
+  <div class="phase" id="phase-6">
+    <div class="card">
+      <h2>Future Backwards Map</h2>
+      <p class="desc">The complete visual representation of your Future Backwards exercise. Historical events flow from the left, the current state sits in the center, and the two extreme futures branch to the upper and lower right.</p>
+      <div id="mapWrapper" class="map-container">
+        <svg class="map-svg" id="mapSvg"></svg>
+        <!-- Nodes rendered by JS -->
+      </div>
+      <div class="btn-row" style="margin-top:1.25rem">
+        <button class="btn btn-ghost" onclick="goToPhase(5)">&#8592; Back</button>
+        <button class="btn btn-secondary" onclick="exportPDF()">Export to PDF</button>
+        <button class="btn btn-primary" onclick="goToPhase(7)">Next: Insights &amp; Actions &#8594;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 7: Insights & Actions -->
+  <div class="phase" id="phase-7">
+    <div class="card">
+      <h2>Insights &amp; Actions</h2>
+      <p class="desc">Reflect on the complete Future Backwards picture. What patterns emerge? What does this tell you about your assumptions and blind spots?</p>
+
+      <div class="insight-prompts">
+        <div class="insight-prompt">
+          <h4>What is different?</h4>
+          <textarea id="insightDifferent" placeholder="What surprised you about the contrast between utopia and dystopia? What assumptions are challenged?"></textarea>
+        </div>
+        <div class="insight-prompt">
+          <h4>What is the same?</h4>
+          <textarea id="insightSame" placeholder="What common themes or factors appear in both futures? What does this tell you about the key variables?"></textarea>
+        </div>
+        <div class="insight-prompt">
+          <h4>What is surprising?</h4>
+          <textarea id="insightSurprising" placeholder="What unexpected connections emerged? What did you learn about the present by exploring the extremes?"></textarea>
+        </div>
+      </div>
+
+      <h3 style="font-size:1.05rem;font-weight:700;color:var(--navy);margin-bottom:0.6rem;">Key Actions</h3>
+      <p class="desc" style="margin-bottom:0.75rem">Define specific actions that emerge from this exercise. What will you do differently?</p>
+      <div class="add-row">
+        <input type="text" id="addAction" placeholder="Add an action..." onkeydown="if(event.key==='Enter')addActionItem()">
+        <button onclick="addActionItem()" style="background:var(--purple)">+ Add</button>
+      </div>
+      <ul class="actions-list" id="actionsList"></ul>
+      <div class="empty-state" id="actionsEmpty">No actions yet.</div>
+
+      <div class="btn-row" style="margin-top:1.5rem">
+        <button class="btn btn-ghost" onclick="goToPhase(6)">&#8592; Back to Map</button>
+        <button class="btn btn-secondary" id="saveSessionBtn" onclick="saveSession()">Save Session</button>
+        <button class="btn btn-secondary" onclick="exportPDF()">Export to PDF</button>
+        <button class="btn btn-primary" onclick="resetApp()">New Exercise</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ========== STATE ==========
+let state = {
+  title: '',
+  context: '',
+  currentState: [],
+  history: [],       // { date, text }
+  utopia: [],
+  dystopia: [],
+  utopiaPath: [],    // { text, connectsTo, type: 'turning'|'accident' }
+  dystopiaPath: [],
+  insights: { different: '', same: '', surprising: '' },
+  actions: [],
+  isTemplate: null,
+  sessionId: null,
+};
+
+// ========== PHASE NAVIGATION ==========
+function goToPhase(n) {
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.getElementById(`phase-${n}`).classList.add('active');
+
+  document.querySelectorAll('.progress-step').forEach(s => {
+    const step = parseInt(s.dataset.step);
+    s.classList.remove('active', 'done');
+    if (step < n) s.classList.add('done');
+    if (step === n) s.classList.add('active');
+  });
+  document.querySelectorAll('.progress-connector').forEach((c, i) => {
+    c.classList.toggle('done', i < n - 1);
+  });
+
+  if (n === 2) {
+    state.title = document.getElementById('titleInput').value.trim();
+    state.context = document.getElementById('contextInput').value.trim();
+    if (!state.sessionId && state.title) {
+      state.sessionId = Date.now().toString();
+    }
+  }
+  if (n === 5) {
+    populateConnectSelects();
+    renderPathways();
+  }
+  if (n === 6) {
+    renderVisualMap();
+  }
+  if (n === 7) {
+    document.getElementById('insightDifferent').value = state.insights.different || '';
+    document.getElementById('insightSame').value = state.insights.same || '';
+    document.getElementById('insightSurprising').value = state.insights.surprising || '';
+    renderActions();
+  }
+
+  autoSave();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function startExercise() {
+  const title = document.getElementById('titleInput').value.trim();
+  if (!title) {
+    document.getElementById('titleInput').focus();
+    document.getElementById('titleInput').style.borderColor = 'var(--dystopia)';
+    setTimeout(() => document.getElementById('titleInput').style.borderColor = '', 1500);
+    return;
+  }
+  goToPhase(2);
+}
+
+function getCurrentPhase() {
+  for (let i = 1; i <= 7; i++) {
+    if (document.getElementById(`phase-${i}`).classList.contains('active')) return i;
+  }
+  return 1;
+}
+
+// ========== TEMPLATE ==========
+function loadTemplate() {
+  state.isTemplate = true;
+  state.sessionId = null;
+  state.title = 'FBSN Strategic Innovation Practice';
+  state.context = 'FBSN is a strategic innovation consulting practice that helps executive leadership teams navigate complexity. The practice has been growing through word-of-mouth but faces an inflection point as digital tools, AI, and changing client expectations reshape the consulting landscape.';
+  state.currentState = [
+    'Strong reputation with existing clients through personal relationships',
+    'Revenue primarily from in-person facilitation engagements',
+    'Early-stage digital platform being developed',
+    'Growing interest from clients in ongoing capability building vs. one-off events',
+    'Small team with deep expertise but limited scale'
+  ];
+  state.history = [
+    { date: '2024', text: 'Built VCT digital prototype to explore scalable delivery' },
+    { date: '2022', text: 'Post-COVID shift \u2014 clients now expect hybrid/digital options' },
+    { date: '2018', text: 'Established core methodology (Five Plays framework)' },
+    { date: '2015', text: 'Founded practice based on team effectiveness research' }
+  ];
+  state.utopia = [
+    'Global platform used by thousands of teams independently',
+    'AI-augmented facilitation that scales expertise infinitely',
+    'Industry-standard framework for team value creation',
+    'Thriving community of certified practitioners worldwide',
+    'Research partnerships with leading business schools'
+  ];
+  state.dystopia = [
+    'AI replaces need for human facilitation entirely',
+    'Commoditization \u2014 methodology copied by large consulting firms',
+    'Digital platform fails and drains resources',
+    'Key team members leave, taking client relationships',
+    'Clients stop investing in team development altogether'
+  ];
+  state.utopiaPath = [
+    { text: 'Platform gains viral adoption through open-source community', connectsTo: '2024: Built VCT digital prototype to explore scalable delivery', type: 'turning' },
+    { text: 'Major corporate scandal creates urgent demand for team governance frameworks', connectsTo: '', type: 'accident' }
+  ];
+  state.dystopiaPath = [
+    { text: 'Large firm acquires a competing methodology and markets aggressively', connectsTo: '2022: Post-COVID shift \u2014 clients now expect hybrid/digital options', type: 'turning' },
+    { text: 'Economic downturn forces clients to cut all consulting spend', connectsTo: '', type: 'turning' }
+  ];
+  state.insights = { different: '', same: '', surprising: '' };
+  state.actions = [];
+
+  document.getElementById('titleInput').value = state.title;
+  document.getElementById('contextInput').value = state.context;
+
+  renderCurrentState();
+  renderHistory();
+  renderUtopia();
+  renderDystopia();
+
+  goToPhase(2);
+}
+
+// ========== CURRENT STATE ==========
+function addCurrentItem() {
+  const input = document.getElementById('addCurrentState');
+  const text = input.value.trim();
+  if (!text) return;
+  state.currentState.push(text);
+  input.value = '';
+  input.focus();
+  renderCurrentState();
+  autoSave();
+}
+
+function removeCurrentItem(idx) {
+  state.currentState.splice(idx, 1);
+  renderCurrentState();
+  autoSave();
+}
+
+function renderCurrentState() {
+  const list = document.getElementById('currentStateList');
+  const empty = document.getElementById('currentStateEmpty');
+  const count = document.getElementById('currentCount');
+  count.textContent = state.currentState.length;
+  if (state.currentState.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = state.currentState.map((item, i) =>
+    `<li class="hex-chip current-state">
+      <span class="hex-text">${escapeHtml(item)}</span>
+      <button class="remove-hex" onclick="removeCurrentItem(${i})" title="Remove">&times;</button>
+    </li>`
+  ).join('');
+}
+
+// ========== HISTORICAL PATHWAY ==========
+function addHistoryItem() {
+  const dateInput = document.getElementById('addHistoryDate');
+  const textInput = document.getElementById('addHistoryText');
+  const date = dateInput.value.trim();
+  const text = textInput.value.trim();
+  if (!text) return;
+  state.history.push({ date: date || '?', text });
+  dateInput.value = '';
+  textInput.value = '';
+  textInput.focus();
+  renderHistory();
+  autoSave();
+}
+
+function removeHistoryItem(idx) {
+  state.history.splice(idx, 1);
+  renderHistory();
+  autoSave();
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  const empty = document.getElementById('historyEmpty');
+  const count = document.getElementById('historyCount');
+  count.textContent = state.history.length;
+  if (state.history.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = state.history.map((item, i) =>
+    `<li class="history-item">
+      <span class="history-date">${escapeHtml(item.date)}</span>
+      <span class="history-text">${escapeHtml(item.text)}</span>
+      <button class="remove-btn" onclick="removeHistoryItem(${i})" title="Remove">&times;</button>
+    </li>`
+  ).join('');
+}
+
+// ========== UTOPIA ==========
+function addUtopiaItem() {
+  const input = document.getElementById('addUtopia');
+  const text = input.value.trim();
+  if (!text) return;
+  state.utopia.push(text);
+  input.value = '';
+  input.focus();
+  renderUtopia();
+  autoSave();
+}
+
+function removeUtopiaItem(idx) {
+  state.utopia.splice(idx, 1);
+  renderUtopia();
+  autoSave();
+}
+
+function renderUtopia() {
+  const list = document.getElementById('utopiaList');
+  const empty = document.getElementById('utopiaEmpty');
+  const count = document.getElementById('utopiaCount');
+  count.textContent = state.utopia.length;
+  if (state.utopia.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = state.utopia.map((item, i) =>
+    `<li class="hex-chip utopia">
+      <span class="hex-text">${escapeHtml(item)}</span>
+      <button class="remove-hex" onclick="removeUtopiaItem(${i})" title="Remove">&times;</button>
+    </li>`
+  ).join('');
+}
+
+// ========== DYSTOPIA ==========
+function addDystopiaItem() {
+  const input = document.getElementById('addDystopia');
+  const text = input.value.trim();
+  if (!text) return;
+  state.dystopia.push(text);
+  input.value = '';
+  input.focus();
+  renderDystopia();
+  autoSave();
+}
+
+function removeDystopiaItem(idx) {
+  state.dystopia.splice(idx, 1);
+  renderDystopia();
+  autoSave();
+}
+
+function renderDystopia() {
+  const list = document.getElementById('dystopiaList');
+  const empty = document.getElementById('dystopiaEmpty');
+  const count = document.getElementById('dystopiaCount');
+  count.textContent = state.dystopia.length;
+  if (state.dystopia.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = state.dystopia.map((item, i) =>
+    `<li class="hex-chip dystopia">
+      <span class="hex-text">${escapeHtml(item)}</span>
+      <button class="remove-hex" onclick="removeDystopiaItem(${i})" title="Remove">&times;</button>
+    </li>`
+  ).join('');
+}
+
+// ========== PATHWAYS ==========
+function populateConnectSelects() {
+  const historyOptions = state.history.map(h =>
+    `<option value="${escapeHtml(h.date + ': ' + h.text)}">${escapeHtml(h.date + ': ' + h.text)}</option>`
+  ).join('');
+
+  ['utopia', 'dystopia'].forEach(type => {
+    const sel = document.getElementById(`${type}PathConnect`);
+    sel.innerHTML = `<option value="">Connects to (historical event)...</option>${historyOptions}`;
+  });
+}
+
+function addPathItem(type) {
+  const input = document.getElementById(`add${capitalize(type)}Path`);
+  const select = document.getElementById(`${type}PathConnect`);
+  const text = input.value.trim();
+  if (!text) return;
+  const arr = type === 'utopia' ? state.utopiaPath : state.dystopiaPath;
+  arr.push({ text, connectsTo: select.value, type: 'turning' });
+  input.value = '';
+  select.selectedIndex = 0;
+  renderPathways();
+  autoSave();
+}
+
+function toggleAccidentInput(type) {
+  const check = document.getElementById(`${type}AccidentCheck`);
+  const row = document.getElementById(`${type}AccidentRow`);
+  row.style.display = check.checked ? 'flex' : 'none';
+}
+
+function addAccident(type) {
+  const input = document.getElementById(`add${capitalize(type)}Accident`);
+  const text = input.value.trim();
+  if (!text) return;
+  const arr = type === 'utopia' ? state.utopiaPath : state.dystopiaPath;
+  // Only allow one accident per pathway
+  const hasAccident = arr.some(p => p.type === 'accident');
+  if (hasAccident) {
+    alert('Only one accident is allowed per pathway. Remove the existing one first.');
+    return;
+  }
+  arr.push({ text, connectsTo: '', type: 'accident' });
+  input.value = '';
+  document.getElementById(`${type}AccidentCheck`).checked = false;
+  document.getElementById(`${type}AccidentRow`).style.display = 'none';
+  renderPathways();
+  autoSave();
+}
+
+function removePathItem(type, idx) {
+  const arr = type === 'utopia' ? state.utopiaPath : state.dystopiaPath;
+  arr.splice(idx, 1);
+  renderPathways();
+  autoSave();
+}
+
+function renderPathways() {
+  ['utopia', 'dystopia'].forEach(type => {
+    const arr = type === 'utopia' ? state.utopiaPath : state.dystopiaPath;
+    const list = document.getElementById(`${type}PathList`);
+    const empty = document.getElementById(`${type}PathEmpty`);
+
+    if (arr.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = '';
+      return;
+    }
+    empty.style.display = 'none';
+    list.innerHTML = arr.map((item, i) => {
+      const isAccident = item.type === 'accident';
+      const itemClass = isAccident ? 'accident-item' : `${type}-path-item`;
+      const labelClass = isAccident ? 'accident-label' : (type === 'utopia' ? 'turning' : 'turning-d');
+      const labelText = isAccident ? 'Accident' : 'Turning Point';
+      return `<li class="pathway-item ${itemClass}">
+        <span class="path-label ${labelClass}">${labelText}</span>
+        <span class="path-text">${escapeHtml(item.text)}</span>
+        ${item.connectsTo ? `<span class="path-connect">&#8594; ${escapeHtml(item.connectsTo)}</span>` : ''}
+        <button class="remove-btn" onclick="removePathItem('${type}',${i})" title="Remove">&times;</button>
+      </li>`;
+    }).join('');
+  });
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// ========== VISUAL MAP ==========
+function renderVisualMap() {
+  const wrapper = document.getElementById('mapWrapper');
+  const svg = document.getElementById('mapSvg');
+
+  // Remove old nodes
+  wrapper.querySelectorAll('.map-node, .map-label').forEach(el => el.remove());
+  svg.innerHTML = '';
+
+  const W = wrapper.clientWidth;
+  const H = Math.max(600, 150 + state.history.length * 55 + Math.max(state.utopia.length, state.dystopia.length) * 55);
+  wrapper.style.minHeight = H + 'px';
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.style.width = W + 'px';
+  svg.style.height = H + 'px';
+
+  const nodes = []; // { x, y, id, color, text }
+  const links = []; // { from, to }
+
+  const centerX = W * 0.42;
+  const centerY = H * 0.5;
+
+  // --- Historical events (left side, oldest at far left) ---
+  const histReversed = [...state.history].reverse(); // oldest first
+  const histCount = histReversed.length;
+  const histSpacingX = Math.min(120, (centerX - 100) / Math.max(histCount, 1));
+
+  histReversed.forEach((h, i) => {
+    const x = 40 + i * histSpacingX;
+    const y = centerY - 10 + (i % 2 === 0 ? -15 : 15);
+    const id = `hist-${i}`;
+    nodes.push({ x, y, id, color: '#00897B', text: `${h.date}: ${h.text}`, data: h });
+  });
+
+  // --- Current state (center cluster) ---
+  const csCount = state.currentState.length;
+  const csSpacing = Math.min(45, (H * 0.5) / Math.max(csCount, 1));
+  const csStartY = centerY - ((csCount - 1) * csSpacing) / 2;
+
+  state.currentState.forEach((item, i) => {
+    const x = centerX;
+    const y = csStartY + i * csSpacing;
+    const id = `cs-${i}`;
+    nodes.push({ x, y, id, color: '#1B2A4A', text: item });
+  });
+
+  // Link last history to first current state
+  if (histCount > 0 && csCount > 0) {
+    links.push({ from: `hist-${histCount - 1}`, to: 'cs-0' });
+  }
+  // Link current state items sequentially
+  for (let i = 0; i < csCount - 1; i++) {
+    links.push({ from: `cs-${i}`, to: `cs-${i + 1}` });
+  }
+
+  // --- Utopia (upper right) ---
+  const rightX = W * 0.72;
+  const utopiaStartY = H * 0.12;
+  const utopiaSpacing = Math.min(42, (centerY - 60) / Math.max(state.utopia.length, 1));
+
+  state.utopia.forEach((item, i) => {
+    const x = rightX + (i % 2 === 0 ? 0 : 30);
+    const y = utopiaStartY + i * utopiaSpacing;
+    const id = `utopia-${i}`;
+    nodes.push({ x, y, id, color: '#43A047', text: item });
+  });
+
+  // --- Dystopia (lower right) ---
+  const dystopiaStartY = centerY + 40;
+  const dystopiaSpacing = Math.min(42, (H - centerY - 80) / Math.max(state.dystopia.length, 1));
+
+  state.dystopia.forEach((item, i) => {
+    const x = rightX + (i % 2 === 0 ? 0 : 30);
+    const y = dystopiaStartY + i * dystopiaSpacing;
+    const id = `dystopia-${i}`;
+    nodes.push({ x, y, id, color: '#EF5350', text: item });
+  });
+
+  // --- Utopia pathway links ---
+  state.utopiaPath.forEach((p, i) => {
+    const pathX = centerX + 60 + i * 70;
+    const pathY = utopiaStartY + state.utopia.length * utopiaSpacing * 0.5 + i * 30 - 20;
+    const id = `upath-${i}`;
+    const color = p.type === 'accident' ? '#D4A843' : '#66BB6A';
+    nodes.push({ x: pathX, y: pathY, id, color, text: p.text });
+
+    // Connect to utopia cluster
+    if (state.utopia.length > 0) {
+      links.push({ from: id, to: `utopia-0` });
+    }
+    // Connect to historical event if specified
+    if (p.connectsTo) {
+      const histIdx = histReversed.findIndex(h => `${h.date}: ${h.text}` === p.connectsTo);
+      if (histIdx >= 0) {
+        links.push({ from: `hist-${histIdx}`, to: id });
+      }
+    }
+  });
+
+  // --- Dystopia pathway links ---
+  state.dystopiaPath.forEach((p, i) => {
+    const pathX = centerX + 60 + i * 70;
+    const pathY = dystopiaStartY + state.dystopia.length * dystopiaSpacing * 0.5 + i * 30;
+    const id = `dpath-${i}`;
+    const color = p.type === 'accident' ? '#D4A843' : '#EF9A9A';
+    const textColor = p.type === 'accident' ? '#4E342E' : '#B71C1C';
+    nodes.push({ x: pathX, y: pathY, id, color, text: p.text, textColor });
+
+    // Connect to dystopia cluster
+    if (state.dystopia.length > 0) {
+      links.push({ from: id, to: `dystopia-0` });
+    }
+    // Connect to historical event if specified
+    if (p.connectsTo) {
+      const histIdx = histReversed.findIndex(h => `${h.date}: ${h.text}` === p.connectsTo);
+      if (histIdx >= 0) {
+        links.push({ from: `hist-${histIdx}`, to: id });
+      }
+    }
+  });
+
+  // --- Labels ---
+  addLabel(wrapper, 20, 20, 'PAST');
+  addLabel(wrapper, centerX - 20, 20, 'PRESENT');
+  addLabel(wrapper, W - 100, 20, 'FUTURE');
+  addLabel(wrapper, rightX - 10, utopiaStartY - 20, 'UTOPIA');
+  addLabel(wrapper, rightX - 10, dystopiaStartY - 20, 'DYSTOPIA');
+
+  // --- Draw links (SVG) ---
+  const nodeMap = {};
+  nodes.forEach(n => { nodeMap[n.id] = n; });
+
+  links.forEach(link => {
+    const from = nodeMap[link.from];
+    const to = nodeMap[link.to];
+    if (!from || !to) return;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const mx = (from.x + to.x) / 2;
+    const d = `M${from.x + 80},${from.y + 16} C${mx},${from.y + 16} ${mx},${to.y + 16} ${to.x},${to.y + 16}`;
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', '#CBD5E0');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-dasharray', '6,4');
+    path.setAttribute('opacity', '0.6');
+    svg.appendChild(path);
+  });
+
+  // --- Draw timeline axis ---
+  const axisLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  axisLine.setAttribute('x1', '20');
+  axisLine.setAttribute('y1', String(centerY));
+  axisLine.setAttribute('x2', String(W - 20));
+  axisLine.setAttribute('y2', String(centerY));
+  axisLine.setAttribute('stroke', '#E2E8F0');
+  axisLine.setAttribute('stroke-width', '1');
+  axisLine.setAttribute('stroke-dasharray', '4,4');
+  axisLine.setAttribute('opacity', '0.5');
+  svg.appendChild(axisLine);
+
+  // --- Render nodes ---
+  nodes.forEach(n => {
+    const div = document.createElement('div');
+    div.className = 'map-node';
+    div.style.left = n.x + 'px';
+    div.style.top = n.y + 'px';
+    div.style.backgroundColor = n.color;
+    if (n.textColor) div.style.color = n.textColor;
+    div.textContent = n.text.length > 60 ? n.text.slice(0, 57) + '...' : n.text;
+    div.title = n.text;
+    wrapper.appendChild(div);
+  });
+}
+
+function addLabel(container, x, y, text) {
+  const div = document.createElement('div');
+  div.className = 'map-label';
+  div.style.left = x + 'px';
+  div.style.top = y + 'px';
+  div.textContent = text;
+  container.appendChild(div);
+}
+
+// ========== ACTIONS ==========
+function addActionItem() {
+  const input = document.getElementById('addAction');
+  const text = input.value.trim();
+  if (!text) return;
+  state.actions.push(text);
+  input.value = '';
+  input.focus();
+  renderActions();
+  autoSave();
+}
+
+function removeAction(idx) {
+  state.actions.splice(idx, 1);
+  renderActions();
+  autoSave();
+}
+
+function renderActions() {
+  const list = document.getElementById('actionsList');
+  const empty = document.getElementById('actionsEmpty');
+  if (state.actions.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = state.actions.map((item, i) =>
+    `<li class="action-item">
+      <span class="action-num">${i + 1}</span>
+      <span class="action-text">${escapeHtml(item)}</span>
+      <button class="remove-btn" onclick="removeAction(${i})" title="Remove">&times;</button>
+    </li>`
+  ).join('');
+}
+
+// ========== EXPORT PDF ==========
+function exportPDF() {
+  // Gather insights from textareas
+  state.insights.different = document.getElementById('insightDifferent').value;
+  state.insights.same = document.getElementById('insightSame').value;
+  state.insights.surprising = document.getElementById('insightSurprising').value;
+
+  const title = state.title || 'Untitled Exercise';
+  const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Future Backwards &mdash; ${escapeHtml(title)}</title>
+<style>
+  @page { size: A4; margin: 1.5cm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1B2A4A; line-height: 1.5; padding: 2rem; }
+  .header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #7C5CBF; }
+  .header h1 { font-size: 1.4rem; color: #1B2A4A; margin-bottom: .25rem; }
+  .header .subtitle { font-size: .85rem; color: #5A6B8A; }
+  .header .date { font-size: .75rem; color: #9AA5B8; margin-top: .25rem; }
+  .context { background: #F5F7FA; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; font-size: .85rem; color: #5A6B8A; }
+  .context strong { color: #1B2A4A; }
+  .section-title { font-size: 1.05rem; font-weight: 700; color: #1B2A4A; margin: 1.5rem 0 .75rem; padding-bottom: .35rem; border-bottom: 1px solid #E2E8F0; }
+  .hex-row { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .75rem; }
+  .hex { display: inline-block; padding: .35rem .65rem; border-radius: 6px; font-size: .78rem; font-weight: 600; color: white; }
+  .hex.cs { background: #1B2A4A; }
+  .hex.hist { background: #00897B; }
+  .hex.ut { background: #43A047; }
+  .hex.dy { background: #EF5350; }
+  .hex.up { background: #66BB6A; color: #1B5E20; }
+  .hex.dp { background: #EF9A9A; color: #B71C1C; }
+  .hex.acc { background: #D4A843; color: #4E342E; }
+  .timeline { margin-bottom: 1rem; }
+  .timeline-item { display: flex; gap: .5rem; margin-bottom: .35rem; font-size: .82rem; }
+  .timeline-date { font-weight: 700; color: #00897B; min-width: 50px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .col { border-radius: 8px; padding: .75rem; }
+  .col.ut-col { background: #E8F5E9; }
+  .col.dy-col { background: #FFEBEE; }
+  .col h3 { font-size: .85rem; margin-bottom: .5rem; }
+  .col.ut-col h3 { color: #43A047; }
+  .col.dy-col h3 { color: #EF5350; }
+  .col ul { list-style: none; padding: 0; }
+  .col li { font-size: .78rem; padding: .2rem 0; }
+  .pathway { margin-bottom: .75rem; padding: .6rem .75rem; border-radius: 8px; border-left: 3px solid; }
+  .pathway.ut-path { border-left-color: #66BB6A; background: rgba(102,187,106,0.08); }
+  .pathway.dy-path { border-left-color: #EF9A9A; background: rgba(239,154,154,0.08); }
+  .pathway h4 { font-size: .82rem; margin-bottom: .3rem; }
+  .pathway.ut-path h4 { color: #43A047; }
+  .pathway.dy-path h4 { color: #EF5350; }
+  .pathway li { font-size: .78rem; padding: .15rem 0; list-style: none; }
+  .insights { margin-bottom: 1rem; }
+  .insight-box { background: #F3EEFB; border-radius: 8px; padding: .75rem; margin-bottom: .5rem; }
+  .insight-box h4 { font-size: .82rem; color: #7C5CBF; margin-bottom: .25rem; }
+  .insight-box p { font-size: .8rem; color: #5A6B8A; }
+  .action-box { background: #F3EEFB; border-radius: 6px; padding: .4rem .65rem; margin-bottom: .3rem; font-size: .82rem; border-left: 3px solid #7C5CBF; }
+  .footer { margin-top: 2rem; padding-top: .75rem; border-top: 1px solid #E2E8F0; text-align: center; font-size: .7rem; color: #9AA5B8; }
+  @media print { body { padding: 0; } }
+</style></head><body>
+<div class="header">
+  <h1>Future Backwards: ${escapeHtml(title)}</h1>
+  <div class="subtitle">Dave Snowden's method from the Cynefin framework</div>
+  <div class="date">${escapeHtml(date)}</div>
+</div>
+${state.context ? `<div class="context"><strong>Context:</strong> ${escapeHtml(state.context)}</div>` : ''}
+
+<div class="section-title">Current State</div>
+<div class="hex-row">
+${state.currentState.map(s => `<span class="hex cs">${escapeHtml(s)}</span>`).join('')}
+</div>
+
+<div class="section-title">Historical Pathway</div>
+<div class="timeline">
+${state.history.map(h => `<div class="timeline-item"><span class="timeline-date">${escapeHtml(h.date)}</span><span>${escapeHtml(h.text)}</span></div>`).join('')}
+</div>
+
+<div class="section-title">Future States</div>
+<div class="two-col">
+  <div class="col ut-col">
+    <h3>Utopia (Impossibly Good)</h3>
+    <ul>${state.utopia.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul>
+  </div>
+  <div class="col dy-col">
+    <h3>Dystopia (Impossibly Bad)</h3>
+    <ul>${state.dystopia.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul>
+  </div>
+</div>
+
+<div class="section-title">Fictional Pathways</div>
+<div class="pathway ut-path">
+  <h4>Pathway to Utopia</h4>
+  <ul>${state.utopiaPath.map(p => `<li><strong>${p.type === 'accident' ? '[ACCIDENT]' : '[Turning Point]'}</strong> ${escapeHtml(p.text)}${p.connectsTo ? ` &rarr; ${escapeHtml(p.connectsTo)}` : ''}</li>`).join('')}</ul>
+</div>
+<div class="pathway dy-path">
+  <h4>Pathway to Dystopia</h4>
+  <ul>${state.dystopiaPath.map(p => `<li><strong>${p.type === 'accident' ? '[ACCIDENT]' : '[Turning Point]'}</strong> ${escapeHtml(p.text)}${p.connectsTo ? ` &rarr; ${escapeHtml(p.connectsTo)}` : ''}</li>`).join('')}</ul>
+</div>
+
+${(state.insights.different || state.insights.same || state.insights.surprising) ? `
+<div class="section-title">Insights</div>
+<div class="insights">
+${state.insights.different ? `<div class="insight-box"><h4>What is different?</h4><p>${escapeHtml(state.insights.different)}</p></div>` : ''}
+${state.insights.same ? `<div class="insight-box"><h4>What is the same?</h4><p>${escapeHtml(state.insights.same)}</p></div>` : ''}
+${state.insights.surprising ? `<div class="insight-box"><h4>What is surprising?</h4><p>${escapeHtml(state.insights.surprising)}</p></div>` : ''}
+</div>` : ''}
+
+${state.actions.length > 0 ? `
+<div class="section-title">Actions</div>
+${state.actions.map((a, i) => `<div class="action-box">${i + 1}. ${escapeHtml(a)}</div>`).join('')}` : ''}
+
+<div class="footer">Generated by VCT &mdash; Value Creating Teams Framework</div>
+</body></html>`;
+
+  const printWin = window.open('', '_blank');
+  printWin.document.write(html);
+  printWin.document.close();
+  setTimeout(() => printWin.print(), 400);
+}
+
+// ========== SESSIONS ==========
+const SESSIONS_KEY = 'future_backwards_sessions';
+
+function getSessions() {
+  try { return JSON.parse(localStorage.getItem(SESSIONS_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveSessions(sessions) {
+  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+}
+
+function buildSessionData() {
+  // Capture insight textareas if they exist
+  const diffEl = document.getElementById('insightDifferent');
+  const sameEl = document.getElementById('insightSame');
+  const surprEl = document.getElementById('insightSurprising');
+  if (diffEl) state.insights.different = diffEl.value;
+  if (sameEl) state.insights.same = sameEl.value;
+  if (surprEl) state.insights.surprising = surprEl.value;
+
+  return {
+    id: state.sessionId || Date.now().toString(),
+    title: state.title || 'Untitled',
+    context: state.context,
+    currentState: state.currentState,
+    history: state.history,
+    utopia: state.utopia,
+    dystopia: state.dystopia,
+    utopiaPath: state.utopiaPath,
+    dystopiaPath: state.dystopiaPath,
+    insights: state.insights,
+    actions: state.actions,
+    savedAt: new Date().toISOString(),
+    phase: getCurrentPhase(),
+  };
+}
+
+function saveSession() {
+  state.title = state.title || document.getElementById('titleInput').value.trim();
+  state.context = state.context || document.getElementById('contextInput').value.trim();
+
+  if (!state.sessionId) state.sessionId = Date.now().toString();
+  const data = buildSessionData();
+  const sessions = getSessions().filter(s => s.id !== data.id);
+  sessions.unshift(data);
+  saveSessions(sessions);
+  renderSessionList();
+  alert('Session saved.');
+}
+
+function autoSave() {
+  if (!state.sessionId || state.isTemplate) return;
+  const data = buildSessionData();
+  const sessions = getSessions().filter(s => s.id !== data.id);
+  sessions.unshift(data);
+  saveSessions(sessions);
+}
+
+function loadSession(id) {
+  const sessions = getSessions();
+  const data = sessions.find(s => s.id === id);
+  if (!data) return;
+
+  state.sessionId = data.id;
+  state.title = data.title;
+  state.context = data.context || '';
+  state.currentState = data.currentState || [];
+  state.history = data.history || [];
+  state.utopia = data.utopia || [];
+  state.dystopia = data.dystopia || [];
+  state.utopiaPath = data.utopiaPath || [];
+  state.dystopiaPath = data.dystopiaPath || [];
+  state.insights = data.insights || { different: '', same: '', surprising: '' };
+  state.actions = data.actions || [];
+  state.isTemplate = null;
+
+  document.getElementById('titleInput').value = state.title;
+  document.getElementById('contextInput').value = state.context;
+
+  renderCurrentState();
+  renderHistory();
+  renderUtopia();
+  renderDystopia();
+
+  goToPhase(data.phase || 1);
+}
+
+function deleteSession(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this session?')) return;
+  const sessions = getSessions().filter(s => s.id !== id);
+  saveSessions(sessions);
+  renderSessionList();
+}
+
+function renderSessionList() {
+  const sessions = getSessions();
+  const card = document.getElementById('sessionsCard');
+  const list = document.getElementById('sessionList');
+
+  if (sessions.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'block';
+  list.innerHTML = '';
+
+  sessions.forEach(s => {
+    const li = document.createElement('li');
+    li.className = 'session-item';
+    li.onclick = () => loadSession(s.id);
+    const isComplete = s.phase >= 7;
+    const saved = new Date(s.savedAt);
+    const dateStr = saved.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const count = (s.currentState || []).length + (s.history || []).length;
+    li.innerHTML = `
+      <div class="session-item-info">
+        <div class="session-item-title">${escapeHtml(s.title)}</div>
+        <div class="session-item-meta">${count} items &middot; Phase ${s.phase || 1} &middot; ${dateStr}</div>
+      </div>
+      <span class="session-item-badge ${isComplete ? 'complete' : 'in-progress'}">${isComplete ? 'Complete' : 'In Progress'}</span>
+      <button class="remove-btn" onclick="deleteSession('${s.id}', event)" title="Delete">&times;</button>
+    `;
+    list.appendChild(li);
+  });
+}
+
+function resetApp() {
+  state = {
+    title: '',
+    context: '',
+    currentState: [],
+    history: [],
+    utopia: [],
+    dystopia: [],
+    utopiaPath: [],
+    dystopiaPath: [],
+    insights: { different: '', same: '', surprising: '' },
+    actions: [],
+    isTemplate: null,
+    sessionId: null,
+  };
+  document.getElementById('titleInput').value = '';
+  document.getElementById('contextInput').value = '';
+  document.getElementById('currentStateList').innerHTML = '';
+  document.getElementById('historyList').innerHTML = '';
+  document.getElementById('utopiaList').innerHTML = '';
+  document.getElementById('dystopiaList').innerHTML = '';
+  document.getElementById('currentStateEmpty').style.display = '';
+  document.getElementById('historyEmpty').style.display = '';
+  document.getElementById('utopiaEmpty').style.display = '';
+  document.getElementById('dystopiaEmpty').style.display = '';
+  document.getElementById('currentCount').textContent = '0';
+  document.getElementById('historyCount').textContent = '0';
+  document.getElementById('utopiaCount').textContent = '0';
+  document.getElementById('dystopiaCount').textContent = '0';
+  renderSessionList();
+  goToPhase(1);
+}
+
+// ========== UTILITY ==========
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(str || ''));
+  return div.innerHTML;
+}
+
+// ========== INIT ==========
+renderSessionList();
+</script>
+</body>
+</html>
