@@ -41,8 +41,8 @@
   document.head.appendChild(style);
 
   /* ── Colours ────────────────────────────────────────────── */
-  const PLAY_COLORS = { 0: '#4A90D9', 1: '#00897B', 2: '#7C5CBF', 3: '#E07A5F', 4: '#D4A843', 5: '#1B2A4A' };
-  const PLAY_NAMES  = { 0: 'All of VCT', 1: 'Sensemaking', 2: 'Imagining', 3: 'Navigating', 4: 'Collaborating', 5: 'Value Creating' };
+  const PLAY_COLORS = { 0: '#4A90D9', 1: '#00897B', 2: '#7C5CBF', 3: '#E07A5F', 4: '#D4A843', 5: '#1B2A4A', 11: '#00897B', 12: '#E07A5F', 13: '#1B2A4A' };
+  const PLAY_NAMES  = { 0: 'All of VCT', 1: 'Sensemaking', 2: 'Imagining', 3: 'Navigating', 4: 'Collaborating', 5: 'Value Creating', 11: 'FBSN Practice', 12: 'Cynefin Practice', 13: 'Calibration' };
   const TYPE_COLORS = { book: '#00897B', article: '#4A90D9', reference: '#7C5CBF', video: '#E07A5F', podcast: '#D4A843', tool: '#1B2A4A' };
   const TYPE_ICONS  = { book: '\u{1F4D6}', article: '\u{1F4C4}', reference: '\u{1F517}', video: '\u{1F3A5}', podcast: '\u{1F3A7}', tool: '\u{1F6E0}' };
 
@@ -59,7 +59,11 @@
     const sb = await getClient();
     if (!sb) return [];
     let q = sb.from('resources').select('*').order('created_at', { ascending: true });
-    if (play) q = q.in('play', [play, 0]); // include play-specific + VCT-wide
+    if (play) {
+      // Practices (11+) only show their own; plays (1-5) also show VCT-wide (0)
+      if (play >= 11) q = q.eq('play', play);
+      else q = q.in('play', [play, 0]);
+    }
     const { data, error } = await q;
     if (error) { console.warn('resources fetch error', error); return []; }
     return data || [];
@@ -121,7 +125,7 @@
     }
     const groups = {};
     resources.forEach(r => { (groups[r.play] = groups[r.play] || []).push(r); });
-    const order = [0, 1, 2, 3, 4, 5]; // VCT-wide first, then plays
+    const order = [0, 1, 2, 3, 4, 5, 11, 12, 13]; // VCT-wide, plays, then practices
     container.innerHTML = order.filter(p => groups[p]).map(p => `
       <div class="resources-play-group">
         <h3><span class="play-dot" style="background:${PLAY_COLORS[p]}"></span> ${p === 0 ? 'Value Creating Teams (General)' : 'Play ' + p + ': ' + PLAY_NAMES[p]}</h3>
@@ -132,14 +136,17 @@
   }
 
   function buildPlaySelect(currentPlay) {
-    // currentPlay: number if on a play page (1-5), null if on homepage
+    // currentPlay: number if on a play/practice page, null if on homepage
     const options = [
       { value: 0, label: 'All of VCT (general)' },
       { value: 1, label: 'Play 1: Sensemaking' },
       { value: 2, label: 'Play 2: Imagining' },
       { value: 3, label: 'Play 3: Navigating' },
       { value: 4, label: 'Play 4: Collaborating' },
-      { value: 5, label: 'Play 5: Value Creating' }
+      { value: 5, label: 'Play 5: Value Creating' },
+      { value: 11, label: 'FBSN Practice' },
+      { value: 12, label: 'Cynefin Practice' },
+      { value: 13, label: 'Calibration' }
     ];
     const selected = currentPlay || 0;
     return `<select class="res-play">${options.map(o =>

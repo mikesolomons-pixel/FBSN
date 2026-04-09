@@ -538,6 +538,14 @@
     </div>
   </div>
 
+  <!-- Dynamic Resources -->
+  <div class="section-label">
+    <h2>Resources</h2>
+    <div class="line"></div>
+  </div>
+  <div id="resources-list" class="resources-grid"></div>
+  <div id="resources-form" style="margin-bottom:2rem;"></div>
+
 </div>
 
 <!-- Footer -->
@@ -560,6 +568,9 @@
     }
   }
 </script>
+
+<script src="resources.js"></script>
+<script>setTimeout(function() { VCTResources.init(5); }, 500);</script>
 
 </body>
 </html>
