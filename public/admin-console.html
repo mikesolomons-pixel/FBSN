@@ -404,24 +404,23 @@
 
   /* ── Auth check ─────────────────────────────────────────── */
   function isAdmin() {
-    return sessionStorage.getItem('vct_admin') === '6c221976';
+    return window.VCTAuth && window.VCTAuth.isAdmin();
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    if (isAdmin()) {
-      document.getElementById('auth-gate').style.display = 'none';
-      document.getElementById('console').classList.add('active');
-      setTimeout(loadAll, 500);
-    }
-    // Also check periodically in case admin logs in via the popover
+    // Wait for auth.js to resolve
+    let checks = 0;
     const interval = setInterval(function () {
-      if (isAdmin() && !document.getElementById('console').classList.contains('active')) {
-        document.getElementById('auth-gate').style.display = 'none';
-        document.getElementById('console').classList.add('active');
-        loadAll();
+      checks++;
+      if ((window.VCTAuth && window.VCTAuth.isLoggedIn()) || checks > 50) {
         clearInterval(interval);
+        if (isAdmin()) {
+          document.getElementById('auth-gate').style.display = 'none';
+          document.getElementById('console').classList.add('active');
+          setTimeout(loadAll, 300);
+        }
       }
-    }, 1000);
+    }, 100);
   });
 
   /* ── Toast ──────────────────────────────────────────────── */

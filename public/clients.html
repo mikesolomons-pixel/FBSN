@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Engagements - Value Creating Teams</title>
+<script src="auth.js"></script>
+<script type="module" src="supabase-config.js"></script>
+<script src="admin.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --teal: #00897B;
+    --teal-dark: #006B5E;
+    --teal-light: #4DB6AC;
+    --gold: #D4A843;
+    --gold-light: #E8C96A;
+    --coral: #E07A5F;
+    --purple: #7C5CBF;
+    --blue: #4A90D9;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1B2A4A;
+    --text-secondary: #5A6B8A;
+    --border: #E2E8F0;
+    --shadow: 0 2px 8px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--teal-dark) 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+  }
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header .back-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.8rem; transition: color 0.15s;
+  }
+  .header .back-link:hover { color: white; }
+  .header h1 { font-size: 1.5rem; font-weight: 800; }
+  .header .subtitle { font-size: 0.82rem; opacity: 0.7; margin-top: 0.1rem; }
+  .btn-new-client {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: transparent; color: white; border: 2px solid rgba(255,255,255,0.5);
+    padding: 0.55rem 1.2rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-new-client:hover { background: rgba(255,255,255,0.15); border-color: white; }
+
+  /* Auth gate */
+  .auth-gate {
+    max-width: 400px; margin: 4rem auto; background: var(--card); border-radius: 16px;
+    padding: 2.5rem; box-shadow: var(--shadow-lg); text-align: center;
+  }
+  .auth-gate h2 { font-size: 1.2rem; color: var(--navy); margin-bottom: 0.5rem; }
+  .auth-gate p { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
+  .auth-gate a { color: var(--teal); font-weight: 600; }
+
+  /* Main container */
+  .main-container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; display: none; }
+  .main-container.active { display: block; }
+
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 0.25rem; margin-bottom: 1.5rem;
+    background: var(--card); border-radius: 12px; padding: 0.3rem;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+    width: fit-content;
+  }
+  .tab-btn {
+    padding: 0.6rem 1.4rem; border-radius: 9px; border: none; background: transparent;
+    font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--text); background: rgba(0,0,0,0.03); }
+  .tab-btn.active { background: var(--navy); color: white; }
+  .tab-view { display: none; }
+  .tab-view.active { display: block; }
+
+  /* ========== PIPELINE KANBAN ========== */
+  .kanban {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+  }
+  @media (max-width: 1200px) { .kanban { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 700px) { .kanban { grid-template-columns: 1fr 1fr; } }
+
+  .kanban-col {
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+  }
+  .kanban-col-header {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .kanban-col-header .col-count {
+    background: rgba(0,0,0,0.08);
+    padding: 0.15rem 0.55rem;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .kanban-col-body {
+    padding: 0.6rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 60px;
+  }
+  .kanban-col-body.drag-over { background: rgba(0,137,123,0.06); }
+
+  .pipeline-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 0.85rem;
+    cursor: grab;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .pipeline-card:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+  .pipeline-card:active { cursor: grabbing; }
+  .pipeline-card .card-name { font-weight: 700; font-size: 0.88rem; margin-bottom: 0.15rem; }
+  .pipeline-card .card-org { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.3rem; }
+  .pipeline-card .card-notes {
+    font-size: 0.75rem; color: var(--text-secondary); opacity: 0.8;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+  }
+  .pipeline-card .card-menu-btn {
+    position: absolute; top: 0.4rem; right: 0.4rem;
+    background: none; border: none; cursor: pointer; font-size: 1rem;
+    color: var(--text-secondary); opacity: 0; transition: opacity 0.15s;
+    padding: 0.2rem 0.4rem; border-radius: 4px;
+  }
+  .pipeline-card:hover .card-menu-btn { opacity: 1; }
+  .pipeline-card .card-menu-btn:hover { background: rgba(0,0,0,0.06); }
+
+  .card-context-menu {
+    position: absolute; background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; box-shadow: var(--shadow-lg); z-index: 100; min-width: 160px;
+    overflow: hidden; display: none;
+  }
+  .card-context-menu.show { display: block; }
+  .card-context-menu button {
+    display: block; width: 100%; text-align: left; border: none; background: none;
+    padding: 0.6rem 1rem; font-size: 0.82rem; cursor: pointer; color: var(--text);
+    transition: background 0.12s;
+  }
+  .card-context-menu button:hover { background: var(--bg); }
+  .card-context-menu button.danger { color: #E53935; }
+  .card-context-menu button.danger:hover { background: #FFF5F5; }
+
+  .kanban-empty {
+    text-align: center; padding: 1.5rem 0.5rem; color: var(--text-secondary);
+    font-size: 0.78rem; opacity: 0.6;
+  }
+
+  /* Pipeline stage colors */
+  .stage-lead .kanban-col-header { color: #616161; border-top: 3px solid #9E9E9E; }
+  .stage-qualified .kanban-col-header { color: #1565C0; border-top: 3px solid #4A90D9; }
+  .stage-proposal .kanban-col-header { color: #6A3EA1; border-top: 3px solid #7C5CBF; }
+  .stage-negotiation .kanban-col-header { color: #A67C00; border-top: 3px solid #D4A843; }
+  .stage-won .kanban-col-header { color: #2E7D32; border-top: 3px solid #43A047; }
+  .stage-lost .kanban-col-header { color: #C62828; border-top: 3px solid #EF5350; }
+  .kanban-col { border-top-left-radius: 0; border-top-right-radius: 0; }
+  .kanban-col .kanban-col-header { border-radius: 0; }
+
+  /* ========== ACTIVE PROJECTS GRID ========== */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+  }
+  .project-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .project-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+  .project-card .proj-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.25rem; }
+  .project-card .proj-client { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.75rem; }
+  .project-card .proj-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .badge {
+    display: inline-flex; align-items: center; padding: 0.2rem 0.65rem;
+    border-radius: 20px; font-size: 0.72rem; font-weight: 600;
+  }
+  .badge-calibration { background: #E3F2FD; color: #1565C0; }
+  .badge-scaffolding { background: #E0F2F1; color: #00695C; }
+  .badge-ongoing { background: #FFF8E1; color: #A67C00; }
+  .badge-complete { background: #E8EAF6; color: var(--navy); }
+  .badge-active { background: #E8F5E9; color: #2E7D32; }
+  .badge-paused { background: #FFF3E0; color: #E65100; }
+  .badge-archived { background: #F5F5F5; color: #757575; }
+  .proj-date { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.6rem; }
+  .projects-empty {
+    text-align: center; padding: 3rem; color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  /* ========== PROJECT DETAIL ========== */
+  .project-detail { display: none; }
+  .project-detail.active { display: block; }
+
+  .detail-header {
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.25rem;
+  }
+  .detail-header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.5rem;
+  }
+  .detail-back {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: none; border: none; color: var(--teal); font-size: 0.82rem;
+    font-weight: 600; cursor: pointer; padding: 0.3rem 0; transition: color 0.15s;
+  }
+  .detail-back:hover { color: var(--teal-dark); }
+  .detail-title { font-size: 1.3rem; font-weight: 800; }
+  .detail-client { font-size: 0.88rem; color: var(--text-secondary); }
+  .detail-badges { display: flex; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap; }
+
+  /* Stage timeline */
+  .stage-timeline {
+    display: flex; align-items: center; margin: 1.25rem 0 0; gap: 0;
+  }
+  .timeline-step {
+    flex: 1; text-align: center; position: relative;
+  }
+  .timeline-step .step-bar {
+    height: 6px; background: var(--border); position: relative;
+  }
+  .timeline-step:first-child .step-bar { border-radius: 3px 0 0 3px; }
+  .timeline-step:last-child .step-bar { border-radius: 0 3px 3px 0; }
+  .timeline-step.completed .step-bar { background: var(--teal); }
+  .timeline-step.current .step-bar { background: var(--blue); }
+  .timeline-step .step-dot {
+    width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--border);
+    background: white; position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+    z-index: 2;
+  }
+  .timeline-step.completed .step-dot { border-color: var(--teal); background: var(--teal); }
+  .timeline-step.current .step-dot { border-color: var(--blue); background: var(--blue); }
+  .timeline-step .step-label {
+    margin-top: 1rem; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .timeline-step.completed .step-label { color: var(--teal); }
+  .timeline-step.current .step-label { color: var(--blue); }
+
+  /* Stage content tabs */
+  .stage-tabs {
+    display: flex; gap: 0.25rem; margin-bottom: 1.25rem;
+    background: var(--card); border-radius: 12px; padding: 0.3rem;
+    box-shadow: var(--shadow); border: 1px solid var(--border); width: fit-content;
+  }
+  .stage-tab-btn {
+    padding: 0.5rem 1.1rem; border-radius: 9px; border: none; background: transparent;
+    font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+    transition: all 0.2s;
+  }
+  .stage-tab-btn:hover { color: var(--text); background: rgba(0,0,0,0.03); }
+  .stage-tab-btn.active { background: var(--blue); color: white; }
+
+  /* Stage content panels */
+  .stage-panel { display: none; }
+  .stage-panel.active { display: block; }
+
+  .detail-workspace {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+  }
+  @media (max-width: 900px) { .detail-workspace { grid-template-columns: 1fr; } }
+
+  .workspace-panel {
+    background: var(--card); border-radius: 14px; box-shadow: var(--shadow);
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .workspace-panel.full-width { grid-column: 1 / -1; }
+  .wp-header {
+    padding: 0.85rem 1.15rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .wp-header h3 { font-size: 0.9rem; font-weight: 700; color: var(--navy); }
+  .wp-header .progress-text { font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; }
+  .wp-body { padding: 1rem 1.15rem; }
+
+  /* Checklist */
+  .checklist { list-style: none; }
+  .checklist-item {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    padding: 0.55rem 0; border-bottom: 1px solid var(--border);
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-item input[type="checkbox"] {
+    width: 18px; height: 18px; margin-top: 1px; accent-color: var(--teal);
+    cursor: pointer; flex-shrink: 0;
+  }
+  .checklist-item label {
+    font-size: 0.85rem; cursor: pointer; line-height: 1.4;
+  }
+  .checklist-item.completed label {
+    text-decoration: line-through; color: var(--text-secondary); opacity: 0.7;
+  }
+
+  /* Artifacts */
+  .artifact-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .artifact-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.65rem 0.85rem; background: var(--bg); border-radius: 10px;
+    border: 1px solid var(--border); transition: background 0.15s;
+  }
+  .artifact-item:hover { background: #EDF2F7; }
+  .artifact-icon {
+    width: 34px; height: 34px; border-radius: 8px; display: flex;
+    align-items: center; justify-content: center; font-size: 0.85rem;
+    font-weight: 700; flex-shrink: 0;
+  }
+  .artifact-icon.document { background: #E3F2FD; color: #1565C0; }
+  .artifact-icon.exercise_output { background: #E8F5E9; color: #2E7D32; }
+  .artifact-icon.meeting_notes { background: #FFF8E1; color: #A67C00; }
+  .artifact-icon.template { background: #F3E5F5; color: #7B1FA2; }
+  .artifact-icon.other { background: #F5F5F5; color: #757575; }
+  .artifact-info { flex: 1; min-width: 0; }
+  .artifact-info .a-title { font-size: 0.85rem; font-weight: 600; }
+  .artifact-info .a-desc { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.1rem; }
+  .artifact-actions { display: flex; gap: 0.25rem; }
+  .artifact-actions button {
+    background: none; border: none; cursor: pointer; padding: 0.3rem;
+    color: var(--text-secondary); font-size: 0.82rem; border-radius: 4px;
+    transition: all 0.12s;
+  }
+  .artifact-actions button:hover { background: rgba(0,0,0,0.06); color: var(--text); }
+  .artifact-actions button.danger:hover { color: #E53935; }
+  .artifact-link {
+    color: var(--teal); text-decoration: none; font-size: 0.75rem; font-weight: 600;
+  }
+  .artifact-link:hover { text-decoration: underline; }
+  .artifacts-empty {
+    text-align: center; padding: 1.5rem; color: var(--text-secondary);
+    font-size: 0.82rem;
+  }
+
+  /* Notes */
+  .stage-notes-area {
+    width: 100%; min-height: 180px; border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.85rem; font-family: inherit; font-size: 0.85rem; color: var(--text);
+    resize: vertical; background: var(--bg); transition: border-color 0.2s;
+  }
+  .stage-notes-area:focus { outline: none; border-color: var(--teal); background: white; }
+  .btn-save-notes {
+    margin-top: 0.6rem; padding: 0.45rem 1rem; border: none; border-radius: 8px;
+    background: var(--teal); color: white; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn-save-notes:hover { background: var(--teal-dark); }
+
+  /* Add buttons */
+  .btn-add {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.4rem 0.85rem; border: 1px dashed var(--border); border-radius: 8px;
+    background: transparent; color: var(--text-secondary); font-size: 0.78rem;
+    font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-add:hover { border-color: var(--teal); color: var(--teal); background: rgba(0,137,123,0.04); }
+
+  /* ========== MODALS ========== */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(27,42,74,0.4); z-index: 1000;
+    display: none; align-items: center; justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--card); border-radius: 18px; box-shadow: var(--shadow-lg);
+    width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-header {
+    padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h2 { font-size: 1.1rem; font-weight: 700; }
+  .modal-close {
+    background: none; border: none; font-size: 1.3rem; cursor: pointer;
+    color: var(--text-secondary); padding: 0.2rem; transition: color 0.15s;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-body { padding: 1.5rem; }
+  .modal-footer {
+    padding: 1rem 1.5rem; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem;
+  }
+
+  .form-group { margin-bottom: 1rem; }
+  .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.35rem; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 0.6rem 0.85rem; border: 1px solid var(--border);
+    border-radius: 9px; font-size: 0.88rem; font-family: inherit; color: var(--text);
+    background: var(--bg); transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none; border-color: var(--teal); background: white;
+  }
+  .form-group textarea { min-height: 90px; resize: vertical; }
+
+  .btn-primary {
+    padding: 0.55rem 1.3rem; border: none; border-radius: 9px;
+    background: var(--teal); color: white; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary {
+    padding: 0.55rem 1.3rem; border: 1px solid var(--border); border-radius: 9px;
+    background: white; color: var(--text); font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn-danger {
+    padding: 0.55rem 1.3rem; border: none; border-radius: 9px;
+    background: #E53935; color: white; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: background 0.15s; margin-right: auto;
+  }
+  .btn-danger:hover { background: #C62828; }
+
+  /* Toast */
+  .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 2000; display: flex; flex-direction: column; gap: 0.5rem; }
+  .toast {
+    background: var(--navy); color: white; padding: 0.75rem 1.25rem;
+    border-radius: 10px; font-size: 0.85rem; font-weight: 500;
+    box-shadow: var(--shadow-lg); animation: toastIn 0.25s ease;
+    max-width: 360px;
+  }
+  .toast.success { background: #2E7D32; }
+  .toast.error { background: #C62828; }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Confirm dialog */
+  .confirm-overlay {
+    position: fixed; inset: 0; background: rgba(27,42,74,0.5); z-index: 2000;
+    display: none; align-items: center; justify-content: center;
+  }
+  .confirm-overlay.show { display: flex; }
+  .confirm-box {
+    background: var(--card); border-radius: 16px; padding: 1.75rem; max-width: 380px;
+    box-shadow: var(--shadow-lg); text-align: center;
+  }
+  .confirm-box h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+  .confirm-box p { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem; }
+  .confirm-box .confirm-actions { display: flex; gap: 0.5rem; justify-content: center; }
+
+  /* Status dropdown in project detail */
+  .status-select {
+    padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 0.78rem; font-weight: 600; cursor: pointer; background: white;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .header-inner { flex-direction: column; align-items: flex-start; }
+    .tabs { width: 100%; }
+    .tab-btn { flex: 1; text-align: center; font-size: 0.78rem; padding: 0.5rem 0.5rem; }
+    .kanban { grid-template-columns: 1fr; }
+    .detail-workspace { grid-template-columns: 1fr; }
+    .stage-tabs { width: 100%; }
+    .stage-tab-btn { flex: 1; text-align: center; font-size: 0.75rem; padding: 0.45rem 0.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <a href="index.html" class="back-link">&larr; Home</a>
+      <h1>Client Engagements</h1>
+      <div class="subtitle">Manage your BD pipeline, projects, and engagement lifecycle</div>
+    </div>
+    <button class="btn-new-client" onclick="openNewClientModal()">+ New Client</button>
+  </div>
+</div>
+
+<!-- Auth gate -->
+<div class="auth-gate" id="authGate">
+  <h2>Sign In Required</h2>
+  <p>You need to be signed in to manage clients.</p>
+  <a href="login.html">Sign in &rarr;</a>
+</div>
+
+<!-- Main container -->
+<div class="main-container" id="mainContainer">
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="pipeline" onclick="switchTab('pipeline')">Pipeline</button>
+    <button class="tab-btn" data-tab="projects" onclick="switchTab('projects')">Active Projects</button>
+  </div>
+
+  <!-- Tab: Pipeline -->
+  <div class="tab-view active" id="tab-pipeline">
+    <div class="kanban" id="kanbanBoard">
+      <div class="kanban-col stage-lead" data-stage="lead">
+        <div class="kanban-col-header"><span>Lead</span><span class="col-count" data-count="lead">0</span></div>
+        <div class="kanban-col-body" data-stage="lead"></div>
+      </div>
+      <div class="kanban-col stage-qualified" data-stage="qualified">
+        <div class="kanban-col-header"><span>Qualified</span><span class="col-count" data-count="qualified">0</span></div>
+        <div class="kanban-col-body" data-stage="qualified"></div>
+      </div>
+      <div class="kanban-col stage-proposal" data-stage="proposal">
+        <div class="kanban-col-header"><span>Proposal</span><span class="col-count" data-count="proposal">0</span></div>
+        <div class="kanban-col-body" data-stage="proposal"></div>
+      </div>
+      <div class="kanban-col stage-negotiation" data-stage="negotiation">
+        <div class="kanban-col-header"><span>Negotiation</span><span class="col-count" data-count="negotiation">0</span></div>
+        <div class="kanban-col-body" data-stage="negotiation"></div>
+      </div>
+      <div class="kanban-col stage-won" data-stage="won">
+        <div class="kanban-col-header"><span>Won</span><span class="col-count" data-count="won">0</span></div>
+        <div class="kanban-col-body" data-stage="won"></div>
+      </div>
+      <div class="kanban-col stage-lost" data-stage="lost">
+        <div class="kanban-col-header"><span>Lost</span><span class="col-count" data-count="lost">0</span></div>
+        <div class="kanban-col-body" data-stage="lost"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Active Projects -->
+  <div class="tab-view" id="tab-projects">
+    <div class="projects-grid" id="projectsGrid"></div>
+  </div>
+
+  <!-- Project Detail -->
+  <div class="project-detail" id="projectDetail"></div>
+</div>
+
+<!-- Client Modal -->
+<div class="modal-overlay" id="clientModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="clientModalTitle">New Client</h2>
+      <button class="modal-close" onclick="closeClientModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="clientId">
+      <div class="form-group">
+        <label>Name *</label>
+        <input type="text" id="clientName" placeholder="Client or team lead name" required>
+      </div>
+      <div class="form-group">
+        <label>Organization</label>
+        <input type="text" id="clientOrg" placeholder="Company or team">
+      </div>
+      <div class="form-group">
+        <label>Contact Email</label>
+        <input type="email" id="clientEmail" placeholder="email@example.com">
+      </div>
+      <div class="form-group">
+        <label>Contact Phone</label>
+        <input type="text" id="clientPhone" placeholder="+1 (555) 000-0000">
+      </div>
+      <div class="form-group">
+        <label>Pipeline Stage</label>
+        <select id="clientStage">
+          <option value="lead">Lead</option>
+          <option value="qualified">Qualified</option>
+          <option value="proposal">Proposal</option>
+          <option value="negotiation">Negotiation</option>
+          <option value="won">Won</option>
+          <option value="lost">Lost</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="clientNotes" placeholder="Background, context, next steps..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" id="clientDeleteBtn" style="display:none" onclick="deleteClient()">Delete</button>
+      <button class="btn-secondary" onclick="closeClientModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveClient()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Project Modal -->
+<div class="modal-overlay" id="projectModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="projectModalTitle">New Project</h2>
+      <button class="modal-close" onclick="closeProjectModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="projectClientId">
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="projectTitle" placeholder="e.g. Leadership Team Calibration">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="projectDesc" placeholder="What is the engagement about?"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" id="projectStart">
+      </div>
+      <div class="form-group">
+        <label>Target End Date</label>
+        <input type="date" id="projectEnd">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeProjectModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveProject()">Create Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- Artifact Modal -->
+<div class="modal-overlay" id="artifactModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="artifactModalTitle">Add Artifact</h2>
+      <button class="modal-close" onclick="closeArtifactModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="artifactId">
+      <input type="hidden" id="artifactProjectId">
+      <input type="hidden" id="artifactStage">
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="artifactTitle" placeholder="Document name">
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="artifactType">
+          <option value="document">Document</option>
+          <option value="exercise_output">Exercise Output</option>
+          <option value="meeting_notes">Meeting Notes</option>
+          <option value="template">Template</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="artifactDesc" placeholder="Brief description..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>URL (optional)</label>
+        <input type="url" id="artifactUrl" placeholder="https://...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" id="artifactDeleteBtn" style="display:none" onclick="deleteArtifact()">Delete</button>
+      <button class="btn-secondary" onclick="closeArtifactModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveArtifact()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3 id="confirmTitle">Are you sure?</h3>
+    <p id="confirmMessage">This action cannot be undone.</p>
+    <div class="confirm-actions">
+      <button class="btn-secondary" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-danger" id="confirmAction">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div class="card-context-menu" id="contextMenu">
+  <button onclick="ctxEdit()">Edit Client</button>
+  <button onclick="ctxCreateProject()">Create Project</button>
+  <button class="danger" onclick="ctxDelete()">Delete Client</button>
+</div>
+
+<!-- Toasts -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ========== STATE ==========
+let allClients = [];
+let allProjects = [];
+let currentProjectId = null;
+let currentProjectData = null;
+let currentStageTasks = [];
+let currentArtifacts = [];
+let contextClientId = null;
+let confirmCallback = null;
+let draggedCardId = null;
+
+const PIPELINE_STAGES = ['lead', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
+const PROJECT_STAGES = ['calibration', 'scaffolding', 'ongoing', 'complete'];
+const STAGE_COLORS = {
+  lead: '#9E9E9E', qualified: '#4A90D9', proposal: '#7C5CBF',
+  negotiation: '#D4A843', won: '#43A047', lost: '#EF5350'
+};
+const PROJECT_STAGE_COLORS = {
+  calibration: '#4A90D9', scaffolding: '#00897B', ongoing: '#D4A843', complete: '#1B2A4A'
+};
+const ARTIFACT_ICONS = {
+  document: { icon: 'DOC', cls: 'document' },
+  exercise_output: { icon: 'EX', cls: 'exercise_output' },
+  meeting_notes: { icon: 'MTG', cls: 'meeting_notes' },
+  template: { icon: 'TPL', cls: 'template' },
+  other: { icon: 'OTH', cls: 'other' }
+};
+
+const DEFAULT_TASKS = {
+  calibration: [
+    'CEO Partnership conversation',
+    'Define value creation goals',
+    'Engagement design',
+    'Team observation',
+    'Individual conversations',
+    'Synthesis & pattern recognition',
+    'Event architecture',
+    'CEO alignment on design',
+    'The calibration event'
+  ],
+  scaffolding: [
+    'Define team rhythm',
+    'Establish focus areas',
+    'Design support structure',
+    'Set up signals & metrics'
+  ],
+  ongoing: [
+    'First play cycle',
+    'Team retrospective',
+    'Capability assessment',
+    'Independence planning'
+  ]
+};
+
+// ========== SUPABASE HELPER ==========
+async function getClient() {
+  for (let i = 0; i < 30; i++) {
+    if (window.supabaseClient) return window.supabaseClient;
+    await new Promise(r => setTimeout(r, 100));
+  }
+  return null;
+}
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', async () => {
+  // Close context menu on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.card-menu-btn')) {
+      document.getElementById('contextMenu').classList.remove('show');
+    }
+  });
+
+  // Read hash for initial tab
+  handleHash();
+  window.addEventListener('hashchange', handleHash);
+
+  // Wait for auth
+  const sb = await getClient();
+  if (!sb) return;
+
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return;
+
+  document.getElementById('authGate').style.display = 'none';
+  document.getElementById('mainContainer').classList.add('active');
+
+  await loadClients();
+  await loadProjects();
+});
+
+function handleHash() {
+  const hash = window.location.hash.replace('#', '');
+  if (hash === 'projects') {
+    switchTab('projects');
+  } else if (hash.startsWith('project-')) {
+    const projId = hash.replace('project-', '');
+    switchTab('projects');
+    setTimeout(() => openProjectDetail(projId), 300);
+  } else {
+    switchTab('pipeline');
+  }
+}
+
+// ========== TABS ==========
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+
+  if (tab === 'pipeline') {
+    document.getElementById('tab-pipeline').classList.add('active');
+    document.getElementById('projectDetail').classList.remove('active');
+    window.location.hash = 'pipeline';
+  } else if (tab === 'projects') {
+    document.getElementById('tab-projects').classList.add('active');
+    document.getElementById('projectDetail').classList.remove('active');
+    window.location.hash = 'projects';
+  }
+}
+
+// ========== TOAST ==========
+function toast(msg, type = '') {
+  const container = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+// ========== CONFIRM ==========
+function showConfirm(title, message, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMessage').textContent = message;
+  confirmCallback = callback;
+  document.getElementById('confirmOverlay').classList.add('show');
+  document.getElementById('confirmAction').onclick = async () => {
+    closeConfirm();
+    if (confirmCallback) await confirmCallback();
+  };
+}
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+  confirmCallback = null;
+}
+
+// ========== LOAD CLIENTS ==========
+async function loadClients() {
+  const sb = await getClient();
+  if (!sb) return;
+  const { data, error } = await sb.from('clients')
+    .select('*')
+    .eq('created_by', window.VCTUser.id)
+    .order('created_at', { ascending: false });
+  if (error) { toast('Failed to load clients', 'error'); return; }
+  allClients = data || [];
+  renderPipeline();
+}
+
+// ========== RENDER PIPELINE ==========
+function renderPipeline() {
+  PIPELINE_STAGES.forEach(stage => {
+    const body = document.querySelector(`.kanban-col-body[data-stage="${stage}"]`);
+    const count = document.querySelector(`.col-count[data-count="${stage}"]`);
+    const stageClients = allClients.filter(c => c.pipeline_stage === stage);
+    count.textContent = stageClients.length;
+    body.innerHTML = '';
+    if (stageClients.length === 0) {
+      body.innerHTML = '<div class="kanban-empty">No clients</div>';
+    }
+    stageClients.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'pipeline-card';
+      card.draggable = true;
+      card.dataset.clientId = c.id;
+      card.innerHTML = `
+        <div class="card-name">${esc(c.name)}</div>
+        ${c.organization ? `<div class="card-org">${esc(c.organization)}</div>` : ''}
+        ${c.notes ? `<div class="card-notes">${esc(c.notes)}</div>` : ''}
+        <button class="card-menu-btn" onclick="openContextMenu(event, '${c.id}')" title="Actions">&hellip;</button>
+      `;
+      card.addEventListener('dragstart', onDragStart);
+      card.addEventListener('dragend', onDragEnd);
+      body.appendChild(card);
+    });
+
+    // Drop targets
+    body.addEventListener('dragover', onDragOver);
+    body.addEventListener('dragleave', onDragLeave);
+    body.addEventListener('drop', onDrop);
+  });
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ========== DRAG & DROP ==========
+function onDragStart(e) {
+  draggedCardId = e.target.closest('.pipeline-card').dataset.clientId;
+  e.target.closest('.pipeline-card').style.opacity = '0.5';
+  e.dataTransfer.effectAllowed = 'move';
+}
+function onDragEnd(e) {
+  e.target.closest('.pipeline-card').style.opacity = '1';
+  draggedCardId = null;
+  document.querySelectorAll('.kanban-col-body').forEach(b => b.classList.remove('drag-over'));
+}
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+function onDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+async function onDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!draggedCardId) return;
+  const newStage = e.currentTarget.dataset.stage;
+  const client = allClients.find(c => c.id === draggedCardId);
+  if (!client || client.pipeline_stage === newStage) return;
+
+  const oldStage = client.pipeline_stage;
+  await updateClientStage(draggedCardId, newStage);
+
+  // If moved to Won, prompt to create project
+  if (newStage === 'won' && oldStage !== 'won') {
+    const hasProject = allProjects.some(p => p.client_id === draggedCardId);
+    if (!hasProject) {
+      setTimeout(() => {
+        openNewProjectModal(draggedCardId);
+      }, 400);
+    }
+  }
+}
+
+async function updateClientStage(clientId, newStage) {
+  const sb = await getClient();
+  if (!sb) return;
+  const { error } = await sb.from('clients').update({
+    pipeline_stage: newStage,
+    updated_at: new Date().toISOString()
+  }).eq('id', clientId);
+  if (error) { toast('Failed to update stage', 'error'); return; }
+  const c = allClients.find(x => x.id === clientId);
+  if (c) c.pipeline_stage = newStage;
+  renderPipeline();
+  toast('Client moved to ' + newStage.charAt(0).toUpperCase() + newStage.slice(1), 'success');
+}
+
+// ========== CONTEXT MENU ==========
+function openContextMenu(e, clientId) {
+  e.stopPropagation();
+  contextClientId = clientId;
+  const menu = document.getElementById('contextMenu');
+  menu.style.top = e.pageY + 'px';
+  menu.style.left = Math.min(e.pageX, window.innerWidth - 180) + 'px';
+  menu.classList.add('show');
+}
+function ctxEdit() {
+  document.getElementById('contextMenu').classList.remove('show');
+  const c = allClients.find(x => x.id === contextClientId);
+  if (c) openEditClientModal(c);
+}
+function ctxCreateProject() {
+  document.getElementById('contextMenu').classList.remove('show');
+  openNewProjectModal(contextClientId);
+}
+function ctxDelete() {
+  document.getElementById('contextMenu').classList.remove('show');
+  const c = allClients.find(x => x.id === contextClientId);
+  if (!c) return;
+  showConfirm('Delete Client', `Delete "${c.name}"? This cannot be undone.`, async () => {
+    const sb = await getClient();
+    if (!sb) return;
+    const { error } = await sb.from('clients').delete().eq('id', c.id);
+    if (error) { toast('Failed to delete', 'error'); return; }
+    allClients = allClients.filter(x => x.id !== c.id);
+    renderPipeline();
+    toast('Client deleted', 'success');
+  });
+}
+
+// ========== CLIENT MODAL ==========
+function openNewClientModal() {
+  document.getElementById('clientModalTitle').textContent = 'New Client';
+  document.getElementById('clientId').value = '';
+  document.getElementById('clientName').value = '';
+  document.getElementById('clientOrg').value = '';
+  document.getElementById('clientEmail').value = '';
+  document.getElementById('clientPhone').value = '';
+  document.getElementById('clientStage').value = 'lead';
+  document.getElementById('clientNotes').value = '';
+  document.getElementById('clientDeleteBtn').style.display = 'none';
+  document.getElementById('clientModal').classList.add('show');
+}
+
+function openEditClientModal(c) {
+  document.getElementById('clientModalTitle').textContent = 'Edit Client';
+  document.getElementById('clientId').value = c.id;
+  document.getElementById('clientName').value = c.name || '';
+  document.getElementById('clientOrg').value = c.organization || '';
+  document.getElementById('clientEmail').value = c.contact_email || '';
+  document.getElementById('clientPhone').value = c.contact_phone || '';
+  document.getElementById('clientStage').value = c.pipeline_stage || 'lead';
+  document.getElementById('clientNotes').value = c.notes || '';
+  document.getElementById('clientDeleteBtn').style.display = 'inline-flex';
+  document.getElementById('clientModal').classList.add('show');
+}
+
+function closeClientModal() {
+  document.getElementById('clientModal').classList.remove('show');
+}
+
+async function saveClient() {
+  const name = document.getElementById('clientName').value.trim();
+  if (!name) { toast('Name is required', 'error'); return; }
+
+  const sb = await getClient();
+  if (!sb) return;
+  const id = document.getElementById('clientId').value;
+  const payload = {
+    name,
+    organization: document.getElementById('clientOrg').value.trim() || null,
+    contact_email: document.getElementById('clientEmail').value.trim() || null,
+    contact_phone: document.getElementById('clientPhone').value.trim() || null,
+    pipeline_stage: document.getElementById('clientStage').value,
+    notes: document.getElementById('clientNotes').value.trim() || null,
+    updated_at: new Date().toISOString()
+  };
+
+  const oldStage = id ? (allClients.find(c => c.id === id) || {}).pipeline_stage : null;
+
+  if (id) {
+    const { error } = await sb.from('clients').update(payload).eq('id', id);
+    if (error) { toast('Failed to update client', 'error'); return; }
+    toast('Client updated', 'success');
+  } else {
+    payload.created_by = window.VCTUser.id;
+    const { error } = await sb.from('clients').insert(payload);
+    if (error) { toast('Failed to create client', 'error'); return; }
+    toast('Client created', 'success');
+  }
+
+  closeClientModal();
+  await loadClients();
+
+  // If stage changed to won, prompt project creation
+  if (id && payload.pipeline_stage === 'won' && oldStage !== 'won') {
+    const hasProject = allProjects.some(p => p.client_id === id);
+    if (!hasProject) {
+      setTimeout(() => openNewProjectModal(id), 400);
+    }
+  }
+}
+
+async function deleteClient() {
+  const id = document.getElementById('clientId').value;
+  if (!id) return;
+  const c = allClients.find(x => x.id === id);
+  closeClientModal();
+  showConfirm('Delete Client', `Delete "${c ? c.name : 'this client'}"? This cannot be undone.`, async () => {
+    const sb = await getClient();
+    if (!sb) return;
+    const { error } = await sb.from('clients').delete().eq('id', id);
+    if (error) { toast('Failed to delete', 'error'); return; }
+    allClients = allClients.filter(x => x.id !== id);
+    renderPipeline();
+    toast('Client deleted', 'success');
+  });
+}
+
+// ========== LOAD PROJECTS ==========
+async function loadProjects() {
+  const sb = await getClient();
+  if (!sb) return;
+  const { data, error } = await sb.from('projects')
+    .select('*, clients(name, organization)')
+    .eq('created_by', window.VCTUser.id)
+    .order('created_at', { ascending: false });
+  if (error) { toast('Failed to load projects', 'error'); return; }
+  allProjects = data || [];
+  renderProjects();
+}
+
+// ========== RENDER PROJECTS ==========
+function renderProjects() {
+  const grid = document.getElementById('projectsGrid');
+  const activeProjects = allProjects.filter(p => p.status !== 'archived');
+
+  if (activeProjects.length === 0) {
+    grid.innerHTML = '<div class="projects-empty">No active projects yet. Win a client in the pipeline to create your first project.</div>';
+    return;
+  }
+
+  grid.innerHTML = activeProjects.map(p => {
+    const clientName = p.clients ? (p.clients.name + (p.clients.organization ? ' - ' + p.clients.organization : '')) : '';
+    const stageLabel = p.current_stage ? p.current_stage.charAt(0).toUpperCase() + p.current_stage.slice(1) : '';
+    const statusLabel = p.status ? p.status.charAt(0).toUpperCase() + p.status.slice(1) : '';
+    const startDate = p.start_date ? new Date(p.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+
+    return `<div class="project-card" onclick="openProjectDetail('${p.id}')">
+      <div class="proj-title">${esc(p.title)}</div>
+      <div class="proj-client">${esc(clientName)}</div>
+      <div class="proj-meta">
+        <span class="badge badge-${p.current_stage}">${stageLabel}</span>
+        <span class="badge badge-${p.status}">${statusLabel}</span>
+      </div>
+      ${startDate ? `<div class="proj-date">Started ${startDate}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ========== PROJECT MODAL ==========
+function openNewProjectModal(clientId) {
+  document.getElementById('projectModalTitle').textContent = 'New Project';
+  document.getElementById('projectClientId').value = clientId || '';
+  document.getElementById('projectTitle').value = '';
+  document.getElementById('projectDesc').value = '';
+  document.getElementById('projectStart').value = new Date().toISOString().split('T')[0];
+  document.getElementById('projectEnd').value = '';
+  document.getElementById('projectModal').classList.add('show');
+}
+
+function closeProjectModal() {
+  document.getElementById('projectModal').classList.remove('show');
+}
+
+async function saveProject() {
+  const title = document.getElementById('projectTitle').value.trim();
+  if (!title) { toast('Title is required', 'error'); return; }
+
+  const sb = await getClient();
+  if (!sb) return;
+
+  const clientId = document.getElementById('projectClientId').value;
+  const payload = {
+    client_id: clientId || null,
+    title,
+    description: document.getElementById('projectDesc').value.trim() || null,
+    current_stage: 'calibration',
+    start_date: document.getElementById('projectStart').value || null,
+    target_end_date: document.getElementById('projectEnd').value || null,
+    status: 'active',
+    created_by: window.VCTUser.id
+  };
+
+  const { data, error } = await sb.from('projects').insert(payload).select().single();
+  if (error) { toast('Failed to create project', 'error'); console.error(error); return; }
+
+  // Auto-create default tasks
+  const tasks = [];
+  let sortOrder = 0;
+  for (const stage of ['calibration', 'scaffolding', 'ongoing']) {
+    for (const taskTitle of DEFAULT_TASKS[stage]) {
+      tasks.push({
+        project_id: data.id,
+        stage,
+        title: taskTitle,
+        is_complete: false,
+        sort_order: sortOrder++
+      });
+    }
+  }
+
+  const { error: taskError } = await sb.from('stage_tasks').insert(tasks);
+  if (taskError) { console.error('Failed to create default tasks:', taskError); }
+
+  closeProjectModal();
+  await loadProjects();
+  toast('Project created with default checklists', 'success');
+
+  // Navigate to the new project
+  setTimeout(() => openProjectDetail(data.id), 300);
+}
+
+// ========== PROJECT DETAIL ==========
+async function openProjectDetail(projectId) {
+  currentProjectId = projectId;
+  window.location.hash = 'project-' + projectId;
+
+  // Hide tabs and other views
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+  const detail = document.getElementById('projectDetail');
+  detail.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-secondary)">Loading project...</div>';
+  detail.classList.add('active');
+
+  const sb = await getClient();
+  if (!sb) return;
+
+  // Load project
+  const { data: proj, error } = await sb.from('projects')
+    .select('*, clients(name, organization)')
+    .eq('id', projectId)
+    .single();
+  if (error || !proj) { toast('Project not found', 'error'); switchTab('projects'); return; }
+  currentProjectData = proj;
+
+  // Load tasks
+  const { data: tasks } = await sb.from('stage_tasks')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('sort_order', { ascending: true });
+  currentStageTasks = tasks || [];
+
+  // Load artifacts
+  const { data: artifacts } = await sb.from('artifacts')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: false });
+  currentArtifacts = artifacts || [];
+
+  renderProjectDetail();
+}
+
+function renderProjectDetail() {
+  const p = currentProjectData;
+  if (!p) return;
+
+  const clientName = p.clients ? p.clients.name : '';
+  const clientOrg = p.clients && p.clients.organization ? ' - ' + p.clients.organization : '';
+  const stageLabel = p.current_stage ? p.current_stage.charAt(0).toUpperCase() + p.current_stage.slice(1) : '';
+  const statusLabel = p.status ? p.status.charAt(0).toUpperCase() + p.status.slice(1) : '';
+  const stageIdx = PROJECT_STAGES.indexOf(p.current_stage);
+
+  const timelineHTML = PROJECT_STAGES.map((s, i) => {
+    let cls = '';
+    if (i < stageIdx) cls = 'completed';
+    else if (i === stageIdx) cls = 'current';
+    const label = s.charAt(0).toUpperCase() + s.slice(1);
+    return `<div class="timeline-step ${cls}">
+      <div class="step-bar"><div class="step-dot"></div></div>
+      <div class="step-label">${label}</div>
+    </div>`;
+  }).join('');
+
+  // Only show stage tabs for non-complete stages
+  const editableStages = ['calibration', 'scaffolding', 'ongoing'];
+  const activeStage = editableStages.includes(p.current_stage) ? p.current_stage : 'calibration';
+
+  const stageTabsHTML = editableStages.map(s => {
+    const label = s.charAt(0).toUpperCase() + s.slice(1);
+    const tasks = currentStageTasks.filter(t => t.stage === s);
+    const done = tasks.filter(t => t.is_complete).length;
+    const total = tasks.length;
+    const active = s === activeStage ? 'active' : '';
+    return `<button class="stage-tab-btn ${active}" data-stage="${s}" onclick="switchStageTab('${s}')">${label} (${done}/${total})</button>`;
+  }).join('');
+
+  const detail = document.getElementById('projectDetail');
+  detail.innerHTML = `
+    <div class="detail-header">
+      <div class="detail-header-top">
+        <button class="detail-back" onclick="backToProjects()">&larr; Back to Projects</button>
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <select class="status-select" onchange="updateProjectStatus(this.value)">
+            <option value="active" ${p.status==='active'?'selected':''}>Active</option>
+            <option value="paused" ${p.status==='paused'?'selected':''}>Paused</option>
+            <option value="complete" ${p.status==='complete'?'selected':''}>Complete</option>
+            <option value="archived" ${p.status==='archived'?'selected':''}>Archived</option>
+          </select>
+          <select class="status-select" onchange="updateProjectStage(this.value)">
+            ${PROJECT_STAGES.map(s => `<option value="${s}" ${p.current_stage===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="detail-title">${esc(p.title)}</div>
+      <div class="detail-client">${esc(clientName + clientOrg)}</div>
+      ${p.description ? `<div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.4rem;">${esc(p.description)}</div>` : ''}
+      <div class="detail-badges">
+        <span class="badge badge-${p.current_stage}">${stageLabel}</span>
+        <span class="badge badge-${p.status}">${statusLabel}</span>
+      </div>
+      <div class="stage-timeline">${timelineHTML}</div>
+    </div>
+
+    <div class="stage-tabs" id="stageTabs">${stageTabsHTML}</div>
+
+    ${editableStages.map(s => {
+      const isActive = s === activeStage ? 'active' : '';
+      return `<div class="stage-panel ${isActive}" data-stage-panel="${s}">
+        ${renderStageContent(s)}
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function renderStageContent(stage) {
+  const tasks = currentStageTasks.filter(t => t.stage === stage);
+  const arts = currentArtifacts.filter(a => a.stage === stage);
+  const done = tasks.filter(t => t.is_complete).length;
+  const total = tasks.length;
+
+  const checklistHTML = tasks.map(t => {
+    const checked = t.is_complete ? 'checked' : '';
+    const cls = t.is_complete ? 'completed' : '';
+    return `<li class="checklist-item ${cls}">
+      <input type="checkbox" ${checked} onchange="toggleTask('${t.id}', this.checked)" id="task-${t.id}">
+      <label for="task-${t.id}">${esc(t.title)}</label>
+    </li>`;
+  }).join('');
+
+  const artifactsHTML = arts.length > 0 ? arts.map(a => {
+    const info = ARTIFACT_ICONS[a.artifact_type] || ARTIFACT_ICONS.other;
+    return `<div class="artifact-item">
+      <div class="artifact-icon ${info.cls}">${info.icon}</div>
+      <div class="artifact-info">
+        <div class="a-title">${esc(a.title)}</div>
+        ${a.description ? `<div class="a-desc">${esc(a.description)}</div>` : ''}
+        ${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener" class="artifact-link">Open link &rarr;</a>` : ''}
+      </div>
+      <div class="artifact-actions">
+        <button onclick="editArtifact('${a.id}')" title="Edit">&#9998;</button>
+        <button class="danger" onclick="confirmDeleteArtifact('${a.id}')" title="Delete">&times;</button>
+      </div>
+    </div>`;
+  }).join('') : '<div class="artifacts-empty">No artifacts yet</div>';
+
+  // Get notes from artifacts with type 'stage_notes' or use a textarea approach
+  // We'll store notes as an artifact of a special convention, or just use a local approach.
+  // For simplicity, use the project's description + a dedicated notes field per stage stored in artifacts.
+  // Actually, let's store stage notes in a simple approach: artifact with type 'other' and title '__stage_notes__'.
+  // Better: use a dedicated approach. Let's just make it a textarea that saves to a special artifact.
+  const notesArtifact = currentArtifacts.find(a => a.stage === stage && a.title === '__stage_notes__');
+  const notesContent = notesArtifact ? (notesArtifact.content || '') : '';
+
+  return `<div class="detail-workspace">
+    <div class="workspace-panel">
+      <div class="wp-header">
+        <h3>Checklist</h3>
+        <span class="progress-text">${done}/${total} complete</span>
+      </div>
+      <div class="wp-body">
+        <ul class="checklist">${checklistHTML || '<li style="padding:1rem;text-align:center;color:var(--text-secondary);font-size:0.82rem;">No tasks</li>'}</ul>
+      </div>
+    </div>
+    <div class="workspace-panel">
+      <div class="wp-header">
+        <h3>Artifacts</h3>
+        <button class="btn-add" onclick="openNewArtifactModal('${stage}')">+ Add</button>
+      </div>
+      <div class="wp-body">
+        <div class="artifact-list">${artifactsHTML}</div>
+      </div>
+    </div>
+    <div class="workspace-panel full-width">
+      <div class="wp-header">
+        <h3>Notes</h3>
+      </div>
+      <div class="wp-body">
+        <textarea class="stage-notes-area" id="notes-${stage}" placeholder="Add notes for the ${stage} stage...">${esc(notesContent)}</textarea>
+        <button class="btn-save-notes" onclick="saveStageNotes('${stage}')">Save Notes</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function switchStageTab(stage) {
+  document.querySelectorAll('.stage-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.stage === stage));
+  document.querySelectorAll('.stage-panel').forEach(p => p.classList.toggle('active', p.dataset.stagePanel === stage));
+}
+
+function backToProjects() {
+  currentProjectId = null;
+  currentProjectData = null;
+  document.getElementById('projectDetail').classList.remove('active');
+  switchTab('projects');
+}
+
+// ========== PROJECT STATUS/STAGE ==========
+async function updateProjectStatus(status) {
+  const sb = await getClient();
+  if (!sb || !currentProjectId) return;
+  const { error } = await sb.from('projects').update({ status, updated_at: new Date().toISOString() }).eq('id', currentProjectId);
+  if (error) { toast('Failed to update status', 'error'); return; }
+  currentProjectData.status = status;
+  toast('Status updated', 'success');
+  await loadProjects();
+}
+
+async function updateProjectStage(stage) {
+  const sb = await getClient();
+  if (!sb || !currentProjectId) return;
+  const update = { current_stage: stage, updated_at: new Date().toISOString() };
+  if (stage === 'complete') update.status = 'complete';
+  const { error } = await sb.from('projects').update(update).eq('id', currentProjectId);
+  if (error) { toast('Failed to update stage', 'error'); return; }
+  currentProjectData.current_stage = stage;
+  if (stage === 'complete') currentProjectData.status = 'complete';
+  renderProjectDetail();
+  toast('Stage updated', 'success');
+  await loadProjects();
+}
+
+// ========== TOGGLE TASK ==========
+async function toggleTask(taskId, isComplete) {
+  const sb = await getClient();
+  if (!sb) return;
+  const update = {
+    is_complete: isComplete,
+    completed_at: isComplete ? new Date().toISOString() : null
+  };
+  const { error } = await sb.from('stage_tasks').update(update).eq('id', taskId);
+  if (error) { toast('Failed to update task', 'error'); return; }
+
+  const task = currentStageTasks.find(t => t.id === taskId);
+  if (task) {
+    task.is_complete = isComplete;
+    task.completed_at = update.completed_at;
+  }
+  renderProjectDetail();
+}
+
+// ========== SAVE STAGE NOTES ==========
+async function saveStageNotes(stage) {
+  const sb = await getClient();
+  if (!sb || !currentProjectId) return;
+  const content = document.getElementById('notes-' + stage).value;
+  const existing = currentArtifacts.find(a => a.stage === stage && a.title === '__stage_notes__');
+
+  if (existing) {
+    const { error } = await sb.from('artifacts').update({
+      content,
+      updated_at: new Date().toISOString()
+    }).eq('id', existing.id);
+    if (error) { toast('Failed to save notes', 'error'); return; }
+    existing.content = content;
+  } else {
+    const { data, error } = await sb.from('artifacts').insert({
+      project_id: currentProjectId,
+      stage,
+      artifact_type: 'other',
+      title: '__stage_notes__',
+      content,
+      created_by: window.VCTUser.id
+    }).select().single();
+    if (error) { toast('Failed to save notes', 'error'); return; }
+    if (data) currentArtifacts.push(data);
+  }
+  toast('Notes saved', 'success');
+}
+
+// ========== ARTIFACT MODAL ==========
+function openNewArtifactModal(stage) {
+  document.getElementById('artifactModalTitle').textContent = 'Add Artifact';
+  document.getElementById('artifactId').value = '';
+  document.getElementById('artifactProjectId').value = currentProjectId;
+  document.getElementById('artifactStage').value = stage;
+  document.getElementById('artifactTitle').value = '';
+  document.getElementById('artifactType').value = 'document';
+  document.getElementById('artifactDesc').value = '';
+  document.getElementById('artifactUrl').value = '';
+  document.getElementById('artifactDeleteBtn').style.display = 'none';
+  document.getElementById('artifactModal').classList.add('show');
+}
+
+function editArtifact(artifactId) {
+  const a = currentArtifacts.find(x => x.id === artifactId);
+  if (!a) return;
+  document.getElementById('artifactModalTitle').textContent = 'Edit Artifact';
+  document.getElementById('artifactId').value = a.id;
+  document.getElementById('artifactProjectId').value = a.project_id;
+  document.getElementById('artifactStage').value = a.stage;
+  document.getElementById('artifactTitle').value = a.title || '';
+  document.getElementById('artifactType').value = a.artifact_type || 'document';
+  document.getElementById('artifactDesc').value = a.description || '';
+  document.getElementById('artifactUrl').value = a.url || '';
+  document.getElementById('artifactDeleteBtn').style.display = 'inline-flex';
+  document.getElementById('artifactModal').classList.add('show');
+}
+
+function closeArtifactModal() {
+  document.getElementById('artifactModal').classList.remove('show');
+}
+
+async function saveArtifact() {
+  const title = document.getElementById('artifactTitle').value.trim();
+  if (!title) { toast('Title is required', 'error'); return; }
+
+  const sb = await getClient();
+  if (!sb) return;
+
+  const id = document.getElementById('artifactId').value;
+  const payload = {
+    project_id: document.getElementById('artifactProjectId').value,
+    stage: document.getElementById('artifactStage').value,
+    artifact_type: document.getElementById('artifactType').value,
+    title,
+    description: document.getElementById('artifactDesc').value.trim() || null,
+    url: document.getElementById('artifactUrl').value.trim() || null,
+    updated_at: new Date().toISOString()
+  };
+
+  if (id) {
+    const { error } = await sb.from('artifacts').update(payload).eq('id', id);
+    if (error) { toast('Failed to update artifact', 'error'); return; }
+    const idx = currentArtifacts.findIndex(a => a.id === id);
+    if (idx >= 0) Object.assign(currentArtifacts[idx], payload);
+    toast('Artifact updated', 'success');
+  } else {
+    payload.created_by = window.VCTUser.id;
+    const { data, error } = await sb.from('artifacts').insert(payload).select().single();
+    if (error) { toast('Failed to create artifact', 'error'); return; }
+    if (data) currentArtifacts.push(data);
+    toast('Artifact added', 'success');
+  }
+
+  closeArtifactModal();
+  renderProjectDetail();
+}
+
+async function deleteArtifact() {
+  const id = document.getElementById('artifactId').value;
+  if (!id) return;
+  closeArtifactModal();
+  showConfirm('Delete Artifact', 'Delete this artifact? This cannot be undone.', async () => {
+    const sb = await getClient();
+    if (!sb) return;
+    const { error } = await sb.from('artifacts').delete().eq('id', id);
+    if (error) { toast('Failed to delete', 'error'); return; }
+    currentArtifacts = currentArtifacts.filter(a => a.id !== id);
+    renderProjectDetail();
+    toast('Artifact deleted', 'success');
+  });
+}
+
+function confirmDeleteArtifact(artifactId) {
+  showConfirm('Delete Artifact', 'Delete this artifact? This cannot be undone.', async () => {
+    const sb = await getClient();
+    if (!sb) return;
+    const { error } = await sb.from('artifacts').delete().eq('id', artifactId);
+    if (error) { toast('Failed to delete', 'error'); return; }
+    currentArtifacts = currentArtifacts.filter(a => a.id !== artifactId);
+    renderProjectDetail();
+    toast('Artifact deleted', 'success');
+  });
+}
+</script>
+</body>
+</html>
