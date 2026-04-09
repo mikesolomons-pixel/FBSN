@@ -3,6 +3,33 @@
 -- Run this in Supabase SQL Editor
 -- ============================================================
 
+-- 0. Invitation codes (gate signup)
+create table invite_codes (
+  id          uuid default gen_random_uuid() primary key,
+  code        text not null unique,
+  role        text not null default 'practitioner' check (role in ('admin','practitioner','viewer')),
+  max_uses    integer not null default 0,   -- 0 = unlimited
+  times_used  integer not null default 0,
+  is_active   boolean not null default true,
+  created_at  timestamptz default now()
+);
+
+alter table invite_codes enable row level security;
+
+-- Anyone can read invite codes (needed for signup validation before auth)
+create policy "Invite codes: public read" on invite_codes
+  for select using (true);
+
+-- Only authenticated users can manage invite codes (admin will use console)
+create policy "Invite codes: auth update" on invite_codes
+  for update using (true);
+
+-- Seed a default admin invite code (change this!)
+insert into invite_codes (code, role, max_uses) values
+  ('VCT-ADMIN-2024', 'admin', 1),
+  ('VCT-TEAM-2024', 'practitioner', 0);
+
+
 -- 1. User profiles (linked to Supabase Auth)
 create table profiles (
   id          uuid references auth.users on delete cascade primary key,

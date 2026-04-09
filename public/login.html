@@ -278,6 +278,10 @@
     <form class="auth-form" id="form-signup" onsubmit="handleSignUp(event)">
       <div id="msg-signup"></div>
       <div class="form-group">
+        <label for="su-invite">Invitation Code</label>
+        <input type="text" id="su-invite" placeholder="Enter your invitation code" required autocomplete="off" style="letter-spacing:1px;font-weight:600;">
+      </div>
+      <div class="form-group">
         <label for="su-name">Full Name</label>
         <input type="text" id="su-name" placeholder="Jane Smith" required autocomplete="name">
       </div>
@@ -408,10 +412,16 @@
     async function handleSignUp(e) {
       e.preventDefault();
       clearMsg('msg-signup');
+      const inviteCode = document.getElementById('su-invite').value.trim();
       const name = document.getElementById('su-name').value.trim();
       const email = document.getElementById('su-email').value.trim();
       const password = document.getElementById('su-password').value;
       const confirm = document.getElementById('su-confirm').value;
+
+      if (!inviteCode) {
+        showMsg('msg-signup', 'An invitation code is required to create an account.', 'error');
+        return;
+      }
 
       if (password !== confirm) {
         showMsg('msg-signup', 'Passwords do not match.', 'error');
@@ -427,10 +437,32 @@
         return;
       }
 
+      // Validate invitation code
+      const { data: invite, error: inviteErr } = await sb
+        .from('invite_codes')
+        .select('id, code, max_uses, times_used, role')
+        .eq('code', inviteCode.toUpperCase())
+        .eq('is_active', true)
+        .single();
+
+      if (inviteErr || !invite) {
+        showMsg('msg-signup', 'Invalid or expired invitation code.', 'error');
+        setLoading('btn-signup', false, 'Create Account');
+        return;
+      }
+
+      if (invite.max_uses > 0 && invite.times_used >= invite.max_uses) {
+        showMsg('msg-signup', 'This invitation code has reached its usage limit.', 'error');
+        setLoading('btn-signup', false, 'Create Account');
+        return;
+      }
+
+      // Code is valid — proceed with signup
+      const assignedRole = invite.role || 'practitioner';
       const { data, error } = await sb.auth.signUp({
         email,
         password,
-        options: { data: { full_name: name } }
+        options: { data: { full_name: name, role: assignedRole } }
       });
 
       if (error) {
@@ -438,6 +470,11 @@
         setLoading('btn-signup', false, 'Create Account');
         return;
       }
+
+      // Increment usage count on the invite code
+      await sb.from('invite_codes')
+        .update({ times_used: invite.times_used + 1 })
+        .eq('id', invite.id);
 
       setLoading('btn-signup', false, 'Create Account');
       showMsg('msg-signup', 'Account created! Check your email for a confirmation link.', 'success');
