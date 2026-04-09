@@ -33,6 +33,18 @@
     .add-resource-btn:hover{background:var(--teal-dark,#006B5E)}
     .add-resource-btn:disabled{opacity:.5;cursor:default}
     .resources-empty{font-size:.8rem;color:var(--text-secondary,#5A6B8A);padding:.35rem 0}
+    .resource-edit{display:none;background:#E07A5F;color:#fff;border:none;border-radius:4px;font-size:.55rem;font-weight:700;padding:.15rem .4rem;cursor:pointer;flex-shrink:0;opacity:.7;transition:opacity .15s;text-transform:uppercase;letter-spacing:.5px}
+    .resource-edit:hover{opacity:1}
+    body.vct-admin .resource-edit{display:block}
+    .resource-admin-btns{display:flex;flex-direction:column;gap:.25rem;margin-left:auto;flex-shrink:0}
+    .resource-edit-form{padding:.75rem;background:var(--card,#fff);border-radius:10px;border:2px solid #E07A5F;margin-bottom:.5rem}
+    .resource-edit-form .ref-row{display:flex;gap:.4rem;margin-bottom:.4rem}
+    .resource-edit-form .ref-row:last-child{margin-bottom:0}
+    .resource-edit-form input,.resource-edit-form select{flex:1;padding:.4rem .6rem;border:1px solid var(--border,#E2E8F0);border-radius:6px;font-size:.78rem;font-family:inherit;outline:none}
+    .resource-edit-form input:focus,.resource-edit-form select:focus{border-color:#E07A5F}
+    .ref-save{padding:.35rem .8rem;border:none;border-radius:6px;background:#E07A5F;color:#fff;font-size:.75rem;font-weight:600;cursor:pointer}
+    .ref-save:hover{background:#c9664a}
+    .ref-cancel{padding:.35rem .8rem;border:1px solid var(--border,#E2E8F0);border-radius:6px;background:transparent;color:var(--text-secondary,#5A6B8A);font-size:.75rem;cursor:pointer}
     .resources-play-group{margin-bottom:1.5rem}
     .resources-play-group h3{font-size:.95rem;font-weight:700;color:var(--navy,#1B2A4A);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
     .resources-play-group .play-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
@@ -108,6 +120,14 @@
     return urlData?.publicUrl || null;
   }
 
+  async function updateResource(id, updates) {
+    const sb = await getClient();
+    if (!sb) return null;
+    const { data, error } = await sb.from('resources').update(updates).eq('id', id).select();
+    if (error) { console.error('resource update error', error); alert('Failed to update: ' + error.message); return null; }
+    return data?.[0];
+  }
+
   async function deleteResource(id) {
     const sb = await getClient();
     if (!sb) return false;
@@ -127,8 +147,12 @@
     const titleHtml = r.url
       ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="resource-title" style="text-decoration:none;color:var(--navy,#1B2A4A);">${esc(r.title)}<span style="font-size:.7rem;opacity:.5;margin-left:.3rem;">&#8599;</span></a>`
       : `<span class="resource-title">${esc(r.title)}</span>`;
-    const deleteBtn = `<button class="resource-delete" data-delete-id="${r.id}" title="Delete resource">&times;</button>`;
-    return `<div class="resource-item" data-id="${r.id}">
+    const adminBtns = `<div class="resource-admin-btns">
+      <button class="resource-edit" data-edit-id="${r.id}" title="Edit resource">Edit</button>
+      <button class="resource-delete" data-delete-id="${r.id}" title="Delete resource">&times;</button>
+    </div>`;
+    // Store resource data as data attributes for edit form
+    return `<div class="resource-item" data-id="${r.id}" data-title="${esc(r.title)}" data-author="${esc(r.author || '')}" data-url="${esc(r.url || '')}" data-desc="${esc(r.description || '')}" data-type="${r.resource_type}" data-play="${r.play}">
       <span class="resource-icon">${icon}</span>
       <div class="resource-info">
         ${playTag}${titleHtml}
@@ -136,17 +160,17 @@
         ${r.author ? `<br><span class="resource-author">${esc(r.author)}</span>` : ''}
         ${r.description ? `<div class="resource-note">${esc(r.description)}</div>` : ''}
       </div>
-      ${deleteBtn}
+      ${adminBtns}
     </div>`;
   }
 
-  function renderList(resources, container, opts) {
+  function renderList(resources, container, opts, refreshFn) {
     if (!resources.length) {
       container.innerHTML = '<p class="resources-empty">No resources yet. Be the first to add one!</p>';
       return;
     }
     container.innerHTML = resources.map(r => renderItem(r, opts)).join('');
-    wireDeleteButtons(container);
+    wireButtons(container, refreshFn);
   }
 
   function renderGrouped(resources, container) {
@@ -167,7 +191,7 @@
         <div class="resources-grid">${groups[p].map(r => renderItem(r, {})).join('')}</div>
       </div>`;
     }).join('');
-    wireDeleteButtons(container);
+    wireButtons(container);
   }
 
   function buildPlaySelect(currentPlay) {
@@ -319,7 +343,7 @@
         const resources = await fetchResources(play);
         if (resources.length) {
           prList.innerHTML = '<div class="resources-grid">' + resources.map(r => renderItem(r, {})).join('') + '</div>';
-          wireDeleteButtons(prList);
+          wireButtons(prList, refresh);
         } else {
           prList.innerHTML = '<p class="resources-empty">No resources yet.</p>';
         }
@@ -333,7 +357,7 @@
 
     async function refresh() {
       const resources = await fetchResources(play);
-      renderList(resources, listEl, {});
+      renderList(resources, listEl, {}, refresh);
     }
 
     await refresh();
@@ -361,7 +385,7 @@
     }
   }
 
-  function wireDeleteButtons(container) {
+  function wireButtons(container, refreshFn) {
     container.querySelectorAll('.resource-delete').forEach(btn => {
       btn.onclick = async function (e) {
         e.stopPropagation();
@@ -375,9 +399,55 @@
         }
       };
     });
+    container.querySelectorAll('.resource-edit').forEach(btn => {
+      btn.onclick = function (e) {
+        e.stopPropagation();
+        const item = btn.closest('.resource-item');
+        if (!item) return;
+        const id = item.getAttribute('data-id');
+        const typeOptions = ['book','article','reference','video','podcast','powerpoint','tool'].map(t =>
+          `<option value="${t}"${t === item.getAttribute('data-type') ? ' selected' : ''}>${t.charAt(0).toUpperCase() + t.slice(1)}</option>`
+        ).join('');
+        const form = document.createElement('div');
+        form.className = 'resource-edit-form';
+        form.innerHTML = `
+          <div class="ref-row"><input type="text" class="ref-title" value="${item.getAttribute('data-title')}" placeholder="Title"></div>
+          <div class="ref-row"><input type="text" class="ref-author" value="${item.getAttribute('data-author')}" placeholder="Author (optional)"></div>
+          <div class="ref-row"><input type="url" class="ref-url" value="${item.getAttribute('data-url')}" placeholder="URL (optional)"></div>
+          <div class="ref-row"><input type="text" class="ref-desc" value="${item.getAttribute('data-desc')}" placeholder="Description (optional)"></div>
+          <div class="ref-row"><select class="ref-type">${typeOptions}</select><button class="ref-save">Save</button><button class="ref-cancel">Cancel</button></div>`;
+        item.style.display = 'none';
+        item.parentNode.insertBefore(form, item);
+        form.querySelector('.ref-cancel').onclick = function () {
+          item.style.display = '';
+          form.remove();
+        };
+        form.querySelector('.ref-save').onclick = async function () {
+          const title = form.querySelector('.ref-title').value.trim();
+          if (!title) return;
+          const saveBtn = form.querySelector('.ref-save');
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Saving\u2026';
+          const result = await updateResource(id, {
+            title: title,
+            author: form.querySelector('.ref-author').value.trim() || null,
+            url: form.querySelector('.ref-url').value.trim() || null,
+            description: form.querySelector('.ref-desc').value.trim() || null,
+            resource_type: form.querySelector('.ref-type').value
+          });
+          if (result && refreshFn) {
+            form.remove();
+            refreshFn();
+          } else {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
+          }
+        };
+      };
+    });
   }
 
   function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-  window.VCTResources = { init, initAll, fetchResources, addResource, deleteResource };
+  window.VCTResources = { init, initAll, fetchResources, addResource, updateResource, deleteResource };
 })();

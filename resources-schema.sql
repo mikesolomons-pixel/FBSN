@@ -19,6 +19,7 @@ alter table resources enable row level security;
 -- Public access policies
 create policy "Anyone can read resources" on resources for select using (true);
 create policy "Anyone can add resources" on resources for insert with check (true);
+create policy "Anyone can update resources" on resources for update using (true);
 create policy "Anyone can delete resources" on resources for delete using (true);
 
 -- Index
