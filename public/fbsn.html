@@ -1133,12 +1133,7 @@
       <h2>Saved Sessions</h2>
       <p class="desc">Resume a previous exercise or start a new one below.</p>
       <ul class="session-list" id="sessionList"></ul>
-      <div class="session-actions">
-        <label class="btn btn-ghost" style="cursor:pointer">
-          Import from file
-          <input type="file" accept=".json" onchange="importSession(this)" style="display:none">
-        </label>
-      </div>
+      <div class="session-actions"></div>
     </div>
 
     <!-- New exercise -->
@@ -1407,9 +1402,8 @@
 
       <div class="btn-row" style="margin-top:1.5rem">
         <button class="btn btn-ghost" onclick="goToPhase(4)">Back to Matrix</button>
-        <button class="btn btn-secondary" onclick="saveSession()">Save Session</button>
-        <button class="btn btn-secondary" onclick="exportSessionFile()">Export to File</button>
-        <button class="btn btn-secondary" onclick="exportResults()">Export as Text</button>
+        <button class="btn btn-secondary" id="saveSessionBtn" onclick="saveSession()">Save Session</button>
+        <button class="btn btn-secondary" onclick="exportPDF()">Export to PDF</button>
         <button class="btn btn-primary" onclick="resetApp()">New Exercise</button>
       </div>
     </div>
@@ -2044,8 +2038,9 @@ function renderActions() {
     document.getElementById('mightDoList').innerHTML = exampleHtml(tmpl.actions.mightDo);
     document.getElementById('wontDoList').innerHTML = exampleHtml(tmpl.actions.wontDo);
 
-    // Hide the add-action inputs for template mode
+    // Hide the add-action inputs and save button for template mode
     document.querySelectorAll('.action-add-row').forEach(el => el.style.display = 'none');
+    document.getElementById('saveSessionBtn').style.display = 'none';
     // Update description
     document.querySelector('#phase-5 .desc').textContent = 'Here\'s how Netflix translated their strategic clarity into action. The perspectives below are categorized using the answer key.';
   } else {
@@ -2053,6 +2048,7 @@ function renderActions() {
     renderActionList('mightDoList', 'mightDo');
     renderActionList('wontDoList', 'wontDo');
     document.querySelectorAll('.action-add-row').forEach(el => el.style.display = '');
+    document.getElementById('saveSessionBtn').style.display = '';
   }
 }
 
@@ -2093,50 +2089,119 @@ function removeAction(key, idx) {
   document.getElementById(key + 'Input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addAction(key); } });
 });
 
-// ========== EXPORT ==========
-function exportResults() {
-  const lines = [];
-  lines.push(`FBSN Exercise: ${state.title || 'Untitled'}`);
-  lines.push(`Date: ${new Date().toLocaleDateString()}`);
-  if (state.context) lines.push(`Context: ${state.context}`);
-  lines.push('');
-  lines.push('=== MATRIX ===');
-  lines.push('');
+// ========== EXPORT PDF ==========
+function exportPDF() {
+  const title = state.title || 'Untitled Exercise';
+  const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 
-  const groups = { 'fact-signal': 'FACTS + SIGNALS (Must Do)', 'belief-signal': 'BELIEFS + SIGNALS (Might Do)', 'fact-noise': 'FACTS + NOISE (Won\'t Do)', 'belief-noise': 'BELIEFS + NOISE (Won\'t Do)' };
+  // Build matrix data
+  const quadrants = {
+    'fact-signal': { label: 'Facts + Signals', color: '#2E7D32', bg: '#E8F5E9', action: 'Must Do' },
+    'belief-signal': { label: 'Beliefs + Signals', color: '#1565C0', bg: '#E3F2FD', action: 'Might Do' },
+    'fact-noise': { label: 'Facts + Noise', color: '#E65100', bg: '#FFF3E0', action: "Won't Do" },
+    'belief-noise': { label: 'Beliefs + Noise', color: '#C62828', bg: '#FFEBEE', action: "Won't Do" }
+  };
 
-  Object.entries(groups).forEach(([key, label]) => {
-    const items = state.categorized.filter(c => `${c.certainty}-${c.importance}` === key);
-    lines.push(label);
-    if (items.length === 0) lines.push('  (none)');
-    items.forEach(i => lines.push(`  - ${i.text}`));
-    lines.push('');
-  });
+  // Use answer key for templates, user categorizations otherwise
+  const tmpl = state.isTemplate && TEMPLATES[state.isTemplate];
+  let catData = {};
+  Object.keys(quadrants).forEach(k => catData[k] = []);
 
-  lines.push('=== ACTIONS ===');
-  lines.push('');
+  if (tmpl && tmpl.answers) {
+    tmpl.perspectives.forEach(text => {
+      const answer = tmpl.answers[text];
+      if (answer && catData[answer]) catData[answer].push(text);
+    });
+  } else {
+    state.categorized.forEach(c => {
+      const key = `${c.certainty}-${c.importance}`;
+      if (catData[key]) catData[key].push(c.text);
+    });
+  }
 
-  const a = state.actions || { mustDo: [], mightDo: [], wontDo: [] };
+  // Build actions data
+  const actions = state.actions || { mustDo: [], mightDo: [], wontDo: [] };
+  let actionsData;
+  if (tmpl && tmpl.actions) {
+    actionsData = {
+      mustDo: [tmpl.actions.mustDo.title + ' — ' + tmpl.actions.mustDo.desc],
+      mightDo: [tmpl.actions.mightDo.title + ' — ' + tmpl.actions.mightDo.desc],
+      wontDo: [tmpl.actions.wontDo.title + ' — ' + tmpl.actions.wontDo.desc]
+    };
+  } else {
+    actionsData = actions;
+  }
 
-  lines.push('MUST DO (Act now)');
-  a.mustDo.forEach(i => lines.push(`  - ${i}`));
-  if (!a.mustDo.length) lines.push('  (none)');
-  lines.push('');
-  lines.push('MIGHT DO (Test and learn)');
-  a.mightDo.forEach(i => lines.push(`  - ${i}`));
-  if (!a.mightDo.length) lines.push('  (none)');
-  lines.push('');
-  lines.push('WON\'T DO (Avoid distractions)');
-  a.wontDo.forEach(i => lines.push(`  - ${i}`));
-  if (!a.wontDo.length) lines.push('  (none)');
+  // Build HTML for the PDF
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>FBSN — ${escapeHtml(title)}</title>
+<style>
+  @page { size: A4; margin: 1.5cm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1B2A4A; line-height: 1.5; padding: 2rem; }
+  .header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #E07A5F; }
+  .header h1 { font-size: 1.4rem; color: #1B2A4A; margin-bottom: .25rem; }
+  .header .subtitle { font-size: .85rem; color: #5A6B8A; }
+  .header .date { font-size: .75rem; color: #9AA5B8; margin-top: .25rem; }
+  .context { background: #F5F7FA; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; font-size: .85rem; color: #5A6B8A; }
+  .context strong { color: #1B2A4A; }
+  .section-title { font-size: 1.1rem; font-weight: 700; color: #1B2A4A; margin: 1.5rem 0 .75rem; padding-bottom: .35rem; border-bottom: 1px solid #E2E8F0; }
+  .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.5rem; }
+  .quadrant { border-radius: 8px; padding: .75rem; page-break-inside: avoid; }
+  .quadrant h3 { font-size: .8rem; font-weight: 700; margin-bottom: .5rem; text-transform: uppercase; letter-spacing: .5px; }
+  .quadrant ul { list-style: none; padding: 0; }
+  .quadrant li { font-size: .8rem; padding: .3rem 0; border-bottom: 1px solid rgba(0,0,0,.06); }
+  .quadrant li:last-child { border-bottom: none; }
+  .actions-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .75rem; }
+  .action-col { border-radius: 8px; padding: .75rem; page-break-inside: avoid; }
+  .action-col h3 { font-size: .8rem; font-weight: 700; margin-bottom: .5rem; }
+  .action-col ul { list-style: disc; padding-left: 1.2rem; }
+  .action-col li { font-size: .8rem; padding: .2rem 0; }
+  .must-do { background: #E8F5E9; }
+  .must-do h3 { color: #2E7D32; }
+  .might-do { background: #E3F2FD; }
+  .might-do h3 { color: #1565C0; }
+  .wont-do { background: #FFF3E0; }
+  .wont-do h3 { color: #E65100; }
+  .footer { margin-top: 2rem; padding-top: .75rem; border-top: 1px solid #E2E8F0; text-align: center; font-size: .7rem; color: #9AA5B8; }
+  @media print { body { padding: 0; } }
+</style></head><body>
+<div class="header">
+  <h1>FBSN Exercise: ${escapeHtml(title)}</h1>
+  <div class="subtitle">Fact / Belief &times; Signal / Noise Analysis</div>
+  <div class="date">${escapeHtml(date)}</div>
+</div>
+${state.context ? `<div class="context"><strong>Context:</strong> ${escapeHtml(state.context)}</div>` : ''}
+<div class="section-title">Strategic Matrix</div>
+<div class="matrix">
+${Object.entries(quadrants).map(([key, q]) => `
+  <div class="quadrant" style="background:${q.bg}">
+    <h3 style="color:${q.color}">${q.label} &rarr; ${q.action}</h3>
+    <ul>${(catData[key] || []).length ? catData[key].map(t => `<li>${escapeHtml(t)}</li>`).join('') : '<li style="color:#9AA5B8;font-style:italic">(none)</li>'}</ul>
+  </div>`).join('')}
+</div>
+<div class="section-title">Strategic Actions</div>
+<div class="actions-grid">
+  <div class="action-col must-do">
+    <h3>Must Do — Act Now</h3>
+    <ul>${actionsData.mustDo.length ? actionsData.mustDo.map(a => `<li>${escapeHtml(a)}</li>`).join('') : '<li style="color:#9AA5B8;font-style:italic">(none)</li>'}</ul>
+  </div>
+  <div class="action-col might-do">
+    <h3>Might Do — Test &amp; Learn</h3>
+    <ul>${actionsData.mightDo.length ? actionsData.mightDo.map(a => `<li>${escapeHtml(a)}</li>`).join('') : '<li style="color:#9AA5B8;font-style:italic">(none)</li>'}</ul>
+  </div>
+  <div class="action-col wont-do">
+    <h3>Won't Do — Avoid Distractions</h3>
+    <ul>${actionsData.wontDo.length ? actionsData.wontDo.map(a => `<li>${escapeHtml(a)}</li>`).join('') : '<li style="color:#9AA5B8;font-style:italic">(none)</li>'}</ul>
+  </div>
+</div>
+<div class="footer">Generated by VCT — Value Creating Teams Framework</div>
+</body></html>`;
 
-  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `FBSN-${(state.title || 'exercise').replace(/\s+/g, '-')}.txt`;
-  link.click();
-  URL.revokeObjectURL(url);
+  // Open in new window and trigger print (save as PDF)
+  const printWin = window.open('', '_blank');
+  printWin.document.write(html);
+  printWin.document.close();
+  setTimeout(() => printWin.print(), 400);
 }
 
 // ========== SESSIONS ==========
@@ -2298,38 +2363,6 @@ function renderSessionList() {
   }).join('');
 }
 
-function exportSessionFile() {
-  const data = buildSessionData();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `FBSN-${(state.title || 'session').replace(/\s+/g, '-')}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importSession(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!data.perspectives) throw new Error('Invalid session file');
-      data.id = Date.now().toString(); // new id to avoid collisions
-      const sessions = getSessions();
-      sessions.unshift(data);
-      saveSessions(sessions);
-      renderSessionList();
-      loadSession(data.id);
-    } catch (err) {
-      alert('Could not load session file: ' + err.message);
-    }
-  };
-  reader.readAsText(file);
-  input.value = '';
-}
 
 // ========== RESET ==========
 function resetApp() {
