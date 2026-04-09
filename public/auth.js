@@ -33,6 +33,8 @@
 
     // Fetch profile to get role
     var profileResult = await sb.from('profiles').select('role, full_name').eq('id', session.user.id).single();
+    console.log('AUTH DEBUG — user id:', session.user.id);
+    console.log('AUTH DEBUG — profile result:', JSON.stringify(profileResult));
     if (profileResult.data) {
       window.VCTUser.role = profileResult.data.role;
       window.VCTUser.fullName = profileResult.data.full_name || window.VCTUser.fullName;
@@ -41,6 +43,7 @@
       console.warn('Profile fetch failed:', profileResult.error);
       window.VCTUser.role = 'practitioner';
     }
+    console.log('AUTH DEBUG — final role:', window.VCTUser.role);
 
     // Show the page
     document.documentElement.style.visibility = 'visible';
