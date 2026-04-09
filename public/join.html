@@ -27,6 +27,8 @@
 
   .header { background: linear-gradient(135deg, var(--teal-dark), var(--teal)); color: white; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
   .header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 1px; }
+  .header .back-link { display:inline-flex;align-items:center;gap:0.3rem;color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.7rem;transition:color 0.15s; }
+  .header .back-link:hover { color:white; }
   .header .info { font-size: 0.8rem; opacity: 0.8; text-align: right; }
 
   .main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
@@ -157,7 +159,10 @@
 <body>
 
 <div class="header">
-  <h1>FBSN</h1>
+  <div>
+    <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
+    <h1>FBSN</h1>
+  </div>
   <div class="info" id="headerInfo"></div>
 </div>
 

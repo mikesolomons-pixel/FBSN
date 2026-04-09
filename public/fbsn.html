@@ -54,6 +54,17 @@
   }
   .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; }
   .header .subtitle { font-size: 0.85rem; opacity: 0.85; }
+  .header .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+    transition: color 0.15s;
+  }
+  .header .back-link:hover { color: white; }
 
   /* Progress Bar */
   .progress-bar {
@@ -819,6 +830,7 @@
 <!-- Header -->
 <div class="header">
   <div>
+    <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
     <h1>FBSN</h1>
     <div class="subtitle">Facts, Beliefs, Signals, Noise</div>
   </div>
