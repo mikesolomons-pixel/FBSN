@@ -1404,6 +1404,7 @@
         <button class="btn btn-ghost" onclick="goToPhase(4)">Back to Matrix</button>
         <button class="btn btn-secondary" id="saveSessionBtn" onclick="saveSession()">Save Session</button>
         <button class="btn btn-secondary" onclick="exportPDF()">Export to PDF</button>
+        <button class="btn btn-secondary" onclick="exportExcel()">Export to Excel</button>
         <button class="btn btn-primary" onclick="resetApp()">New Exercise</button>
       </div>
     </div>
@@ -2202,6 +2203,121 @@ ${Object.entries(quadrants).map(([key, q]) => `
   printWin.document.write(html);
   printWin.document.close();
   setTimeout(() => printWin.print(), 400);
+}
+
+function exportExcel() {
+  const title = state.title || 'Untitled Exercise';
+  const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Build matrix data (same logic as PDF)
+  const tmpl = state.isTemplate && TEMPLATES[state.isTemplate];
+  const catData = { 'fact-signal': [], 'belief-signal': [], 'fact-noise': [], 'belief-noise': [] };
+
+  if (tmpl && tmpl.answers) {
+    tmpl.perspectives.forEach(text => {
+      const answer = tmpl.answers[text];
+      if (answer && catData[answer]) catData[answer].push(text);
+    });
+  } else {
+    state.categorized.forEach(c => {
+      const key = `${c.certainty}-${c.importance}`;
+      if (catData[key]) catData[key].push(c.text);
+    });
+  }
+
+  // Build actions data
+  let actionsData;
+  if (tmpl && tmpl.actions) {
+    actionsData = {
+      mustDo: [tmpl.actions.mustDo.title + ' — ' + tmpl.actions.mustDo.desc],
+      mightDo: [tmpl.actions.mightDo.title + ' — ' + tmpl.actions.mightDo.desc],
+      wontDo: [tmpl.actions.wontDo.title + ' — ' + tmpl.actions.wontDo.desc]
+    };
+  } else {
+    actionsData = state.actions || { mustDo: [], mightDo: [], wontDo: [] };
+  }
+
+  // Find max rows needed for matrix and actions
+  const matrixMax = Math.max(1, catData['fact-signal'].length, catData['belief-signal'].length, catData['fact-noise'].length, catData['belief-noise'].length);
+  const actionsMax = Math.max(1, actionsData.mustDo.length, actionsData.mightDo.length, actionsData.wontDo.length);
+
+  // Helper to escape XML
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  // Build Excel XML (SpreadsheetML format — opens natively in Excel)
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+<Styles>
+  <Style ss:ID="title"><Font ss:Size="14" ss:Bold="1" ss:Color="#1B2A4A"/></Style>
+  <Style ss:ID="subtitle"><Font ss:Size="10" ss:Color="#5A6B8A"/></Style>
+  <Style ss:ID="secHead"><Font ss:Size="11" ss:Bold="1" ss:Color="#1B2A4A"/><Interior ss:Color="#F5F7FA" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="hFS"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#2E7D32" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="hBS"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#1565C0" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="hFN"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#E65100" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="hBN"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#C62828" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="cFS"><Interior ss:Color="#E8F5E9" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
+  <Style ss:ID="cBS"><Interior ss:Color="#E3F2FD" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
+  <Style ss:ID="cFN"><Interior ss:Color="#FFF3E0" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
+  <Style ss:ID="cBN"><Interior ss:Color="#FFEBEE" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
+  <Style ss:ID="aMust"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#2E7D32" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="aMight"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#1565C0" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="aWont"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#E65100" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="def"><Font ss:Size="10"/></Style>
+</Styles>
+<Worksheet ss:Name="FBSN Results">
+<Table ss:DefaultColumnWidth="180">
+  <Column ss:Width="220"/><Column ss:Width="220"/><Column ss:Width="220"/><Column ss:Width="220"/>
+  <Row><Cell ss:StyleID="title"><Data ss:Type="String">FBSN Exercise: ${esc(title)}</Data></Cell></Row>
+  <Row><Cell ss:StyleID="subtitle"><Data ss:Type="String">${esc(date)}${state.context ? ' | Context: ' + esc(state.context) : ''}</Data></Cell></Row>
+  <Row></Row>
+  <Row><Cell ss:StyleID="secHead"><Data ss:Type="String">STRATEGIC MATRIX</Data></Cell></Row>
+  <Row>
+    <Cell ss:StyleID="hFS"><Data ss:Type="String">Facts + Signals (Must Do)</Data></Cell>
+    <Cell ss:StyleID="hBS"><Data ss:Type="String">Beliefs + Signals (Might Do)</Data></Cell>
+    <Cell ss:StyleID="hFN"><Data ss:Type="String">Facts + Noise (Won't Do)</Data></Cell>
+    <Cell ss:StyleID="hBN"><Data ss:Type="String">Beliefs + Noise (Won't Do)</Data></Cell>
+  </Row>`;
+
+  for (let i = 0; i < matrixMax; i++) {
+    xml += `\n  <Row>`;
+    xml += `<Cell ss:StyleID="cFS"><Data ss:Type="String">${esc(catData['fact-signal'][i] || '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="cBS"><Data ss:Type="String">${esc(catData['belief-signal'][i] || '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="cFN"><Data ss:Type="String">${esc(catData['fact-noise'][i] || '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="cBN"><Data ss:Type="String">${esc(catData['belief-noise'][i] || '')}</Data></Cell>`;
+    xml += `</Row>`;
+  }
+
+  xml += `
+  <Row></Row>
+  <Row><Cell ss:StyleID="secHead"><Data ss:Type="String">STRATEGIC ACTIONS</Data></Cell></Row>
+  <Row>
+    <Cell ss:StyleID="aMust"><Data ss:Type="String">Must Do — Act Now</Data></Cell>
+    <Cell ss:StyleID="aMight"><Data ss:Type="String">Might Do — Test &amp; Learn</Data></Cell>
+    <Cell ss:StyleID="aWont"><Data ss:Type="String">Won't Do — Avoid Distractions</Data></Cell>
+  </Row>`;
+
+  for (let i = 0; i < actionsMax; i++) {
+    xml += `\n  <Row>`;
+    xml += `<Cell ss:StyleID="def"><Data ss:Type="String">${esc(actionsData.mustDo[i] || '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="def"><Data ss:Type="String">${esc(actionsData.mightDo[i] || '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="def"><Data ss:Type="String">${esc(actionsData.wontDo[i] || '')}</Data></Cell>`;
+    xml += `</Row>`;
+  }
+
+  xml += `
+</Table>
+</Worksheet>
+</Workbook>`;
+
+  const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `FBSN-${(title).replace(/\s+/g, '-')}.xls`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ========== SESSIONS ==========
