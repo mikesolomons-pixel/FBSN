@@ -313,6 +313,60 @@
   .belief-edit-form textarea { min-height: 50px; resize: vertical; }
   .belief-edit-actions { display: flex; gap: 0.5rem; margin-top: 0.35rem; }
   .belief-empty { font-size: 0.82rem; color: var(--text-secondary); padding: 1.5rem 1.25rem; text-align: center; }
+
+  /* Invite codes */
+  .invite-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border);
+    transition: background 0.12s;
+  }
+  .invite-item:hover { background: #FAFBFD; }
+  .invite-code {
+    font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem; font-weight: 700; color: var(--navy);
+    background: var(--bg); padding: 0.25rem 0.6rem; border-radius: 6px;
+    letter-spacing: 1px; min-width: 140px;
+  }
+  .invite-meta { flex: 1; min-width: 0; }
+  .invite-meta .invite-role {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 0.12rem 0.4rem; border-radius: 4px;
+    display: inline-block;
+  }
+  .invite-role.admin { background: rgba(224,122,95,0.15); color: var(--coral); }
+  .invite-role.practitioner { background: rgba(0,137,123,0.12); color: var(--teal); }
+  .invite-role.viewer { background: rgba(74,144,217,0.12); color: var(--blue); }
+  .invite-usage { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.15rem; }
+  .invite-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
+  .invite-actions button {
+    background: none; border: none; cursor: pointer; font-size: 0.75rem;
+    padding: 0.2rem 0.45rem; border-radius: 5px; font-weight: 600; font-family: inherit;
+    transition: background 0.12s;
+  }
+  .invite-actions .inv-toggle { color: var(--gold); }
+  .invite-actions .inv-toggle:hover { background: rgba(212,168,67,0.12); }
+  .invite-actions .inv-del { color: #EF5350; }
+  .invite-actions .inv-del:hover { background: rgba(239,83,80,0.1); }
+  .invite-inactive .invite-code { opacity: 0.4; text-decoration: line-through; }
+  .invite-inactive .invite-meta { opacity: 0.5; }
+
+  /* Users list */
+  .user-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.65rem 1.25rem; border-bottom: 1px solid var(--border);
+  }
+  .user-avatar {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--navy);
+    color: #fff; font-size: 0.7rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .user-info { flex: 1; min-width: 0; }
+  .user-info .user-name { font-size: 0.85rem; font-weight: 600; color: var(--navy); }
+  .user-info .user-email { font-size: 0.72rem; color: var(--text-secondary); }
+  .user-role-select {
+    padding: 0.25rem 0.45rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.72rem; font-family: inherit; cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -387,6 +441,27 @@
       <p style="font-size:.82rem;color:var(--text-secondary);padding:1rem 1.25rem;">Loading...</p>
     </div>
   </div>
+
+  <!-- Invitation Codes Manager -->
+  <div class="panel" style="margin-top:1.5rem;">
+    <div class="panel-header">
+      <h2>Invitation Codes</h2>
+      <button class="btn btn-primary btn-sm" id="new-invite-btn">+ New Code</button>
+    </div>
+    <div class="panel-body" id="invites-panel-body" style="padding:0;">
+      <p style="font-size:.82rem;color:var(--text-secondary);padding:1rem 1.25rem;">Loading...</p>
+    </div>
+  </div>
+
+  <!-- Users Manager -->
+  <div class="panel" style="margin-top:1.5rem;">
+    <div class="panel-header">
+      <h2>Users</h2>
+    </div>
+    <div class="panel-body" id="users-panel-body" style="padding:0;">
+      <p style="font-size:.82rem;color:var(--text-secondary);padding:1rem 1.25rem;">Loading...</p>
+    </div>
+  </div>
 </div>
 
 <!-- Toast -->
@@ -440,6 +515,8 @@
     renderPlayTabs();
     renderPlayList();
     loadBeliefs();
+    loadInviteCodes();
+    loadUsers();
   }
 
   /* ── Practice Library ───────────────────────────────────── */
@@ -1091,12 +1168,161 @@
     }
   };
 
+  /* ── Invite Codes Manager ────────────────────────────────── */
+  let inviteCodes = [];
+
+  async function loadInviteCodes() {
+    const sb = await getClient();
+    if (!sb) return;
+    const { data, error } = await sb.from('invite_codes').select('*').order('created_at', { ascending: false });
+    if (error) { console.warn('invite codes fetch error', error); inviteCodes = []; }
+    else { inviteCodes = data || []; }
+    renderInviteCodes();
+  }
+
+  function renderInviteCodes() {
+    const body = document.getElementById('invites-panel-body');
+    if (!inviteCodes.length) {
+      body.innerHTML = '<div style="font-size:.82rem;color:var(--text-secondary);padding:1.5rem 1.25rem;text-align:center;">No invitation codes yet.</div>';
+      return;
+    }
+    body.innerHTML = inviteCodes.map(inv => {
+      const inactive = !inv.is_active ? ' invite-inactive' : '';
+      const usageText = inv.max_uses > 0
+        ? `${inv.times_used} / ${inv.max_uses} uses`
+        : `${inv.times_used} uses (unlimited)`;
+      return `<div class="invite-item${inactive}" data-id="${inv.id}">
+        <span class="invite-code">${esc(inv.code)}</span>
+        <div class="invite-meta">
+          <span class="invite-role ${inv.role}">${inv.role}</span>
+          <div class="invite-usage">${usageText}${!inv.is_active ? ' &mdash; <strong>Disabled</strong>' : ''}</div>
+        </div>
+        <div class="invite-actions">
+          <button class="inv-toggle" data-id="${inv.id}" title="${inv.is_active ? 'Disable' : 'Enable'}">${inv.is_active ? 'Disable' : 'Enable'}</button>
+          <button class="inv-del" data-id="${inv.id}" title="Delete">&times;</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Wire toggle
+    body.querySelectorAll('.inv-toggle').forEach(btn => {
+      btn.onclick = async function () {
+        const id = btn.getAttribute('data-id');
+        const inv = inviteCodes.find(x => x.id === id);
+        if (!inv) return;
+        const sb = await getClient();
+        await sb.from('invite_codes').update({ is_active: !inv.is_active }).eq('id', id);
+        toast(inv.is_active ? 'Code disabled' : 'Code enabled');
+        await loadInviteCodes();
+      };
+    });
+
+    // Wire delete
+    body.querySelectorAll('.inv-del').forEach(btn => {
+      btn.onclick = async function () {
+        const id = btn.getAttribute('data-id');
+        if (!confirm('Delete this invitation code?')) return;
+        const sb = await getClient();
+        await sb.from('invite_codes').delete().eq('id', id);
+        toast('Code deleted');
+        await loadInviteCodes();
+      };
+    });
+  }
+
+  // New invite code
+  document.getElementById('new-invite-btn').onclick = async function () {
+    const code = prompt('Enter invitation code (will be uppercased):');
+    if (!code || !code.trim()) return;
+    const role = prompt('Role for users who sign up with this code?\n(admin / practitioner / viewer)', 'practitioner');
+    if (!role || !['admin', 'practitioner', 'viewer'].includes(role)) {
+      alert('Invalid role. Must be: admin, practitioner, or viewer');
+      return;
+    }
+    const maxStr = prompt('Max number of uses? (0 = unlimited)', '0');
+    const maxUses = parseInt(maxStr, 10) || 0;
+
+    const sb = await getClient();
+    const { error } = await sb.from('invite_codes').insert([{
+      code: code.trim().toUpperCase(),
+      role: role,
+      max_uses: maxUses,
+      times_used: 0,
+      is_active: true
+    }]);
+    if (error) {
+      alert('Failed to create code: ' + error.message);
+      return;
+    }
+    toast('Invitation code created');
+    await loadInviteCodes();
+  };
+
+  /* ── Users Manager ─────────────────────────────────────── */
+  let users = [];
+
+  async function loadUsers() {
+    const sb = await getClient();
+    if (!sb) return;
+    const { data, error } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+    if (error) { console.warn('users fetch error', error); users = []; }
+    else { users = data || []; }
+    renderUsers();
+  }
+
+  function renderUsers() {
+    const body = document.getElementById('users-panel-body');
+    if (!users.length) {
+      body.innerHTML = '<div style="font-size:.82rem;color:var(--text-secondary);padding:1.5rem 1.25rem;text-align:center;">No users yet.</div>';
+      return;
+    }
+    body.innerHTML = users.map(u => {
+      const initials = (u.full_name || u.email || '?').split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      return `<div class="user-item" data-id="${u.id}">
+        <div class="user-avatar">${esc(initials)}</div>
+        <div class="user-info">
+          <div class="user-name">${esc(u.full_name || 'Unnamed')}</div>
+          <div class="user-email">${esc(u.email)}</div>
+        </div>
+        <select class="user-role-select" data-id="${u.id}">
+          <option value="admin"${u.role === 'admin' ? ' selected' : ''}>Admin</option>
+          <option value="practitioner"${u.role === 'practitioner' ? ' selected' : ''}>Practitioner</option>
+          <option value="viewer"${u.role === 'viewer' ? ' selected' : ''}>Viewer</option>
+        </select>
+      </div>`;
+    }).join('');
+
+    // Wire role change
+    body.querySelectorAll('.user-role-select').forEach(sel => {
+      sel.onchange = async function () {
+        const id = sel.getAttribute('data-id');
+        const newRole = sel.value;
+        const sb = await getClient();
+        const { error } = await sb.from('profiles').update({ role: newRole }).eq('id', id);
+        if (error) {
+          alert('Failed to update role: ' + error.message);
+          await loadUsers();
+          return;
+        }
+        toast('Role updated to ' + newRole);
+      };
+    });
+  }
+
   /* ── Helpers ─────────────────────────────────────────────── */
   function esc(s) {
     if (!s) return '';
     const d = document.createElement('div');
     d.textContent = s;
     return d.innerHTML;
+  }
+
+  async function getClient() {
+    for (let i = 0; i < 30; i++) {
+      if (window.supabaseClient) return window.supabaseClient;
+      await new Promise(r => setTimeout(r, 100));
+    }
+    return null;
   }
 })();
 </script>
