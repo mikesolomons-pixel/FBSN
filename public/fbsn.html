@@ -957,6 +957,116 @@
     gap: 0.5rem;
     margin-top: 1rem;
   }
+
+  /* Netflix example card */
+  .example-card {
+    background: linear-gradient(135deg, #1B2A4A 0%, #006B5E 100%);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .example-card-info h3 { font-size: 1.1rem; margin-bottom: 0.2rem; }
+  .example-card-info p { font-size: 0.82rem; opacity: 0.8; }
+  .example-card .btn-example {
+    padding: 0.6rem 1.25rem;
+    background: white;
+    color: #1B2A4A;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .example-card .btn-example:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+  /* Answer key comparison */
+  .answer-key-section {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(0,137,123,0.06);
+    border: 1px solid rgba(0,137,123,0.15);
+    border-radius: 10px;
+  }
+  .answer-key-section h3 {
+    font-size: 0.9rem;
+    color: var(--teal-dark);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .answer-key-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    margin-bottom: 0.3rem;
+  }
+  .answer-key-item:last-child { margin-bottom: 0; }
+  .answer-key-item .ak-text { flex: 1; }
+  .answer-key-item .ak-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    color: white;
+    white-space: nowrap;
+  }
+  .answer-key-item .ak-badge.fact-signal { background: var(--fact-signal); }
+  .answer-key-item .ak-badge.fact-noise { background: var(--fact-noise); }
+  .answer-key-item .ak-badge.belief-signal { background: var(--belief-signal); }
+  .answer-key-item .ak-badge.belief-noise { background: var(--belief-noise); }
+  .answer-key-item .ak-result {
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  .answer-key-item .ak-result.correct { color: var(--teal); }
+  .answer-key-item .ak-result.incorrect { color: var(--wont-do); }
+  .answer-key-item.match { background: rgba(0,137,123,0.06); }
+  .answer-key-item.mismatch { background: rgba(239,83,80,0.06); }
+  .answer-key-score {
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--teal-bg);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--teal-dark);
+    text-align: center;
+  }
+  .netflix-action-example {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(27,42,74,0.04);
+    border-radius: 8px;
+    border-left: 3px solid var(--teal);
+  }
+  .netflix-action-example .nae-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--teal-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+  }
+  .netflix-action-example p {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
 </style>
 </head>
 <body>
@@ -1002,6 +1112,15 @@
         <div class="mode-title">Virtual Multiplayer</div>
         <div class="mode-desc">Enter a room code to vote on perspectives from your device.</div>
       </a>
+    </div>
+
+    <!-- Netflix example -->
+    <div class="example-card">
+      <div class="example-card-info">
+        <h3>&#127916; Netflix Case Study</h3>
+        <p>Practice the FBSN framework with a real strategic example — 11 perspectives from Netflix's streaming crossroads.</p>
+      </div>
+      <button class="btn-example" onclick="loadTemplate('netflix')">Run Netflix Example &#8594;</button>
     </div>
 
     <!-- Saved sessions -->
@@ -1204,6 +1323,7 @@
       <div class="fullscreen-matrix-header">
         <h2>FBSN Matrix</h2>
         <div class="btn-row" style="margin:0">
+          <button class="btn btn-ghost" id="answerKeyBtn" style="display:none" onclick="toggleAnswerKey()">Show Answer Key</button>
           <button class="btn btn-ghost" onclick="goToPhase(3)">Re-do Exercise</button>
           <button class="btn btn-primary" onclick="goToPhase(5)">View Actions</button>
         </div>
@@ -1232,6 +1352,11 @@
             <div class="matrix-cell-subtitle">Strategic Bets</div>
           </div>
         </div>
+      </div>
+      <div class="answer-key-section" id="answerKeySection" style="display:none;margin:0 2rem 1rem;">
+        <h3>&#128273; Answer Key — How Netflix's Perspectives Map</h3>
+        <div id="answerKeyList"></div>
+        <div class="answer-key-score" id="answerKeyScore"></div>
       </div>
     </div>
   </div>
@@ -1298,6 +1423,7 @@ let state = {
   currentCertainty: null,
   currentImportance: null,
   actions: { mustDo: [], mightDo: [], wontDo: [] },
+  isTemplate: null,       // null or template name (e.g. 'netflix')
 };
 
 // ========== NAVIGATION ==========
@@ -1798,6 +1924,85 @@ function renderMatrix() {
       cell.appendChild(tag);
     });
   });
+
+  // Show/hide answer key button for template exercises
+  const answerKeyBtn = document.getElementById('answerKeyBtn');
+  const answerKeySection = document.getElementById('answerKeySection');
+  if (state.isTemplate && TEMPLATES[state.isTemplate] && TEMPLATES[state.isTemplate].answers) {
+    answerKeyBtn.style.display = '';
+  } else {
+    answerKeyBtn.style.display = 'none';
+    answerKeySection.style.display = 'none';
+  }
+}
+
+// ========== ANSWER KEY (Netflix) ==========
+function toggleAnswerKey() {
+  const section = document.getElementById('answerKeySection');
+  const btn = document.getElementById('answerKeyBtn');
+  if (section.style.display === 'none') {
+    renderAnswerKey();
+    section.style.display = '';
+    btn.textContent = 'Hide Answer Key';
+  } else {
+    section.style.display = 'none';
+    btn.textContent = 'Show Answer Key';
+  }
+}
+
+function renderAnswerKey() {
+  const tmpl = TEMPLATES[state.isTemplate];
+  if (!tmpl || !tmpl.answers) return;
+
+  const labels = {
+    'fact-signal': 'Fact + Signal',
+    'fact-noise': 'Fact + Noise',
+    'belief-signal': 'Belief + Signal',
+    'belief-noise': 'Belief + Noise'
+  };
+  const badgeLabels = {
+    'fact-signal': 'F+S',
+    'fact-noise': 'F+N',
+    'belief-signal': 'B+S',
+    'belief-noise': 'B+N'
+  };
+
+  let correct = 0;
+  let total = 0;
+  const list = document.getElementById('answerKeyList');
+
+  const items = tmpl.perspectives.map(text => {
+    const correctAnswer = tmpl.answers[text];
+    const userCat = state.categorized.find(c => c.text === text);
+    const userAnswer = userCat ? `${userCat.certainty}-${userCat.importance}` : null;
+    const isMatch = userAnswer === correctAnswer;
+    total++;
+    if (isMatch) correct++;
+
+    let resultHtml = '';
+    if (!userAnswer) {
+      resultHtml = '<span class="ak-result" style="color:var(--text-secondary)">Skipped</span>';
+    } else if (isMatch) {
+      resultHtml = '<span class="ak-result correct">&#10003; Correct</span>';
+    } else {
+      resultHtml = `<span class="ak-result incorrect">&#10007; You: ${badgeLabels[userAnswer] || '?'}</span>`;
+    }
+
+    return `<div class="answer-key-item ${userAnswer ? (isMatch ? 'match' : 'mismatch') : ''}">
+      <span class="ak-text">${escapeHtml(text)}</span>
+      <span class="ak-badge ${correctAnswer}">${badgeLabels[correctAnswer]}</span>
+      ${resultHtml}
+    </div>`;
+  });
+
+  list.innerHTML = items.join('');
+
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  let msg = `${correct} of ${total} correct (${pct}%)`;
+  if (pct >= 80) msg += ' — Excellent strategic instincts!';
+  else if (pct >= 50) msg += ' — Good work. Review the mismatches above.';
+  else msg += ' — Keep practicing! Compare your answers to the key.';
+  document.getElementById('answerKeyScore').textContent = msg;
 }
 
 // ========== ACTIONS ==========
@@ -1814,9 +2019,24 @@ function renderActions() {
   renderContext('mightDoContext', 'Beliefs + Signals', mightPersp);
   renderContext('wontDoContext', 'Noise', wontPersp);
 
-  renderActionList('mustDoList', 'mustDo');
-  renderActionList('mightDoList', 'mightDo');
-  renderActionList('wontDoList', 'wontDo');
+  // For Netflix template, show the example actions instead of user input
+  const tmpl = state.isTemplate && TEMPLATES[state.isTemplate];
+  if (tmpl && tmpl.actions) {
+    const exampleHtml = (action) => `<div class="netflix-action-example"><div class="nae-title">${escapeHtml(action.title)}</div><p>${escapeHtml(action.desc)}</p></div>`;
+    document.getElementById('mustDoList').innerHTML = exampleHtml(tmpl.actions.mustDo);
+    document.getElementById('mightDoList').innerHTML = exampleHtml(tmpl.actions.mightDo);
+    document.getElementById('wontDoList').innerHTML = exampleHtml(tmpl.actions.wontDo);
+
+    // Hide the add-action inputs for template mode
+    document.querySelectorAll('.action-add-row').forEach(el => el.style.display = 'none');
+    // Update description
+    document.querySelector('#phase-5 .desc').textContent = 'Here\'s how Netflix actually translated their strategic clarity into action — compare this to your categorization above.';
+  } else {
+    renderActionList('mustDoList', 'mustDo');
+    renderActionList('mightDoList', 'mightDo');
+    renderActionList('wontDoList', 'wontDo');
+    document.querySelectorAll('.action-add-row').forEach(el => el.style.display = '');
+  }
 }
 
 function renderContext(id, label, items) {
@@ -1949,7 +2169,7 @@ function saveSession() {
 }
 
 function autoSave() {
-  if (!state.sessionId) return;
+  if (!state.sessionId || state.isTemplate) return;
   const data = buildSessionData();
   const sessions = getSessions().filter(s => s.id !== data.id);
   sessions.unshift(data);
@@ -2096,7 +2316,7 @@ function importSession(input) {
 
 // ========== RESET ==========
 function resetApp() {
-  state = { title: '', context: '', perspectives: [], categorized: [], currentIndex: 0, currentCertainty: null, currentImportance: null, actions: { mustDo: [], mightDo: [], wontDo: [] }, sessionId: null };
+  state = { title: '', context: '', perspectives: [], categorized: [], currentIndex: 0, currentCertainty: null, currentImportance: null, actions: { mustDo: [], mightDo: [], wontDo: [] }, sessionId: null, isTemplate: null };
   document.getElementById('titleInput').value = '';
   document.getElementById('contextInput').value = '';
   document.getElementById('rawTextInput').value = '';
@@ -2130,18 +2350,54 @@ const TEMPLATES = {
       'Streaming is a temporary fad',
       'Older customers will reject digital',
       'Competitors won\'t adapt fast enough'
-    ]
+    ],
+    answers: {
+      'Broadband adoption is accelerating': 'fact-signal',
+      'Customers want on-demand access': 'fact-signal',
+      'Streaming is scalable and reduces delivery cost': 'fact-signal',
+      'We can secure long-term studio deals': 'belief-signal',
+      'Users will accept streaming over DVDs': 'belief-signal',
+      'Subscription-based models will be sustainable': 'belief-signal',
+      'The DVD business is currently profitable': 'fact-noise',
+      'Most current customers use mail rentals': 'fact-noise',
+      'Streaming is a temporary fad': 'belief-noise',
+      'Older customers will reject digital': 'belief-noise',
+      'Competitors won\'t adapt fast enough': 'belief-noise'
+    },
+    actions: {
+      mustDo: {
+        title: 'Build and scale streaming',
+        desc: 'Streaming offers speed, convenience, and aligns with emerging consumer expectations. Invest in streaming technology, user experience, and content delivery to replace DVD-by-mail.'
+      },
+      mightDo: {
+        title: 'Develop original programming',
+        desc: 'Owning content could differentiate Netflix and reduce dependency on third-party studios. Pilot original content and pursue selective exclusivity deals.'
+      },
+      wontDo: {
+        title: 'Expand DVD operations',
+        desc: 'DVDs are profitable now, but the model is limited in scalability and future relevance. Phase out investment in physical distribution.'
+      }
+    }
   }
 };
 
 function loadTemplate(name) {
   const tmpl = TEMPLATES[name];
   if (!tmpl) return;
+  // Reset state completely for template
   state.title = tmpl.title;
   state.context = tmpl.context;
   state.perspectives = tmpl.perspectives.slice();
+  state.categorized = [];
+  state.currentIndex = 0;
+  state.currentCertainty = null;
+  state.currentImportance = null;
+  state.actions = { mustDo: [], mightDo: [], wontDo: [] };
+  state.isTemplate = name;
+  state.sessionId = null; // Don't auto-save templates to sessions
   document.getElementById('titleInput').value = tmpl.title;
   document.getElementById('contextInput').value = tmpl.context;
+  document.getElementById('exerciseTitle').textContent = tmpl.title;
   renderPerspectiveList();
   goToPhase(2);
 }
