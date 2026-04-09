@@ -97,12 +97,12 @@ values
 ),
 (
   'Assumption Mapping',
-  '',
-  'coming-soon',
-  '[]'::jsonb,
-  '["Critical assumptions identified and ranked","Shared awareness of what the team takes for granted"]'::jsonb,
-  '["Assumption map with confidence and impact ratings","Test plan for highest-risk assumptions"]'::jsonb,
-  '[{"label":"Coming Soon","url":"","style":"disabled"}]'::jsonb,
+  'Based on David Bland''s work from Testing Business Ideas',
+  'automated',
+  '[{"label":"Facilitated In-Room","description":"Use the digital tool on a shared screen while a facilitator guides the team through brainstorming and mapping assumptions"},{"label":"Virtual Session","description":"Share the tool screen in a video call and have the team contribute assumptions collaboratively"},{"label":"Solo Practice","description":"Map assumptions individually to clarify your own thinking before a team session"}]'::jsonb,
+  '["Critical assumptions identified and ranked","Shared awareness of what the team takes for granted","Clear priorities for what to test first"]'::jsonb,
+  '["Assumption map with importance and evidence ratings","Prioritized list of assumptions to test immediately","Test plan for highest-risk assumptions"]'::jsonb,
+  '[{"label":"Run Assumption Mapping","url":"assumptions.html","style":"primary"}]'::jsonb,
   103
 );
 

@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assumption Mapping - Value Creating Teams</title>
+<script src="auth.js"></script>
+<script type="module" src="supabase-config.js"></script>
+<script src="admin.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --coral: #E07A5F;
+    --coral-light: #F4A691;
+    --coral-bg: #FDF0EC;
+    --test-now: #E07A5F;
+    --test-now-bg: #FDF0EC;
+    --monitor: #4A90D9;
+    --monitor-bg: #E3F2FD;
+    --defer: #9E9E9E;
+    --defer-bg: #F5F5F5;
+    --safe: #43A047;
+    --safe-bg: #E8F5E9;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1B2A4A;
+    --text-secondary: #5A6B8A;
+    --border: #E2E8F0;
+    --shadow: 0 2px 8px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.12);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--coral) 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    position: relative;
+  }
+  .header-inner { max-width: 1200px; margin: 0 auto; }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.8rem;
+    margin-bottom: 0.75rem; transition: color 0.15s;
+  }
+  .back-link:hover { color: white; }
+  .header h1 { font-size: 1.6rem; font-weight: 800; }
+  .header .subtitle { font-size: 0.85rem; opacity: 0.85; margin-top: 0.2rem; }
+
+  /* Progress */
+  .progress-bar {
+    display: flex; align-items: center; gap: 0; padding: 0.75rem 2rem;
+    background: white; border-bottom: 1px solid var(--border);
+  }
+  .progress-step {
+    display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+  .progress-step .step-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--border); color: var(--text-secondary);
+    font-weight: 600; font-size: 0.7rem; flex-shrink: 0;
+  }
+  .progress-step.active .step-num { background: var(--coral); color: white; }
+  .progress-step.done .step-num { background: var(--coral-light); color: white; }
+  .progress-step.active { color: var(--navy); font-weight: 600; }
+  .progress-connector {
+    flex: 1; height: 2px; background: var(--border);
+    margin: 0 0.6rem; min-width: 16px;
+  }
+  .progress-connector.done { background: var(--coral-light); }
+
+  /* Main */
+  .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .phase { display: none; }
+  .phase.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: var(--card); border-radius: 14px; padding: 1.75rem;
+    box-shadow: var(--shadow); margin-bottom: 1.25rem;
+  }
+  .card h2 { font-size: 1.2rem; font-weight: 700; color: var(--navy); margin-bottom: 0.4rem; }
+  .card p.desc { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.55; margin-bottom: 1.25rem; }
+
+  /* Form */
+  textarea, input[type="text"] {
+    width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: 0.9rem; font-family: inherit;
+    transition: border-color 0.2s; background: white;
+  }
+  textarea:focus, input[type="text"]:focus { outline: none; border-color: var(--coral); }
+  textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+  label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.85rem; }
+  .form-group { margin-bottom: 1rem; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.7rem 1.4rem; border-radius: 8px; font-size: 0.85rem;
+    font-weight: 600; cursor: pointer; border: none; font-family: inherit;
+    transition: transform 0.1s, box-shadow 0.15s;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--coral); color: white; }
+  .btn-primary:hover { background: #D06A50; }
+  .btn-secondary { background: var(--border); color: var(--text); }
+  .btn-ghost { background: transparent; color: var(--text-secondary); }
+  .btn-ghost:hover { background: #F0F0F0; }
+  .btn-sm { padding: 0.45rem 0.85rem; font-size: 0.78rem; }
+  .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+
+  /* Netflix example card */
+  .example-card {
+    background: linear-gradient(135deg, #1B2A4A 0%, #8B1A1A 100%);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.25rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .example-card-info h3 { font-size: 1.1rem; margin-bottom: 0.2rem; }
+  .example-card-info p { font-size: 0.82rem; opacity: 0.8; }
+  .example-card .btn-example {
+    padding: 0.6rem 1.25rem;
+    background: white;
+    color: #1B2A4A;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .example-card .btn-example:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+  /* Sessions */
+  .sessions-card {
+    background: var(--card); border-radius: 12px; padding: 1.5rem 2rem;
+    box-shadow: var(--shadow); margin-bottom: 1.25rem;
+  }
+  .sessions-card h2 { font-size: 1.2rem; color: var(--navy); margin-bottom: 0.25rem; }
+  .sessions-card p.desc { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem; }
+  .session-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .session-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 1rem; background: var(--coral-bg); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+  }
+  .session-item:hover { border-color: var(--coral); }
+  .session-item-info { flex: 1; min-width: 0; }
+  .session-item-title { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .session-item-meta { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.15rem; }
+  .session-item-badge {
+    font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.5rem;
+    border-radius: 4px; white-space: nowrap;
+  }
+  .session-item-badge.in-progress { background: #FFF8E1; color: #F57F17; }
+  .session-item-badge.complete { background: var(--safe-bg); color: var(--safe); }
+  .session-item .remove-btn {
+    background: none; border: none; color: var(--text-secondary);
+    cursor: pointer; font-size: 1.1rem; padding: 0.25rem; line-height: 1;
+  }
+  .session-item .remove-btn:hover { color: var(--test-now); }
+
+  /* Assumption list */
+  .assumption-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .assumption-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 1rem; background: var(--bg); border-radius: 8px;
+    font-size: 0.9rem; border: 1.5px solid var(--border);
+  }
+  .assumption-item .num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--coral); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700; flex-shrink: 0;
+  }
+  .assumption-item .assumption-text { flex: 1; line-height: 1.45; }
+  .assumption-item .remove-btn {
+    margin-left: auto; background: none; border: none;
+    color: var(--text-secondary); cursor: pointer; font-size: 1.1rem;
+    padding: 0 0.25rem; line-height: 1;
+  }
+  .assumption-item .remove-btn:hover { color: var(--test-now); }
+
+  .add-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .add-row input { flex: 1; }
+
+  .help-prompt {
+    padding: 0.75rem 1rem; background: #FFF8E1; border-radius: 8px;
+    border-left: 3px solid #F9A825; font-size: 0.82rem; color: #5D4037;
+    line-height: 1.5; margin-bottom: 1rem;
+  }
+
+  /* Exercise layout - split */
+  .exercise-layout {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.5rem; align-items: start;
+  }
+  .exercise-card {
+    background: white; border-radius: 16px;
+    box-shadow: var(--shadow-lg); padding: 2rem; text-align: center;
+  }
+  .exercise-counter {
+    font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;
+  }
+  .exercise-assumption {
+    font-size: 1.15rem; font-weight: 600; color: var(--text);
+    line-height: 1.5; margin-bottom: 1.5rem; padding: 1.25rem;
+    background: var(--coral-bg); border-radius: 12px;
+    border-left: 4px solid var(--coral);
+    text-align: left;
+  }
+  .exercise-question {
+    font-size: 0.9rem; color: var(--navy); font-weight: 600; margin-bottom: 0.75rem;
+  }
+  .exercise-axes {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1rem; margin-bottom: 1rem;
+  }
+  .axis-group { text-align: center; }
+  .exercise-options {
+    display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  .option-btn {
+    padding: 0.65rem 0.75rem; border: 2px solid var(--border);
+    border-radius: 10px; background: white; cursor: pointer;
+    transition: all 0.2s; text-align: center;
+  }
+  .option-btn:hover { border-color: var(--coral); background: var(--coral-bg); }
+  .option-btn.selected { border-color: var(--coral); background: var(--coral-bg); }
+  .option-btn .option-label {
+    font-size: 0.95rem; font-weight: 700; display: block; margin-bottom: 0.1rem;
+  }
+  .option-btn .option-desc {
+    font-size: 0.72rem; color: var(--text-secondary);
+  }
+  .exercise-progress-bar {
+    height: 6px; background: var(--border); border-radius: 3px;
+    overflow: hidden; margin-bottom: 1rem;
+  }
+  .exercise-progress-fill {
+    height: 100%; background: var(--coral); border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .confirm-btn { margin-top: 0.75rem; }
+
+  /* Live matrix panel */
+  .live-matrix-panel {
+    background: white; border-radius: 16px;
+    box-shadow: var(--shadow); padding: 1.5rem;
+    transition: all 0.3s ease;
+  }
+  .live-matrix-panel h3 {
+    font-size: 1rem; color: var(--navy); margin-bottom: 1rem;
+  }
+
+  /* Assumption Matrix */
+  .matrix-container {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 0; margin: 1rem 0;
+  }
+  .matrix-corner { }
+  .matrix-col-header {
+    text-align: center; padding: 0.6rem;
+    font-weight: 700; font-size: 0.8rem; color: var(--navy);
+  }
+  .matrix-row-header {
+    writing-mode: vertical-lr; transform: rotate(180deg);
+    text-align: center; padding: 0.6rem;
+    font-weight: 700; font-size: 0.8rem; color: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .matrix-cell {
+    min-height: 120px; padding: 0.75rem; border-radius: 8px;
+    margin: 3px; display: flex; flex-direction: column; gap: 0.4rem;
+  }
+  .matrix-cell-title {
+    font-weight: 700; font-size: 0.75rem; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 0.2rem;
+  }
+  .matrix-cell-subtitle {
+    font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 0.4rem;
+  }
+  .matrix-cell.test-now { background: var(--test-now-bg); border: 2px solid var(--test-now); }
+  .matrix-cell.test-now .matrix-cell-title { color: var(--test-now); }
+  .matrix-cell.monitor { background: var(--monitor-bg); border: 2px solid var(--monitor); }
+  .matrix-cell.monitor .matrix-cell-title { color: var(--monitor); }
+  .matrix-cell.defer { background: var(--defer-bg); border: 2px solid var(--defer); }
+  .matrix-cell.defer .matrix-cell-title { color: var(--defer); }
+  .matrix-cell.safe { background: var(--safe-bg); border: 2px solid var(--safe); }
+  .matrix-cell.safe .matrix-cell-title { color: var(--safe); }
+
+  .matrix-tag {
+    font-size: 0.78rem; padding: 0.35rem 0.55rem;
+    background: rgba(255,255,255,0.8); border-radius: 6px;
+    line-height: 1.3; cursor: default;
+  }
+
+  /* Draggable tags in results */
+  .matrix-tag.draggable {
+    cursor: grab; transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .matrix-tag.draggable:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .matrix-tag.dragging { opacity: 0.5; }
+  .matrix-cell.drag-over { box-shadow: inset 0 0 0 3px rgba(224,122,95,0.4); }
+
+  /* Quadrant color tags */
+  .tag-test-now { border-left: 3px solid var(--test-now); }
+  .tag-monitor { border-left: 3px solid var(--monitor); }
+  .tag-defer { border-left: 3px solid var(--defer); }
+  .tag-safe { border-left: 3px solid var(--safe); }
+
+  /* Results */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .stat-card {
+    border-radius: 10px; padding: 1rem; text-align: center;
+  }
+  .stat-card .stat-num {
+    font-size: 1.8rem; font-weight: 800; margin-bottom: 0.15rem;
+  }
+  .stat-card .stat-label {
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-test-now { background: var(--test-now-bg); }
+  .stat-test-now .stat-num, .stat-test-now .stat-label { color: var(--test-now); }
+  .stat-monitor { background: var(--monitor-bg); }
+  .stat-monitor .stat-num, .stat-monitor .stat-label { color: var(--monitor); }
+  .stat-defer { background: var(--defer-bg); }
+  .stat-defer .stat-num, .stat-defer .stat-label { color: var(--defer); }
+  .stat-safe { background: var(--safe-bg); }
+  .stat-safe .stat-num, .stat-safe .stat-label { color: var(--safe); }
+
+  /* Recommendations */
+  .recommendations {
+    display: flex; flex-direction: column; gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .rec-card {
+    padding: 1rem 1.25rem; border-radius: 10px;
+    border-left: 4px solid; font-size: 0.85rem; line-height: 1.5;
+  }
+  .rec-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .rec-card p { color: var(--text-secondary); margin: 0; }
+  .rec-test-now { border-left-color: var(--test-now); background: var(--test-now-bg); }
+  .rec-test-now h4 { color: var(--test-now); }
+  .rec-monitor { border-left-color: var(--monitor); background: var(--monitor-bg); }
+  .rec-monitor h4 { color: var(--monitor); }
+  .rec-defer { border-left-color: var(--defer); background: var(--defer-bg); }
+  .rec-defer h4 { color: var(--defer); }
+  .rec-safe { border-left-color: var(--safe); background: var(--safe-bg); }
+  .rec-safe h4 { color: var(--safe); }
+
+  /* Action planning */
+  .action-plan { margin-top: 1.5rem; }
+  .action-plan h3 {
+    font-size: 1.1rem; font-weight: 700; color: var(--navy);
+    margin-bottom: 0.75rem;
+  }
+  .action-plan-item {
+    padding: 1rem; background: var(--test-now-bg); border-radius: 10px;
+    margin-bottom: 0.75rem; border-left: 4px solid var(--test-now);
+  }
+  .action-plan-item .ap-assumption {
+    font-size: 0.9rem; font-weight: 600; color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+  .action-plan-item .ap-label {
+    font-size: 0.75rem; font-weight: 600; color: var(--test-now);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem;
+  }
+  .action-plan-item input {
+    width: 100%; padding: 0.6rem 0.85rem; border: 1.5px solid var(--border);
+    border-radius: 6px; font-size: 0.85rem; font-family: inherit;
+    background: white;
+  }
+  .action-plan-item input:focus { outline: none; border-color: var(--coral); }
+
+  /* Answer key */
+  .answer-key-section {
+    margin-top: 1rem; padding: 1rem;
+    background: rgba(224,122,95,0.06); border: 1px solid rgba(224,122,95,0.15);
+    border-radius: 10px;
+  }
+  .answer-key-section h3 {
+    font-size: 0.9rem; color: var(--navy); margin-bottom: 0.75rem;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .answer-key-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.35rem 0.5rem; font-size: 0.8rem;
+    border-radius: 6px; margin-bottom: 0.3rem;
+  }
+  .answer-key-item:last-child { margin-bottom: 0; }
+  .answer-key-item .ak-text { flex: 1; }
+  .answer-key-item .ak-badge {
+    font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 0.15rem 0.4rem; border-radius: 4px;
+    color: white; white-space: nowrap;
+  }
+  .ak-badge.test-now { background: var(--test-now); }
+  .ak-badge.monitor { background: var(--monitor); }
+  .ak-badge.defer { background: var(--defer); }
+  .ak-badge.safe { background: var(--safe); }
+  .answer-key-item .ak-result {
+    font-size: 0.7rem; font-weight: 600;
+  }
+  .ak-result.correct { color: var(--safe); }
+  .ak-result.incorrect { color: var(--test-now); }
+  .answer-key-item.match { background: rgba(67,160,71,0.06); }
+  .answer-key-item.mismatch { background: rgba(224,122,95,0.06); }
+  .answer-key-score {
+    margin-top: 0.75rem; padding: 0.6rem 0.85rem;
+    background: var(--coral-bg); border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600;
+    color: var(--navy); text-align: center;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center; padding: 2rem;
+    color: var(--text-secondary); font-size: 0.9rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .exercise-layout { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .main { padding: 1rem; }
+    .exercise-axes { grid-template-columns: 1fr; }
+    .progress-step span:not(.step-num) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <a href="play1-sensemaking.html" class="back-link">&#8592; Play 1: Sensemaking</a>
+    <h1>Assumption Mapping</h1>
+    <div class="subtitle">Map and prioritize assumptions using David Bland's method from "Testing Business Ideas"</div>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar">
+  <div class="progress-step active" data-step="1"><span class="step-num">1</span><span>Context</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="2"><span class="step-num">2</span><span>Brainstorm</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="3"><span class="step-num">3</span><span>Map</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="4"><span class="step-num">4</span><span>Results</span></div>
+</div>
+
+<div class="main">
+
+  <!-- PHASE 1: Context Setup -->
+  <div class="phase active" id="phase-1">
+
+    <!-- Netflix example -->
+    <div class="example-card">
+      <div class="example-card-info">
+        <h3>&#127916; Netflix Case Study</h3>
+        <p>Practice assumption mapping with Netflix's early pivot from DVD to streaming &mdash; 10 key assumptions.</p>
+      </div>
+      <button class="btn-example" onclick="loadTemplate('netflix')">Run Netflix Example &#8594;</button>
+    </div>
+
+    <!-- Saved sessions -->
+    <div class="sessions-card" id="sessionsCard" style="display:none">
+      <h2>Saved Sessions</h2>
+      <p class="desc">Resume a previous exercise or start a new one below.</p>
+      <ul class="session-list" id="sessionList"></ul>
+    </div>
+
+    <!-- New exercise -->
+    <div class="card">
+      <h2>New Exercise</h2>
+      <p class="desc">Set the context for your assumption mapping exercise. What strategy, initiative, or decision are you evaluating?</p>
+      <div class="form-group">
+        <label>What strategy, initiative, or decision are you mapping assumptions for?</label>
+        <input type="text" id="titleInput" placeholder="e.g. New product launch, Market expansion, Platform migration">
+      </div>
+      <div class="form-group">
+        <label>Describe the situation briefly (optional)</label>
+        <textarea id="contextInput" placeholder="Provide any background context that will help frame the assumptions you'll identify..."></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="goToPhase(2)">Next: Brainstorm Assumptions</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2: Brainstorm Assumptions -->
+  <div class="phase" id="phase-2">
+    <div class="card">
+      <h2>Brainstorm Assumptions</h2>
+      <p class="desc">List the assumptions underlying your strategy or decision. What must be true for this to succeed?</p>
+
+      <div class="help-prompt">
+        <strong>Think about:</strong> What must be true for this to work? What are we taking for granted? What would kill this if we're wrong?
+      </div>
+
+      <label>Add assumptions one at a time</label>
+      <div class="add-row">
+        <input type="text" id="assumptionInput" placeholder="Type an assumption and press Enter or click Add">
+        <button class="btn btn-primary" onclick="addAssumption()">Add</button>
+      </div>
+
+      <div style="margin-top: 1rem">
+        <label>Assumptions (<span id="assumptionCount">0</span>)</label>
+        <ul class="assumption-list" id="assumptionList"></ul>
+        <div class="empty-state" id="emptyAssumptions">No assumptions added yet. Start brainstorming above.</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goToPhase(1)">Back</button>
+        <button class="btn btn-primary" id="toMappingBtn" disabled onclick="goToPhase(3)">Next: Map Assumptions (min 3)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3: Map Assumptions -->
+  <div class="phase" id="phase-3">
+    <div class="exercise-layout">
+      <!-- Left: Sorting Card -->
+      <div class="exercise-card" id="sortingPanel">
+        <div class="exercise-progress-bar">
+          <div class="exercise-progress-fill" id="mappingProgressFill" style="width:0%"></div>
+        </div>
+        <div class="exercise-counter" id="mappingCounter">Assumption 1 of 0</div>
+        <div class="exercise-assumption" id="currentAssumption"></div>
+
+        <div class="exercise-axes" id="mappingAxes">
+          <div class="axis-group">
+            <div class="exercise-question">How important is this assumption?</div>
+            <div class="exercise-options" id="importanceOptions">
+              <button class="option-btn" onclick="selectImportance('high')" data-value="high">
+                <span class="option-label">High</span>
+                <span class="option-desc">Critical to success</span>
+              </button>
+              <button class="option-btn" onclick="selectImportance('medium')" data-value="medium">
+                <span class="option-label">Medium</span>
+                <span class="option-desc">Moderately important</span>
+              </button>
+              <button class="option-btn" onclick="selectImportance('low')" data-value="low">
+                <span class="option-label">Low</span>
+                <span class="option-desc">Nice to have</span>
+              </button>
+            </div>
+          </div>
+          <div class="axis-group">
+            <div class="exercise-question">How much evidence do we have?</div>
+            <div class="exercise-options" id="evidenceOptions">
+              <button class="option-btn" onclick="selectEvidence('none')" data-value="none">
+                <span class="option-label">None</span>
+                <span class="option-desc">Pure assumption</span>
+              </button>
+              <button class="option-btn" onclick="selectEvidence('some')" data-value="some">
+                <span class="option-label">Some</span>
+                <span class="option-desc">Partial data or signals</span>
+              </button>
+              <button class="option-btn" onclick="selectEvidence('strong')" data-value="strong">
+                <span class="option-label">Strong</span>
+                <span class="option-desc">Well-supported by data</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary confirm-btn" id="confirmBtn" disabled onclick="confirmMapping()">Confirm &amp; Next</button>
+        <button class="btn btn-primary confirm-btn" id="finishMappingBtn" style="display:none" onclick="goToPhase(4)">View Results</button>
+      </div>
+
+      <!-- Right: Live Matrix -->
+      <div class="live-matrix-panel">
+        <h3>Assumption Map (Live)</h3>
+        <div class="matrix-container" id="liveMatrix">
+          <div class="matrix-corner"></div>
+          <div class="matrix-col-header">No Evidence</div>
+          <div class="matrix-col-header">Strong Evidence</div>
+          <div class="matrix-row-header">High Importance</div>
+          <div class="matrix-cell test-now" data-quadrant="test-now">
+            <div class="matrix-cell-title">Test Now</div>
+            <div class="matrix-cell-subtitle">Critical + unvalidated</div>
+          </div>
+          <div class="matrix-cell monitor" data-quadrant="monitor">
+            <div class="matrix-cell-title">Monitor</div>
+            <div class="matrix-cell-subtitle">Critical + supported</div>
+          </div>
+          <div class="matrix-row-header">Low Importance</div>
+          <div class="matrix-cell defer" data-quadrant="defer">
+            <div class="matrix-cell-title">Defer</div>
+            <div class="matrix-cell-subtitle">Not critical + unvalidated</div>
+          </div>
+          <div class="matrix-cell safe" data-quadrant="safe">
+            <div class="matrix-cell-title">Safe</div>
+            <div class="matrix-cell-subtitle">Not critical + supported</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4: Results -->
+  <div class="phase" id="phase-4">
+    <div class="card">
+      <h2 id="resultsTitle">Assumption Map Results</h2>
+      <p class="desc" id="resultsSubtitle">Your assumptions have been mapped across the Importance vs Evidence matrix.</p>
+
+      <!-- Stats -->
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- Full Matrix -->
+      <div class="matrix-container" id="resultsMatrix">
+        <div class="matrix-corner"></div>
+        <div class="matrix-col-header">No Evidence</div>
+        <div class="matrix-col-header">Strong Evidence</div>
+        <div class="matrix-row-header">High Importance</div>
+        <div class="matrix-cell test-now" data-quadrant="test-now" id="resultsTestNow">
+          <div class="matrix-cell-title">Test Now</div>
+          <div class="matrix-cell-subtitle">High importance, no evidence &mdash; most dangerous</div>
+        </div>
+        <div class="matrix-cell monitor" data-quadrant="monitor" id="resultsMonitor">
+          <div class="matrix-cell-title">Monitor</div>
+          <div class="matrix-cell-subtitle">High importance, strong evidence &mdash; keep watching</div>
+        </div>
+        <div class="matrix-row-header">Low Importance</div>
+        <div class="matrix-cell defer" data-quadrant="defer" id="resultsDefer">
+          <div class="matrix-cell-title">Defer</div>
+          <div class="matrix-cell-subtitle">Low importance, no evidence &mdash; park for later</div>
+        </div>
+        <div class="matrix-cell safe" data-quadrant="safe" id="resultsSafe">
+          <div class="matrix-cell-title">Safe</div>
+          <div class="matrix-cell-subtitle">Low importance, strong evidence &mdash; no action needed</div>
+        </div>
+      </div>
+
+      <!-- Answer key for Netflix template -->
+      <div class="answer-key-section" id="answerKeySection" style="display:none">
+        <h3>&#128269; Answer Key Comparison</h3>
+        <div id="answerKeyList"></div>
+        <div class="answer-key-score" id="answerKeyScore"></div>
+      </div>
+
+      <!-- Recommendations -->
+      <h3 style="font-size:1.1rem;font-weight:700;color:var(--navy);margin:1.5rem 0 0.75rem;">Recommendations</h3>
+      <div class="recommendations" id="recommendations"></div>
+
+      <!-- Action Planning -->
+      <div class="action-plan" id="actionPlan">
+        <h3>Action Planning: How will you test your critical assumptions?</h3>
+        <div id="actionPlanList"></div>
+      </div>
+
+      <div class="btn-row" style="margin-top:1.5rem">
+        <button class="btn btn-ghost" onclick="goToPhase(3)">Back to Mapping</button>
+        <button class="btn btn-secondary" id="saveSessionBtn" onclick="saveSession()">Save Session</button>
+        <button class="btn btn-secondary" onclick="exportPDF()">Export to PDF</button>
+        <button class="btn btn-secondary" onclick="exportExcel()">Export to Excel</button>
+        <button class="btn btn-primary" onclick="resetApp()">New Exercise</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ========== STATE ==========
+let state = {
+  title: '',
+  context: '',
+  assumptions: [],
+  categorized: [],
+  currentIndex: 0,
+  currentImportance: null,
+  currentEvidence: null,
+  testPlans: {},
+  isTemplate: null,
+  sessionId: null,
+};
+
+// ========== TEMPLATES ==========
+const TEMPLATES = {
+  netflix: {
+    title: "Netflix: DVD to Streaming Pivot",
+    context: "Netflix is evaluating the strategic pivot from its DVD-by-mail business to a streaming-first model. The company must assess which assumptions are critical and which have evidence to support them.",
+    assumptions: [
+      "Customers will pay a monthly subscription for unlimited streaming",
+      "Broadband internet penetration will grow fast enough to support streaming",
+      "Content owners will license their libraries for streaming at reasonable rates",
+      "Our recommendation algorithm gives us a competitive advantage",
+      "Customers prefer the convenience of streaming over physical media",
+      "We can build a streaming technology platform that scales reliably",
+      "Original content production will reduce dependency on licensed content",
+      "International markets will adopt streaming similarly to the US",
+      "Competitors won't be able to replicate our recommendation engine quickly",
+      "DVD revenue will decline gradually enough to fund the streaming transition"
+    ],
+    answers: {
+      "Customers will pay a monthly subscription for unlimited streaming": { importance: 'high', evidence: 'some', quadrant: 'monitor' },
+      "Broadband internet penetration will grow fast enough to support streaming": { importance: 'high', evidence: 'some', quadrant: 'monitor' },
+      "Content owners will license their libraries for streaming at reasonable rates": { importance: 'high', evidence: 'none', quadrant: 'test-now' },
+      "Our recommendation algorithm gives us a competitive advantage": { importance: 'medium', evidence: 'strong', quadrant: 'safe' },
+      "Customers prefer the convenience of streaming over physical media": { importance: 'high', evidence: 'some', quadrant: 'monitor' },
+      "We can build a streaming technology platform that scales reliably": { importance: 'high', evidence: 'none', quadrant: 'test-now' },
+      "Original content production will reduce dependency on licensed content": { importance: 'high', evidence: 'none', quadrant: 'test-now' },
+      "International markets will adopt streaming similarly to the US": { importance: 'medium', evidence: 'none', quadrant: 'test-now' },
+      "Competitors won't be able to replicate our recommendation engine quickly": { importance: 'low', evidence: 'some', quadrant: 'defer' },
+      "DVD revenue will decline gradually enough to fund the streaming transition": { importance: 'high', evidence: 'some', quadrant: 'monitor' }
+    }
+  }
+};
+
+// ========== QUADRANT LOGIC ==========
+function getQuadrant(importance, evidence) {
+  if (importance === 'high' && evidence === 'none') return 'test-now';
+  if (importance === 'high' && evidence === 'some') return 'test-now';
+  if (importance === 'high' && evidence === 'strong') return 'monitor';
+  if (importance === 'medium' && evidence === 'none') return 'test-now';
+  if (importance === 'medium' && evidence === 'some') return 'monitor';
+  if (importance === 'medium' && evidence === 'strong') return 'safe';
+  if (importance === 'low' && evidence === 'none') return 'defer';
+  if (importance === 'low' && evidence === 'some') return 'defer';
+  if (importance === 'low' && evidence === 'strong') return 'safe';
+  return 'defer';
+}
+
+const QUADRANT_INFO = {
+  'test-now': { label: 'Test Now', color: '#E07A5F', bg: '#FDF0EC', guidance: 'Design a quick experiment to validate this assumption. These are the most dangerous — critical and unvalidated.' },
+  'monitor':  { label: 'Monitor',  color: '#4A90D9', bg: '#E3F2FD', guidance: 'Set up tracking to ensure these remain true. Important and currently supported by evidence.' },
+  'defer':    { label: 'Defer',    color: '#9E9E9E', bg: '#F5F5F5', guidance: 'Revisit these if importance changes. Not critical right now and lacking evidence.' },
+  'safe':     { label: 'Safe',     color: '#43A047', bg: '#E8F5E9', guidance: 'No action needed. Low importance and well-evidenced.' },
+};
+
+// ========== NAVIGATION ==========
+function goToPhase(n) {
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.getElementById(`phase-${n}`).classList.add('active');
+
+  document.querySelectorAll('.progress-step').forEach(s => {
+    const step = parseInt(s.dataset.step);
+    s.classList.remove('active', 'done');
+    if (step < n) s.classList.add('done');
+    if (step === n) s.classList.add('active');
+  });
+  document.querySelectorAll('.progress-connector').forEach((c, i) => {
+    c.classList.toggle('done', i < n - 1);
+  });
+
+  if (n === 2) {
+    state.title = document.getElementById('titleInput').value.trim();
+    state.context = document.getElementById('contextInput').value.trim();
+    if (!state.sessionId && state.title) {
+      state.sessionId = Date.now().toString();
+    }
+    updateAssumptionCount();
+  }
+  if (n === 3) {
+    state.categorized = [];
+    state.currentIndex = 0;
+    state.currentImportance = null;
+    state.currentEvidence = null;
+    document.getElementById('mappingAxes').style.display = '';
+    document.getElementById('confirmBtn').style.display = '';
+    document.getElementById('confirmBtn').disabled = true;
+    document.getElementById('finishMappingBtn').style.display = 'none';
+    // Clear live matrix tags
+    document.querySelectorAll('#liveMatrix .matrix-tag').forEach(t => t.remove());
+    showCurrentAssumption();
+  }
+  if (n === 4) {
+    renderResults();
+  }
+}
+
+// ========== TEMPLATE ==========
+function loadTemplate(name) {
+  const tmpl = TEMPLATES[name];
+  if (!tmpl) return;
+  state.title = tmpl.title;
+  state.context = tmpl.context;
+  state.assumptions = [...tmpl.assumptions];
+  state.isTemplate = name;
+  state.sessionId = null;
+  document.getElementById('titleInput').value = tmpl.title;
+  document.getElementById('contextInput').value = tmpl.context;
+  goToPhase(2);
+  renderAssumptionList();
+}
+
+// ========== ASSUMPTIONS MANAGEMENT ==========
+function addAssumption() {
+  const input = document.getElementById('assumptionInput');
+  const text = input.value.trim();
+  if (!text) return;
+  state.assumptions.push(text);
+  input.value = '';
+  input.focus();
+  renderAssumptionList();
+  autoSave();
+}
+
+function removeAssumption(idx) {
+  state.assumptions.splice(idx, 1);
+  renderAssumptionList();
+  autoSave();
+}
+
+function renderAssumptionList() {
+  const list = document.getElementById('assumptionList');
+  const empty = document.getElementById('emptyAssumptions');
+  list.innerHTML = '';
+  if (state.assumptions.length === 0) {
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    state.assumptions.forEach((text, i) => {
+      const li = document.createElement('li');
+      li.className = 'assumption-item';
+      li.innerHTML = `
+        <span class="num">${i + 1}</span>
+        <span class="assumption-text">${escapeHtml(text)}</span>
+        <button class="remove-btn" onclick="removeAssumption(${i})" title="Remove">&times;</button>
+      `;
+      list.appendChild(li);
+    });
+  }
+  updateAssumptionCount();
+}
+
+function updateAssumptionCount() {
+  document.getElementById('assumptionCount').textContent = state.assumptions.length;
+  const btn = document.getElementById('toMappingBtn');
+  if (state.assumptions.length >= 3) {
+    btn.disabled = false;
+    btn.textContent = `Next: Map Assumptions (${state.assumptions.length})`;
+  } else {
+    btn.disabled = true;
+    btn.textContent = `Next: Map Assumptions (min 3)`;
+  }
+}
+
+document.getElementById('assumptionInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addAssumption(); }
+});
+
+// ========== MAPPING EXERCISE ==========
+function showCurrentAssumption() {
+  const total = state.assumptions.length;
+  const idx = state.currentIndex;
+
+  const pct = total > 0 ? (idx / total) * 100 : 0;
+  document.getElementById('mappingProgressFill').style.width = pct + '%';
+  document.getElementById('mappingCounter').textContent = `Assumption ${idx + 1} of ${total}`;
+
+  if (idx >= total) {
+    // All done
+    document.getElementById('currentAssumption').textContent = 'All assumptions have been mapped!';
+    document.getElementById('mappingAxes').style.display = 'none';
+    document.getElementById('confirmBtn').style.display = 'none';
+    document.getElementById('finishMappingBtn').style.display = '';
+    document.getElementById('mappingProgressFill').style.width = '100%';
+    document.getElementById('mappingCounter').textContent = `${total} of ${total} mapped`;
+    return;
+  }
+
+  document.getElementById('currentAssumption').textContent = state.assumptions[idx];
+
+  // Reset selections
+  state.currentImportance = null;
+  state.currentEvidence = null;
+  document.querySelectorAll('#importanceOptions .option-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('#evidenceOptions .option-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('confirmBtn').disabled = true;
+}
+
+function selectImportance(val) {
+  state.currentImportance = val;
+  document.querySelectorAll('#importanceOptions .option-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.value === val);
+  });
+  checkConfirmReady();
+}
+
+function selectEvidence(val) {
+  state.currentEvidence = val;
+  document.querySelectorAll('#evidenceOptions .option-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.value === val);
+  });
+  checkConfirmReady();
+}
+
+function checkConfirmReady() {
+  document.getElementById('confirmBtn').disabled = !(state.currentImportance && state.currentEvidence);
+}
+
+function confirmMapping() {
+  const text = state.assumptions[state.currentIndex];
+  const quadrant = getQuadrant(state.currentImportance, state.currentEvidence);
+  state.categorized.push({
+    text: text,
+    importance: state.currentImportance,
+    evidence: state.currentEvidence,
+    quadrant: quadrant,
+  });
+
+  // Add tag to live matrix
+  addLiveMatrixTag(text, quadrant);
+
+  state.currentIndex++;
+  showCurrentAssumption();
+  autoSave();
+}
+
+function addLiveMatrixTag(text, quadrant) {
+  const cell = document.querySelector(`#liveMatrix .matrix-cell.${quadrant === 'test-now' ? 'test-now' : quadrant}`);
+  if (!cell) return;
+  const tag = document.createElement('div');
+  tag.className = 'matrix-tag tag-' + quadrant;
+  tag.textContent = text.length > 50 ? text.substring(0, 47) + '...' : text;
+  tag.title = text;
+  cell.appendChild(tag);
+}
+
+// ========== RESULTS ==========
+function renderResults() {
+  // Use answer key for templates
+  const tmpl = state.isTemplate && TEMPLATES[state.isTemplate];
+  let catData = { 'test-now': [], 'monitor': [], 'defer': [], 'safe': [] };
+
+  if (tmpl && tmpl.answers) {
+    state.assumptions.forEach(text => {
+      const answer = tmpl.answers[text];
+      if (answer) {
+        catData[answer.quadrant].push(text);
+      }
+    });
+  } else {
+    state.categorized.forEach(c => {
+      if (catData[c.quadrant]) catData[c.quadrant].push(c.text);
+    });
+  }
+
+  // Stats
+  const statsGrid = document.getElementById('statsGrid');
+  statsGrid.innerHTML = `
+    <div class="stat-card stat-test-now">
+      <div class="stat-num">${catData['test-now'].length}</div>
+      <div class="stat-label">Test Now</div>
+    </div>
+    <div class="stat-card stat-monitor">
+      <div class="stat-num">${catData['monitor'].length}</div>
+      <div class="stat-label">Monitor</div>
+    </div>
+    <div class="stat-card stat-defer">
+      <div class="stat-num">${catData['defer'].length}</div>
+      <div class="stat-label">Defer</div>
+    </div>
+    <div class="stat-card stat-safe">
+      <div class="stat-num">${catData['safe'].length}</div>
+      <div class="stat-label">Safe</div>
+    </div>
+  `;
+
+  // Matrix tags
+  ['test-now', 'monitor', 'defer', 'safe'].forEach(q => {
+    const cellId = 'results' + q.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+    const cell = document.getElementById(cellId);
+    // Remove old tags
+    cell.querySelectorAll('.matrix-tag').forEach(t => t.remove());
+    catData[q].forEach((text, i) => {
+      const tag = document.createElement('div');
+      tag.className = 'matrix-tag draggable tag-' + q;
+      tag.textContent = text;
+      tag.title = text;
+      tag.draggable = true;
+      tag.dataset.text = text;
+      tag.dataset.quadrant = q;
+      tag.addEventListener('dragstart', onDragStart);
+      tag.addEventListener('dragend', onDragEnd);
+      cell.appendChild(tag);
+    });
+  });
+
+  // Enable drop on result cells
+  document.querySelectorAll('#resultsMatrix .matrix-cell').forEach(cell => {
+    cell.addEventListener('dragover', onDragOver);
+    cell.addEventListener('dragleave', onDragLeave);
+    cell.addEventListener('drop', onDrop);
+  });
+
+  // Recommendations
+  const recs = document.getElementById('recommendations');
+  recs.innerHTML = '';
+  ['test-now', 'monitor', 'defer', 'safe'].forEach(q => {
+    if (catData[q].length === 0) return;
+    const info = QUADRANT_INFO[q];
+    const recDiv = document.createElement('div');
+    recDiv.className = `rec-card rec-${q}`;
+    recDiv.innerHTML = `
+      <h4>${info.label} (${catData[q].length})</h4>
+      <p>${info.guidance}</p>
+    `;
+    recs.appendChild(recDiv);
+  });
+
+  // Action planning for Test Now items
+  const testNowItems = catData['test-now'];
+  const actionPlan = document.getElementById('actionPlanList');
+  actionPlan.innerHTML = '';
+  if (testNowItems.length === 0) {
+    actionPlan.innerHTML = '<p style="color:var(--text-secondary);font-size:0.85rem;">No "Test Now" assumptions identified. All your critical assumptions have some evidence.</p>';
+  } else {
+    testNowItems.forEach((text, i) => {
+      const div = document.createElement('div');
+      div.className = 'action-plan-item';
+      const existingPlan = state.testPlans[text] || '';
+      div.innerHTML = `
+        <div class="ap-assumption">${escapeHtml(text)}</div>
+        <div class="ap-label">How will you test this?</div>
+        <input type="text" placeholder="e.g. Run a survey, build an MVP, interview 5 customers..."
+               value="${escapeHtml(existingPlan)}"
+               oninput="state.testPlans['${escapeHtml(text).replace(/'/g, "\\'")}'] = this.value; autoSave();">
+      `;
+      actionPlan.appendChild(div);
+    });
+  }
+
+  // Answer key for Netflix template
+  if (tmpl && tmpl.answers) {
+    document.getElementById('answerKeySection').style.display = 'block';
+    renderAnswerKey(tmpl);
+  } else {
+    document.getElementById('answerKeySection').style.display = 'none';
+  }
+
+  // Hide save button for templates
+  document.getElementById('saveSessionBtn').style.display = state.isTemplate ? 'none' : '';
+}
+
+function renderAnswerKey(tmpl) {
+  const list = document.getElementById('answerKeyList');
+  list.innerHTML = '';
+  let correct = 0;
+
+  state.assumptions.forEach(text => {
+    const answer = tmpl.answers[text];
+    if (!answer) return;
+    const userCat = state.categorized.find(c => c.text === text);
+    const userQuadrant = userCat ? userCat.quadrant : null;
+    const isMatch = userQuadrant === answer.quadrant;
+    if (isMatch) correct++;
+
+    const div = document.createElement('div');
+    div.className = `answer-key-item ${isMatch ? 'match' : 'mismatch'}`;
+    div.innerHTML = `
+      <span class="ak-text">${escapeHtml(text)}</span>
+      <span class="ak-badge ${answer.quadrant}">${QUADRANT_INFO[answer.quadrant].label}</span>
+      ${userQuadrant ? `<span class="ak-result ${isMatch ? 'correct' : 'incorrect'}">${isMatch ? 'Match' : 'You: ' + QUADRANT_INFO[userQuadrant].label}</span>` : ''}
+    `;
+    list.appendChild(div);
+  });
+
+  const total = state.assumptions.length;
+  document.getElementById('answerKeyScore').textContent = `Score: ${correct} of ${total} match the answer key (${Math.round(correct / total * 100)}%)`;
+}
+
+// ========== DRAG & DROP ==========
+let draggedTag = null;
+
+function onDragStart(e) {
+  draggedTag = e.target;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function onDragEnd(e) {
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.matrix-cell.drag-over').forEach(c => c.classList.remove('drag-over'));
+  draggedTag = null;
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+
+function onDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function onDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!draggedTag) return;
+
+  const targetCell = e.currentTarget;
+  const newQuadrant = targetCell.dataset.quadrant;
+  const text = draggedTag.dataset.text;
+  const oldQuadrant = draggedTag.dataset.quadrant;
+
+  if (newQuadrant === oldQuadrant) return;
+
+  // Move the tag
+  draggedTag.dataset.quadrant = newQuadrant;
+  draggedTag.className = `matrix-tag draggable tag-${newQuadrant}`;
+  targetCell.appendChild(draggedTag);
+
+  // Update categorized data
+  const cat = state.categorized.find(c => c.text === text);
+  if (cat) {
+    cat.quadrant = newQuadrant;
+  }
+
+  // Re-render stats and recommendations
+  updateResultStats();
+  autoSave();
+}
+
+function updateResultStats() {
+  let catData = { 'test-now': [], 'monitor': [], 'defer': [], 'safe': [] };
+
+  // Gather from DOM (source of truth after drag-drop)
+  document.querySelectorAll('#resultsMatrix .matrix-tag').forEach(tag => {
+    const q = tag.dataset.quadrant;
+    const text = tag.dataset.text;
+    if (catData[q]) catData[q].push(text);
+  });
+
+  // Update stats
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card stat-test-now"><div class="stat-num">${catData['test-now'].length}</div><div class="stat-label">Test Now</div></div>
+    <div class="stat-card stat-monitor"><div class="stat-num">${catData['monitor'].length}</div><div class="stat-label">Monitor</div></div>
+    <div class="stat-card stat-defer"><div class="stat-num">${catData['defer'].length}</div><div class="stat-label">Defer</div></div>
+    <div class="stat-card stat-safe"><div class="stat-num">${catData['safe'].length}</div><div class="stat-label">Safe</div></div>
+  `;
+
+  // Update recommendations
+  const recs = document.getElementById('recommendations');
+  recs.innerHTML = '';
+  ['test-now', 'monitor', 'defer', 'safe'].forEach(q => {
+    if (catData[q].length === 0) return;
+    const info = QUADRANT_INFO[q];
+    const recDiv = document.createElement('div');
+    recDiv.className = `rec-card rec-${q}`;
+    recDiv.innerHTML = `<h4>${info.label} (${catData[q].length})</h4><p>${info.guidance}</p>`;
+    recs.appendChild(recDiv);
+  });
+
+  // Update action plan
+  const testNowItems = catData['test-now'];
+  const actionPlan = document.getElementById('actionPlanList');
+  actionPlan.innerHTML = '';
+  if (testNowItems.length === 0) {
+    actionPlan.innerHTML = '<p style="color:var(--text-secondary);font-size:0.85rem;">No "Test Now" assumptions identified.</p>';
+  } else {
+    testNowItems.forEach(text => {
+      const div = document.createElement('div');
+      div.className = 'action-plan-item';
+      const existingPlan = state.testPlans[text] || '';
+      div.innerHTML = `
+        <div class="ap-assumption">${escapeHtml(text)}</div>
+        <div class="ap-label">How will you test this?</div>
+        <input type="text" placeholder="e.g. Run a survey, build an MVP, interview 5 customers..."
+               value="${escapeHtml(existingPlan)}"
+               oninput="state.testPlans[${JSON.stringify(text)}] = this.value; autoSave();">
+      `;
+      actionPlan.appendChild(div);
+    });
+  }
+}
+
+// ========== EXPORT PDF ==========
+function exportPDF() {
+  const title = state.title || 'Untitled Exercise';
+  const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const tmpl = state.isTemplate && TEMPLATES[state.isTemplate];
+  let catData = { 'test-now': [], 'monitor': [], 'defer': [], 'safe': [] };
+
+  if (tmpl && tmpl.answers) {
+    state.assumptions.forEach(text => {
+      const answer = tmpl.answers[text];
+      if (answer) catData[answer.quadrant].push(text);
+    });
+  } else {
+    state.categorized.forEach(c => {
+      if (catData[c.quadrant]) catData[c.quadrant].push(c.text);
+    });
+  }
+
+  const testPlans = state.testPlans || {};
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Assumption Map — ${escapeHtml(title)}</title>
+<style>
+  @page { size: A4; margin: 1.5cm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1B2A4A; line-height: 1.5; padding: 2rem; }
+  .header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #E07A5F; }
+  .header h1 { font-size: 1.4rem; color: #1B2A4A; margin-bottom: .25rem; }
+  .header .subtitle { font-size: .85rem; color: #5A6B8A; }
+  .header .date { font-size: .75rem; color: #9AA5B8; margin-top: .25rem; }
+  .context { background: #F5F7FA; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; font-size: .85rem; color: #5A6B8A; }
+  .context strong { color: #1B2A4A; }
+  .section-title { font-size: 1.1rem; font-weight: 700; color: #1B2A4A; margin: 1.5rem 0 .75rem; padding-bottom: .35rem; border-bottom: 1px solid #E2E8F0; }
+  .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.5rem; }
+  .quadrant { border-radius: 8px; padding: .75rem; page-break-inside: avoid; }
+  .quadrant h3 { font-size: .8rem; font-weight: 700; margin-bottom: .5rem; text-transform: uppercase; letter-spacing: .5px; }
+  .quadrant ul { list-style: none; padding: 0; }
+  .quadrant li { font-size: .8rem; padding: .3rem 0; border-bottom: 1px solid rgba(0,0,0,.06); }
+  .quadrant li:last-child { border-bottom: none; }
+  .action-plan { margin-top: 1rem; }
+  .action-plan h3 { font-size: .9rem; font-weight: 700; color: #E07A5F; margin-bottom: .5rem; }
+  .ap-item { padding: .5rem; margin-bottom: .4rem; background: #FDF0EC; border-radius: 6px; border-left: 3px solid #E07A5F; }
+  .ap-item .ap-title { font-size: .8rem; font-weight: 600; }
+  .ap-item .ap-plan { font-size: .78rem; color: #5A6B8A; margin-top: .15rem; }
+  .footer { margin-top: 2rem; padding-top: .75rem; border-top: 1px solid #E2E8F0; text-align: center; font-size: .7rem; color: #9AA5B8; }
+  @media print { body { padding: 0; } }
+</style></head><body>
+<div class="header">
+  <h1>Assumption Map: ${escapeHtml(title)}</h1>
+  <div class="subtitle">David Bland's Assumption Mapping &mdash; Importance vs Evidence</div>
+  <div class="date">${escapeHtml(date)}</div>
+</div>
+${state.context ? `<div class="context"><strong>Context:</strong> ${escapeHtml(state.context)}</div>` : ''}
+<div class="section-title">Assumption Matrix</div>
+<div class="matrix">
+${[['test-now', 'Test Now', '#E07A5F', '#FDF0EC'], ['monitor', 'Monitor', '#4A90D9', '#E3F2FD'], ['defer', 'Defer', '#9E9E9E', '#F5F5F5'], ['safe', 'Safe', '#43A047', '#E8F5E9']].map(([key, label, color, bg]) => `
+  <div class="quadrant" style="background:${bg}">
+    <h3 style="color:${color}">${label}</h3>
+    <ul>${catData[key].length ? catData[key].map(t => `<li>${escapeHtml(t)}</li>`).join('') : '<li style="color:#9AA5B8;font-style:italic">(none)</li>'}</ul>
+  </div>`).join('')}
+</div>
+${catData['test-now'].length > 0 ? `
+<div class="action-plan">
+  <h3>Action Plans for Critical Assumptions</h3>
+  ${catData['test-now'].map(t => `
+    <div class="ap-item">
+      <div class="ap-title">${escapeHtml(t)}</div>
+      <div class="ap-plan">${testPlans[t] ? escapeHtml(testPlans[t]) : '<em>No test plan defined</em>'}</div>
+    </div>
+  `).join('')}
+</div>` : ''}
+<div class="footer">Generated by VCT &mdash; Value Creating Teams Framework</div>
+</body></html>`;
+
+  const printWin = window.open('', '_blank');
+  printWin.document.write(html);
+  printWin.document.close();
+  setTimeout(() => printWin.print(), 400);
+}
+
+// ========== EXPORT EXCEL ==========
+function exportExcel() {
+  const title = state.title || 'Untitled Exercise';
+  const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const tmpl = state.isTemplate && TEMPLATES[state.isTemplate];
+  let catData = { 'test-now': [], 'monitor': [], 'defer': [], 'safe': [] };
+
+  if (tmpl && tmpl.answers) {
+    state.assumptions.forEach(text => {
+      const answer = tmpl.answers[text];
+      if (answer) catData[answer.quadrant].push(text);
+    });
+  } else {
+    state.categorized.forEach(c => {
+      if (catData[c.quadrant]) catData[c.quadrant].push(c.text);
+    });
+  }
+
+  const testPlans = state.testPlans || {};
+  const matrixMax = Math.max(1, catData['test-now'].length, catData['monitor'].length, catData['defer'].length, catData['safe'].length);
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+<Styles>
+  <Style ss:ID="title"><Font ss:Size="14" ss:Bold="1" ss:Color="#1B2A4A"/></Style>
+  <Style ss:ID="subtitle"><Font ss:Size="10" ss:Color="#5A6B8A"/></Style>
+  <Style ss:ID="secHead"><Font ss:Size="11" ss:Bold="1" ss:Color="#1B2A4A"/><Interior ss:Color="#F5F7FA" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="hTN"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#E07A5F" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="hMO"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#4A90D9" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="hDE"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#9E9E9E" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="hSA"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#43A047" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="cTN"><Interior ss:Color="#FDF0EC" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
+  <Style ss:ID="cMO"><Interior ss:Color="#E3F2FD" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
+  <Style ss:ID="cDE"><Interior ss:Color="#F5F5F5" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
+  <Style ss:ID="cSA"><Interior ss:Color="#E8F5E9" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
+  <Style ss:ID="apHead"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#E07A5F" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="def"><Font ss:Size="10"/></Style>
+</Styles>
+<Worksheet ss:Name="Assumption Map">
+<Table ss:DefaultColumnWidth="200">
+  <Column ss:Width="240"/><Column ss:Width="240"/><Column ss:Width="240"/><Column ss:Width="240"/>
+  <Row><Cell ss:StyleID="title"><Data ss:Type="String">Assumption Map: ${esc(title)}</Data></Cell></Row>
+  <Row><Cell ss:StyleID="subtitle"><Data ss:Type="String">${esc(date)}${state.context ? ' | Context: ' + esc(state.context) : ''}</Data></Cell></Row>
+  <Row></Row>
+  <Row><Cell ss:StyleID="secHead"><Data ss:Type="String">ASSUMPTION MATRIX</Data></Cell></Row>
+  <Row>
+    <Cell ss:StyleID="hTN"><Data ss:Type="String">Test Now (Critical + No Evidence)</Data></Cell>
+    <Cell ss:StyleID="hMO"><Data ss:Type="String">Monitor (Critical + Supported)</Data></Cell>
+    <Cell ss:StyleID="hDE"><Data ss:Type="String">Defer (Low Priority + No Evidence)</Data></Cell>
+    <Cell ss:StyleID="hSA"><Data ss:Type="String">Safe (Low Priority + Supported)</Data></Cell>
+  </Row>`;
+
+  for (let i = 0; i < matrixMax; i++) {
+    xml += `\n  <Row>`;
+    xml += `<Cell ss:StyleID="cTN"><Data ss:Type="String">${esc(catData['test-now'][i] || '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="cMO"><Data ss:Type="String">${esc(catData['monitor'][i] || '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="cDE"><Data ss:Type="String">${esc(catData['defer'][i] || '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="cSA"><Data ss:Type="String">${esc(catData['safe'][i] || '')}</Data></Cell>`;
+    xml += `</Row>`;
+  }
+
+  // Action plans section
+  if (catData['test-now'].length > 0) {
+    xml += `
+  <Row></Row>
+  <Row><Cell ss:StyleID="secHead"><Data ss:Type="String">ACTION PLANS (Test Now)</Data></Cell></Row>
+  <Row>
+    <Cell ss:StyleID="apHead"><Data ss:Type="String">Assumption</Data></Cell>
+    <Cell ss:StyleID="apHead"><Data ss:Type="String">Test Plan</Data></Cell>
+  </Row>`;
+    catData['test-now'].forEach(text => {
+      xml += `\n  <Row>`;
+      xml += `<Cell ss:StyleID="def"><Data ss:Type="String">${esc(text)}</Data></Cell>`;
+      xml += `<Cell ss:StyleID="def"><Data ss:Type="String">${esc(testPlans[text] || '')}</Data></Cell>`;
+      xml += `</Row>`;
+    });
+  }
+
+  xml += `
+</Table>
+</Worksheet>
+</Workbook>`;
+
+  const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Assumptions-${(title).replace(/\s+/g, '-')}.xls`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ========== SESSIONS ==========
+const SESSIONS_KEY = 'assumptions_sessions';
+
+function getSessions() {
+  try { return JSON.parse(localStorage.getItem(SESSIONS_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveSessions(sessions) {
+  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+}
+
+function getCurrentPhase() {
+  for (let i = 1; i <= 4; i++) {
+    if (document.getElementById(`phase-${i}`).classList.contains('active')) return i;
+  }
+  return 1;
+}
+
+function buildSessionData() {
+  return {
+    id: state.sessionId || Date.now().toString(),
+    title: state.title || 'Untitled',
+    context: state.context,
+    assumptions: state.assumptions,
+    categorized: state.categorized,
+    testPlans: state.testPlans,
+    currentIndex: state.currentIndex,
+    savedAt: new Date().toISOString(),
+    phase: getCurrentPhase(),
+  };
+}
+
+function saveSession() {
+  state.title = state.title || document.getElementById('titleInput').value.trim();
+  state.context = state.context || document.getElementById('contextInput').value.trim();
+
+  if (!state.sessionId) state.sessionId = Date.now().toString();
+  const data = buildSessionData();
+  const sessions = getSessions().filter(s => s.id !== data.id);
+  sessions.unshift(data);
+  saveSessions(sessions);
+  renderSessionList();
+  alert('Session saved.');
+}
+
+function autoSave() {
+  if (!state.sessionId || state.isTemplate) return;
+  const data = buildSessionData();
+  const sessions = getSessions().filter(s => s.id !== data.id);
+  sessions.unshift(data);
+  saveSessions(sessions);
+}
+
+function loadSession(id) {
+  const sessions = getSessions();
+  const data = sessions.find(s => s.id === id);
+  if (!data) return;
+
+  state.sessionId = data.id;
+  state.title = data.title;
+  state.context = data.context || '';
+  state.assumptions = data.assumptions || [];
+  state.categorized = data.categorized || [];
+  state.testPlans = data.testPlans || {};
+  state.currentIndex = data.currentIndex || 0;
+  state.isTemplate = null;
+
+  document.getElementById('titleInput').value = state.title;
+  document.getElementById('contextInput').value = state.context;
+  renderAssumptionList();
+
+  goToPhase(data.phase || 1);
+}
+
+function deleteSession(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this session?')) return;
+  const sessions = getSessions().filter(s => s.id !== id);
+  saveSessions(sessions);
+  renderSessionList();
+}
+
+function renderSessionList() {
+  const sessions = getSessions();
+  const card = document.getElementById('sessionsCard');
+  const list = document.getElementById('sessionList');
+
+  if (sessions.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'block';
+  list.innerHTML = '';
+
+  sessions.forEach(s => {
+    const li = document.createElement('li');
+    li.className = 'session-item';
+    li.onclick = () => loadSession(s.id);
+    const isComplete = s.phase >= 4;
+    const saved = new Date(s.savedAt);
+    const dateStr = saved.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const count = (s.assumptions || []).length;
+    li.innerHTML = `
+      <div class="session-item-info">
+        <div class="session-item-title">${escapeHtml(s.title)}</div>
+        <div class="session-item-meta">${count} assumptions &middot; ${dateStr}</div>
+      </div>
+      <span class="session-item-badge ${isComplete ? 'complete' : 'in-progress'}">${isComplete ? 'Complete' : 'In Progress'}</span>
+      <button class="remove-btn" onclick="deleteSession('${s.id}', event)" title="Delete">&times;</button>
+    `;
+    list.appendChild(li);
+  });
+}
+
+function resetApp() {
+  state = {
+    title: '',
+    context: '',
+    assumptions: [],
+    categorized: [],
+    currentIndex: 0,
+    currentImportance: null,
+    currentEvidence: null,
+    testPlans: {},
+    isTemplate: null,
+    sessionId: null,
+  };
+  document.getElementById('titleInput').value = '';
+  document.getElementById('contextInput').value = '';
+  renderAssumptionList();
+  renderSessionList();
+  goToPhase(1);
+}
+
+// ========== UTILITY ==========
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(str || ''));
+  return div.innerHTML;
+}
+
+// ========== INIT ==========
+renderSessionList();
+</script>
+</body>
+</html>
