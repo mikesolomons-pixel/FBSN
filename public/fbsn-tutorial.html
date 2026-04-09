@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBSN Tutorial - Value Creating Teams</title>
+<script src="auth.js"></script>
+<script type="module" src="supabase-config.js"></script>
+<script src="admin.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --teal: #00897B;
+    --teal-dark: #006B5E;
+    --teal-light: #4DB6AC;
+    --gold: #D4A843;
+    --coral: #E07A5F;
+    --purple: #7C5CBF;
+    --blue: #4A90D9;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1B2A4A;
+    --text-secondary: #5A6B8A;
+    --border: #E2E8F0;
+    --shadow: 0 2px 8px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.12);
+    --fact-signal: #00897B;
+    --fact-noise: #4DB6AC;
+    --belief-signal: #006B5E;
+    --belief-noise: #80CBC4;
+    --must-do: #00897B;
+    --might-do: #D4A843;
+    --wont-do: #EF5350;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--teal-dark) 100%);
+    color: white;
+    padding: 2rem 2rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at 70% 80%, rgba(0,137,123,0.2) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .header-content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: white; }
+  .tutorial-badge {
+    display: inline-block;
+    padding: 0.25rem 0.7rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .header .subtitle { font-size: 1rem; opacity: 0.85; line-height: 1.5; }
+
+  .main { max-width: 800px; margin: 0 auto; padding: 2rem; }
+
+  /* Step sections */
+  .step {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--teal);
+  }
+  .step.netflix { border-left-color: var(--coral); }
+  .step.action { border-left-color: var(--gold); }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: white;
+    font-weight: 700;
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+  .step.netflix .step-num { background: var(--coral); }
+  .step.action .step-num { background: var(--gold); }
+  .step h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.75rem;
+  }
+  .step p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 0.75rem;
+  }
+  .step p:last-child { margin-bottom: 0; }
+
+  /* Concept cards */
+  .concept-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  .concept {
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+  }
+  .concept h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .concept p {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin-bottom: 0;
+  }
+  .concept.fact { background: rgba(0,137,123,0.06); border-color: rgba(0,137,123,0.2); }
+  .concept.fact h3 { color: var(--teal); }
+  .concept.belief { background: rgba(124,92,191,0.06); border-color: rgba(124,92,191,0.2); }
+  .concept.belief h3 { color: var(--purple); }
+  .concept.signal { background: rgba(0,137,123,0.06); border-color: rgba(0,137,123,0.2); }
+  .concept.signal h3 { color: var(--teal-dark); }
+  .concept.noise { background: rgba(212,168,67,0.06); border-color: rgba(212,168,67,0.2); }
+  .concept.noise h3 { color: var(--gold); }
+
+  /* Matrix */
+  .matrix {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+    grid-template-rows: auto 1fr 1fr;
+    gap: 0;
+    margin: 1.25rem 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+  }
+  .matrix-corner {
+    background: var(--bg);
+    padding: 0.75rem;
+  }
+  .matrix-col-header {
+    padding: 0.75rem;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: var(--bg);
+    border-bottom: 1.5px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .matrix-row-header {
+    padding: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: var(--bg);
+    border-right: 1.5px solid var(--border);
+    color: var(--text-secondary);
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    text-align: center;
+  }
+  .matrix-cell {
+    padding: 1rem;
+    border: 0.5px solid var(--border);
+  }
+  .matrix-cell h4 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .matrix-cell p {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin-bottom: 0;
+  }
+  .cell-fs { background: rgba(0,137,123,0.08); }
+  .cell-fs h4 { color: var(--fact-signal); }
+  .cell-fn { background: rgba(77,182,172,0.08); }
+  .cell-fn h4 { color: var(--fact-noise); }
+  .cell-bs { background: rgba(0,107,94,0.08); }
+  .cell-bs h4 { color: var(--belief-signal); }
+  .cell-bn { background: rgba(128,203,196,0.08); }
+  .cell-bn h4 { color: var(--belief-noise); }
+
+  /* Netflix perspectives */
+  .perspective-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin: 1rem 0;
+  }
+  .persp {
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: white;
+    font-weight: 500;
+  }
+  .persp.fs { background: var(--fact-signal); }
+  .persp.fn { background: var(--fact-noise); }
+  .persp.bs { background: var(--belief-signal); }
+  .persp.bn { background: var(--belief-noise); }
+  .persp .persp-label {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+    margin-bottom: 0.2rem;
+  }
+
+  /* Action cards */
+  .action-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+    margin: 1rem 0;
+  }
+  .action-card {
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+  }
+  .action-card h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+  .action-card .action-sub {
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
+  }
+  .action-card p {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 0;
+  }
+  .action-card.must { border-color: var(--must-do); }
+  .action-card.must h4 { color: var(--must-do); }
+  .action-card.might { border-color: var(--might-do); }
+  .action-card.might h4 { color: var(--might-do); }
+  .action-card.wont { border-color: var(--wont-do); }
+  .action-card.wont h4 { color: var(--wont-do); }
+
+  /* Key insight callout */
+  .callout {
+    background: linear-gradient(135deg, var(--navy), var(--navy-light));
+    color: white;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    margin: 1rem 0;
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+
+  .highlight {
+    font-weight: 700;
+    color: var(--teal);
+  }
+  .step p .highlight { color: var(--teal); }
+
+  /* Try it CTA */
+  .cta-section {
+    background: linear-gradient(135deg, var(--navy), var(--teal-dark));
+    border-radius: 16px;
+    padding: 2rem;
+    color: white;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .cta-section h2 { font-size: 1.3rem; margin-bottom: 0.5rem; }
+  .cta-section p { font-size: 0.9rem; opacity: 0.8; margin-bottom: 1.25rem; }
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: white;
+    color: var(--navy);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  }
+
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .header h1 { font-size: 1.5rem; }
+    .main { padding: 1rem; }
+    .concept-row, .perspective-grid { grid-template-columns: 1fr; }
+    .action-cards { grid-template-columns: 1fr; }
+    .matrix { font-size: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-content">
+    <a href="play1-sensemaking.html" class="back-link">&#8592; Play 1: Sensemaking</a>
+    <div class="tutorial-badge">Tutorial</div>
+    <h1 data-editable="header-title">Facts, Beliefs, Signals, Noise</h1>
+    <p class="subtitle" data-editable="header-subtitle">A structured practice for making strategic assumptions visible and turning collective insight into action.</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Step 1: Facts vs Beliefs -->
+  <div class="step">
+    <div class="step-num">1</div>
+    <h2 data-editable="step1-title">Facts vs. Beliefs</h2>
+    <p data-editable="step1-p1">The first axis of the FBSN framework asks: <span class="highlight">How certain are we?</span> Every perspective a team holds falls somewhere on a spectrum from verified fact to untested belief. Most teams don't distinguish between the two, and that's where trouble starts.</p>
+
+    <div class="concept-row">
+      <div class="concept fact">
+        <h3>Facts</h3>
+        <p data-editable="step1-fact">Stable data points grounded in evidence. Facts inform today's performance and provide the foundation for sound decisions. But beware: failure happens when we stop questioning facts.</p>
+      </div>
+      <div class="concept belief">
+        <h3>Beliefs</h3>
+        <p data-editable="step1-belief">Hypotheses, assumptions, or convictions that haven't been fully verified. Beliefs shape tomorrow's strategy. Innovation happens when we convert beliefs into facts before competitors do.</p>
+      </div>
+    </div>
+
+    <div class="callout" data-editable="step1-callout">Effective teams know how to differentiate between facts and beliefs &mdash; and value both. Facts inform today. Beliefs shape tomorrow.</div>
+  </div>
+
+  <!-- Step 2: Signals vs Noise -->
+  <div class="step">
+    <div class="step-num">2</div>
+    <h2 data-editable="step2-title">Signals vs. Noise</h2>
+    <p data-editable="step2-p1">The second axis asks: <span class="highlight">How important is this?</span> Not everything that is true matters. Not every belief deserves attention. Signals are the perspectives that drive growth, transformation, or risk. Noise pulls teams off course.</p>
+
+    <div class="concept-row">
+      <div class="concept signal">
+        <h3>Signals</h3>
+        <p data-editable="step2-signal">High-importance inputs that demand focus. Signals help teams concentrate on what matters most. Speed comes from relentless prioritization &mdash; focusing on signals and ignoring distractions.</p>
+      </div>
+      <div class="concept noise">
+        <h3>Noise</h3>
+        <p data-editable="step2-noise">Low-importance inputs that pull teams off course. Individual perspectives outside of a broader context can be noisy, leading to chasing shiny objects. True but irrelevant. Interesting but unproven.</p>
+      </div>
+    </div>
+
+    <div class="callout" data-editable="step2-callout">Effective teams know how to focus on the right signals and filter out the noise. They move faster by aligning around what's meaningful and letting go of what's distracting.</div>
+  </div>
+
+  <!-- Step 3: The 2x2 Matrix -->
+  <div class="step">
+    <div class="step-num">3</div>
+    <h2 data-editable="step3-title">The Strategic Matrix</h2>
+    <p data-editable="step3-p1">When you combine both axes, you get a powerful 2&times;2 matrix that makes strategic assumptions visible and helps teams decide where to focus.</p>
+
+    <div class="matrix">
+      <div class="matrix-corner"></div>
+      <div class="matrix-col-header">Signal (Important)</div>
+      <div class="matrix-col-header">Noise (Unimportant)</div>
+
+      <div class="matrix-row-header">Fact (Certain)</div>
+      <div class="matrix-cell cell-fs">
+        <h4>Facts + Signals</h4>
+        <p data-editable="matrix-fs">Growth Drivers. Proven insights that directly accelerate growth. These are the data-backed levers to scale. Align for execution and impact.</p>
+      </div>
+      <div class="matrix-cell cell-fn">
+        <h4>Facts + Noise</h4>
+        <p data-editable="matrix-fn">Stable but Non-Differentiating. True but obvious. Useful for monitoring, not for winning. Eliminate operational drag.</p>
+      </div>
+
+      <div class="matrix-row-header">Belief (Uncertain)</div>
+      <div class="matrix-cell cell-bs">
+        <h4>Beliefs + Signals</h4>
+        <p data-editable="matrix-bs">Strategic Bets. Promising hypotheses about where the next wave of growth could come from. Worth testing fast. Cultivate for discovery and growth.</p>
+      </div>
+      <div class="matrix-cell cell-bn">
+        <h4>Beliefs + Noise</h4>
+        <p data-editable="matrix-bn">Distracting Assumptions. Ideas or assumptions that sound exciting but don't tie clearly to value creation. Block off dead ends.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4: Netflix Example (Context) -->
+  <div class="step netflix">
+    <div class="step-num">4</div>
+    <h2 data-editable="step4-title">Example: Netflix at a Strategic Crossroads</h2>
+    <p data-editable="step4-p1">In the late 2000s, Netflix faced a major inflection point. DVD-by-mail was still profitable, but growth was slowing. Consumer behavior was shifting toward on-demand digital content. Broadband access was expanding rapidly, and competitors were entering the streaming space.</p>
+    <p data-editable="step4-p2">Netflix had to make bold strategic bets &mdash; deciding what to scale, what to explore, and what to leave behind. The stakes: maintain relevance or risk becoming obsolete.</p>
+    <p data-editable="step4-p3">Imagine you're on the Netflix executive committee in 2008. You're hearing a range of perspectives in a strategy meeting. Some are data-driven, some are speculative. Which deserve attention &mdash; and which don't?</p>
+  </div>
+
+  <!-- Step 5: Netflix Categorized -->
+  <div class="step netflix">
+    <div class="step-num">5</div>
+    <h2 data-editable="step5-title">Categorizing Netflix's Perspectives</h2>
+    <p data-editable="step5-p1">Here's how those perspectives might land in the FBSN matrix:</p>
+
+    <div class="perspective-grid">
+      <div class="persp fs">
+        <span class="persp-label">Fact + Signal</span>
+        Broadband adoption is accelerating
+      </div>
+      <div class="persp fs">
+        <span class="persp-label">Fact + Signal</span>
+        Customers want on-demand access
+      </div>
+      <div class="persp fs">
+        <span class="persp-label">Fact + Signal</span>
+        Streaming is scalable and reduces delivery cost
+      </div>
+      <div class="persp bs">
+        <span class="persp-label">Belief + Signal</span>
+        We can secure long-term studio deals
+      </div>
+      <div class="persp bs">
+        <span class="persp-label">Belief + Signal</span>
+        Users will accept streaming over DVDs
+      </div>
+      <div class="persp bs">
+        <span class="persp-label">Belief + Signal</span>
+        Subscription-based models will be sustainable
+      </div>
+      <div class="persp fn">
+        <span class="persp-label">Fact + Noise</span>
+        The DVD business is currently profitable
+      </div>
+      <div class="persp fn">
+        <span class="persp-label">Fact + Noise</span>
+        Most current customers use mail rentals
+      </div>
+      <div class="persp bn">
+        <span class="persp-label">Belief + Noise</span>
+        Streaming is a temporary fad
+      </div>
+      <div class="persp bn">
+        <span class="persp-label">Belief + Noise</span>
+        Older customers will reject digital
+      </div>
+      <div class="persp bn">
+        <span class="persp-label">Belief + Noise</span>
+        Competitors won't adapt fast enough
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 6: From Matrix to Action -->
+  <div class="step action">
+    <div class="step-num">6</div>
+    <h2 data-editable="step6-title">From Strategic Clarity to Action</h2>
+    <p data-editable="step6-p1">The matrix doesn't end at classification. Each quadrant drives a different type of strategic decision: <span class="highlight">Must Do</span>, <span class="highlight">Might Do</span>, or <span class="highlight">Won't Do</span>.</p>
+
+    <div class="action-cards">
+      <div class="action-card must">
+        <h4>Must Do</h4>
+        <div class="action-sub">Act now</div>
+        <p data-editable="action-must">Facts + Signals drive Must Do. High confidence, clear ROI, critical to short-term goals. Align execution, move fast, act with confidence.</p>
+      </div>
+      <div class="action-card might">
+        <h4>Might Do</h4>
+        <div class="action-sub">Test and learn</div>
+        <p data-editable="action-might">Beliefs + Signals drive Might Do. Promising but uncertain. Design experiments to validate. If proven, move to Must Do. If not, move to Won't Do.</p>
+      </div>
+      <div class="action-card wont">
+        <h4>Won't Do</h4>
+        <div class="action-sub">Avoid distractions</div>
+        <p data-editable="action-wont">Facts + Noise and Beliefs + Noise drive Won't Do. Avoid unnecessary distractions. Free organizational cognitive load. Revisit only if major changes occur.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 7: Netflix Actions -->
+  <div class="step netflix">
+    <div class="step-num">7</div>
+    <h2 data-editable="step7-title">Netflix: Turning Insight into Action</h2>
+
+    <div class="action-cards">
+      <div class="action-card must">
+        <h4>Must Do</h4>
+        <div class="action-sub">Build and scale streaming</div>
+        <p data-editable="netflix-must">Streaming offers speed, convenience, and aligns with emerging consumer expectations. Invest in streaming technology, user experience, and content delivery to replace DVD-by-mail. This is a clear signal supported by consumer demand, tech trends, and operational efficiencies.</p>
+      </div>
+      <div class="action-card might">
+        <h4>Might Do</h4>
+        <div class="action-sub">Develop original programming</div>
+        <p data-editable="netflix-might">Owning content could differentiate Netflix and reduce dependency on third-party studios. Pilot original content and pursue selective exclusivity deals. This is a promising but unproven belief &mdash; it could reshape the market if successful.</p>
+      </div>
+      <div class="action-card wont">
+        <h4>Won't Do</h4>
+        <div class="action-sub">Expand DVD operations</div>
+        <p data-editable="netflix-wont">DVDs are profitable now, but the model is limited in scalability and future relevance. Phase out investment in physical distribution. Though true (fact), this is noise in the long-term growth strategy &mdash; it diverts attention and resources.</p>
+      </div>
+    </div>
+
+    <div class="callout" data-editable="step7-callout">This is how Netflix balanced performance (streaming execution) with transformation (original content bets) &mdash; a clear example of turning strategic clarity into bold action.</div>
+  </div>
+
+  <!-- Step 8: Planning for Action -->
+  <div class="step action">
+    <div class="step-num">8</div>
+    <h2 data-editable="step8-title">Turning Insights into Action Plans</h2>
+    <p data-editable="step8-p1">Once you've classified your perspectives and determined what to do, each category demands a different kind of planning:</p>
+
+    <div class="action-cards">
+      <div class="action-card must">
+        <h4>Must Do</h4>
+        <div class="action-sub">Plan for execution</div>
+        <p data-editable="plan-must">What specific outcome defines success? Who owns it? What resources are needed? What's the timeline? What decisions are overdue because we already have enough confidence?</p>
+      </div>
+      <div class="action-card might">
+        <h4>Might Do</h4>
+        <div class="action-sub">Design an experiment</div>
+        <p data-editable="plan-might">What assumption are you testing? How will you run the experiment? How will you gather and interpret feedback? What capabilities should we be ready to trigger?</p>
+      </div>
+      <div class="action-card wont">
+        <h4>Won't Do</h4>
+        <div class="action-sub">Plan for communication</div>
+        <p data-editable="plan-wont">How will we communicate and enforce this decision? Does it impact specific groups? Will anyone need time to adjust? Under what conditions should we revisit?</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <h2>Ready to Try It?</h2>
+    <p>Run an FBSN exercise with your own strategic challenge.</p>
+    <a href="fbsn.html" class="cta-btn">Launch Solo FBSN Exercise &#8594;</a>
+  </div>
+
+</div>
+
+<div class="footer">
+  Value Creating Teams &bull; FBSN Tutorial
+</div>
+
+</body>
+</html>
