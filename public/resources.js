@@ -77,6 +77,17 @@
     return data?.[0];
   }
 
+  async function uploadFile(file) {
+    const sb = await getClient();
+    if (!sb) return null;
+    const ext = file.name.split('.').pop();
+    const path = `resources/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const { data, error } = await sb.storage.from('resources').upload(path, file, { upsert: false });
+    if (error) { console.error('file upload error', error); return null; }
+    const { data: urlData } = sb.storage.from('resources').getPublicUrl(path);
+    return urlData?.publicUrl || null;
+  }
+
   async function deleteResource(id) {
     const sb = await getClient();
     if (!sb) return false;
@@ -162,9 +173,14 @@
           <input type="text" placeholder="Title" class="res-title" required>
           <input type="text" placeholder="Author (optional)" class="res-author">
         </div>
-        <div class="form-row">
-          <input type="url" placeholder="URL — Amazon link, article URL, etc. (optional)" class="res-url" style="flex:1;">
+        <div class="form-row" style="align-items:center">
+          <input type="url" placeholder="URL — paste a link, or upload a file below" class="res-url" style="flex:1;">
+          <label class="res-file-label" style="display:flex;align-items:center;gap:.35rem;padding:.45rem .8rem;border:1px solid var(--border,#E2E8F0);border-radius:8px;font-size:.78rem;color:var(--text-secondary,#5A6B8A);cursor:pointer;white-space:nowrap;transition:border-color .15s">
+            <span style="font-size:1rem">\u{1F4CE}</span> Upload file
+            <input type="file" class="res-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.png,.jpg,.jpeg,.gif,.mp4,.mp3" style="display:none">
+          </label>
         </div>
+        <div class="res-file-info" style="display:none;font-size:.75rem;color:var(--teal,#00897B);padding:.25rem 0;display:flex;align-items:center;gap:.5rem"></div>
         <div class="form-row">
           <input type="text" placeholder="What makes this interesting? (optional)" class="res-desc" style="flex:1;">
         </div>
@@ -181,19 +197,57 @@
           <button class="add-resource-btn">Add</button>
         </div>
       </div>`;
+
+    const fileInput = container.querySelector('.res-file');
+    const fileInfo = container.querySelector('.res-file-info');
+    const urlInput = container.querySelector('.res-url');
+
+    fileInput.onchange = function () {
+      const file = fileInput.files[0];
+      if (file) {
+        const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+        fileInfo.style.display = 'flex';
+        fileInfo.innerHTML = '\u{1F4CE} <strong>' + esc(file.name) + '</strong> (' + sizeMB + ' MB) <span class="res-file-remove" style="color:#C62828;cursor:pointer;font-size:.85rem" title="Remove">&times;</span>';
+        urlInput.value = '';
+        urlInput.disabled = true;
+        urlInput.placeholder = 'File selected — will upload on Add';
+        fileInfo.querySelector('.res-file-remove').onclick = function () {
+          fileInput.value = '';
+          fileInfo.style.display = 'none';
+          urlInput.disabled = false;
+          urlInput.placeholder = 'URL — paste a link, or upload a file below';
+        };
+      }
+    };
+
     const btn = container.querySelector('.add-resource-btn');
     btn.onclick = async function () {
       const title = container.querySelector('.res-title').value.trim();
       if (!title) return;
       btn.disabled = true;
       btn.textContent = 'Adding\u2026';
+
+      // Upload file if selected
+      let url = urlInput.value.trim() || null;
+      const file = fileInput.files[0];
+      if (file) {
+        btn.textContent = 'Uploading\u2026';
+        url = await uploadFile(file);
+        if (!url) {
+          btn.disabled = false;
+          btn.textContent = 'Add';
+          alert('File upload failed. Check that the "resources" storage bucket exists in Supabase.');
+          return;
+        }
+      }
+
       const p = parseInt(container.querySelector('.res-play').value, 10);
       const result = await addResource({
         play: p,
         title: title,
         author: container.querySelector('.res-author').value.trim() || null,
         resource_type: container.querySelector('.res-type').value,
-        url: container.querySelector('.res-url').value.trim() || null,
+        url: url,
         description: container.querySelector('.res-desc').value.trim() || null
       });
       btn.disabled = false;
@@ -201,8 +255,12 @@
       if (result) {
         container.querySelector('.res-title').value = '';
         container.querySelector('.res-author').value = '';
-        container.querySelector('.res-url').value = '';
+        urlInput.value = '';
+        urlInput.disabled = false;
+        urlInput.placeholder = 'URL — paste a link, or upload a file below';
         container.querySelector('.res-desc').value = '';
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
         if (container._refreshFn) container._refreshFn();
       }
     };

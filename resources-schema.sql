@@ -102,3 +102,11 @@ insert into resources (play, title, author, resource_type, url) values
 -- =============================================================
 -- alter table resources drop constraint resources_play_check;
 -- alter table resources add constraint resources_play_check check (play between 0 and 99);
+
+-- =============================================================
+-- STORAGE: Create a public bucket for resource file uploads
+-- Run this in SQL Editor if the bucket doesn't exist yet
+-- =============================================================
+-- insert into storage.buckets (id, name, public) values ('resources', 'resources', true);
+-- create policy "Anyone can upload resource files" on storage.objects for insert with check (bucket_id = 'resources');
+-- create policy "Anyone can read resource files" on storage.objects for select using (bucket_id = 'resources');
