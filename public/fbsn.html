@@ -2399,7 +2399,7 @@ function loadTemplate(name) {
   document.getElementById('contextInput').value = tmpl.context;
   document.getElementById('exerciseTitle').textContent = tmpl.title;
   renderPerspectiveList();
-  goToPhase(2);
+  goToPhase(3); // Skip Phase 2 — perspectives are pre-loaded
 }
 
 // Check for ?template= parameter on load
