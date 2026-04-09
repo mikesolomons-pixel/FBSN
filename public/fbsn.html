@@ -2024,9 +2024,21 @@ function renderActions() {
   renderContext('mightDoContext', 'Beliefs + Signals', mightPersp);
   renderContext('wontDoContext', 'Noise', wontPersp);
 
-  // For Netflix template, show the example actions instead of user input
+  // For Netflix template, use the answer key categorizations and show example actions
   const tmpl = state.isTemplate && TEMPLATES[state.isTemplate];
-  if (tmpl && tmpl.actions) {
+  if (tmpl && tmpl.actions && tmpl.answers) {
+    // Build context from the ANSWER KEY, not user's categorizations
+    const correctMust = [], correctMight = [], correctWont = [];
+    tmpl.perspectives.forEach(text => {
+      const answer = tmpl.answers[text];
+      if (answer === 'fact-signal') correctMust.push(text);
+      else if (answer === 'belief-signal') correctMight.push(text);
+      else correctWont.push(text);
+    });
+    renderContext('mustDoContext', 'Facts + Signals', correctMust);
+    renderContext('mightDoContext', 'Beliefs + Signals', correctMight);
+    renderContext('wontDoContext', 'Noise', correctWont);
+
     const exampleHtml = (action) => `<div class="netflix-action-example"><div class="nae-title">${escapeHtml(action.title)}</div><p>${escapeHtml(action.desc)}</p></div>`;
     document.getElementById('mustDoList').innerHTML = exampleHtml(tmpl.actions.mustDo);
     document.getElementById('mightDoList').innerHTML = exampleHtml(tmpl.actions.mightDo);
@@ -2035,7 +2047,7 @@ function renderActions() {
     // Hide the add-action inputs for template mode
     document.querySelectorAll('.action-add-row').forEach(el => el.style.display = 'none');
     // Update description
-    document.querySelector('#phase-5 .desc').textContent = 'Here\'s how Netflix actually translated their strategic clarity into action — compare this to your categorization above.';
+    document.querySelector('#phase-5 .desc').textContent = 'Here\'s how Netflix translated their strategic clarity into action. The perspectives below are categorized using the answer key.';
   } else {
     renderActionList('mustDoList', 'mustDo');
     renderActionList('mightDoList', 'mightDo');
