@@ -32,7 +32,13 @@
     .add-resource-btn{padding:.5rem 1.1rem;border:none;border-radius:8px;background:var(--teal,#00897B);color:#fff;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s}
     .add-resource-btn:hover{background:var(--teal-dark,#006B5E)}
     .add-resource-btn:disabled{opacity:.5;cursor:default}
-    .resources-empty{font-size:.85rem;color:var(--text-secondary,#5A6B8A);padding:1rem 0}
+    .resources-empty{font-size:.8rem;color:var(--text-secondary,#5A6B8A);padding:.5rem 0}
+    .practice-res-toggle{display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.78rem;font-weight:600;color:var(--text-secondary,#5A6B8A);border:none;background:none;font-family:inherit;padding:0;margin:0}
+    .practice-res-toggle:hover{color:var(--teal,#00897B)}
+    .practice-res-toggle .pr-arrow{transition:transform .2s;font-size:.6rem}
+    .practice-res-toggle.open .pr-arrow{transform:rotate(90deg)}
+    .practice-res-body{display:none;padding-top:.5rem}
+    .practice-res-body.open{display:block}
     .resources-play-group{margin-bottom:1.5rem}
     .resources-play-group h3{font-size:.95rem;font-weight:700;color:var(--navy,#1B2A4A);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
     .resources-play-group .play-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
@@ -304,6 +310,38 @@
     const listEl = document.getElementById(opts.listId || 'resources-list');
     const formEl = document.getElementById(opts.formId || 'resources-form');
     if (!listEl) return;
+
+    // Compact mode: collapsible single-line toggle for practice cards
+    if (opts.compact) {
+      listEl.innerHTML = `
+        <button class="practice-res-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+          <span class="pr-arrow">&#9654;</span> \u{1F4CE} Practice Resources <span class="pr-count" style="font-weight:400;opacity:.6"></span>
+        </button>
+        <div class="practice-res-body">
+          <div class="pr-list"></div>
+          <div class="pr-form"></div>
+        </div>`;
+
+      const prList = listEl.querySelector('.pr-list');
+      const prForm = listEl.querySelector('.pr-form');
+      const prCount = listEl.querySelector('.pr-count');
+
+      async function refresh() {
+        const resources = await fetchResources(play);
+        prCount.textContent = resources.length ? '(' + resources.length + ')' : '';
+        if (resources.length) {
+          prList.innerHTML = '<div class="resources-grid" style="margin-bottom:.5rem">' + resources.map(r => renderItem(r, {})).join('') + '</div>';
+          wireDeleteButtons(prList);
+        } else {
+          prList.innerHTML = '<p class="resources-empty">No resources yet.</p>';
+        }
+      }
+
+      await refresh();
+      renderAddForm(prForm, play);
+      prForm._refreshFn = refresh;
+      return;
+    }
 
     async function refresh() {
       const resources = await fetchResources(play);

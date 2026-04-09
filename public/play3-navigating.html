@@ -459,11 +459,7 @@
     <div class="practice-actions">
       <a href="cynefin.html" class="action-btn primary">Launch Cynefin Navigator</a>
     </div>
-    <div class="practice-section" style="margin-top:1.25rem;border-top:1px solid var(--border,#E2E8F0);padding-top:1rem;">
-      <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Practice Resources</h4>
-      <div id="res-list-301" class="resources-grid"></div>
-      <div id="res-form-301" style="margin-top:.5rem"></div>
-    </div>
+    <div class="practice-res-wrap" id="res-list-301" style="margin-top:.75rem;border-top:1px solid var(--border,#E2E8F0);padding-top:.5rem;"></div>
   </div>
 
   <!-- Practice 2: Safe-to-Fail Experiments -->
@@ -497,11 +493,7 @@
       <a href="cynefin.html" class="action-btn secondary">Available via Cynefin Navigator</a>
       <span class="action-btn disabled">Full Version Coming Soon</span>
     </div>
-    <div class="practice-section" style="margin-top:1.25rem;border-top:1px solid var(--border,#E2E8F0);padding-top:1rem;">
-      <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Practice Resources</h4>
-      <div id="res-list-302" class="resources-grid"></div>
-      <div id="res-form-302" style="margin-top:.5rem"></div>
-    </div>
+    <div class="practice-res-wrap" id="res-list-302" style="margin-top:.75rem;border-top:1px solid var(--border,#E2E8F0);padding-top:.5rem;"></div>
   </div>
 
   <!-- Practice 3: Decision Architecture -->
@@ -534,11 +526,7 @@
     <div class="practice-actions">
       <span class="action-btn disabled">Coming Soon</span>
     </div>
-    <div class="practice-section" style="margin-top:1.25rem;border-top:1px solid var(--border,#E2E8F0);padding-top:1rem;">
-      <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Practice Resources</h4>
-      <div id="res-list-303" class="resources-grid"></div>
-      <div id="res-form-303" style="margin-top:.5rem"></div>
-    </div>
+    <div class="practice-res-wrap" id="res-list-303" style="margin-top:.75rem;border-top:1px solid var(--border,#E2E8F0);padding-top:.5rem;"></div>
   </div>
 
 </div>
@@ -563,9 +551,9 @@
   document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
       VCTResources.init(3);
-      VCTResources.init(301, {listId:'res-list-301', formId:'res-form-301'});
-      VCTResources.init(302, {listId:'res-list-302', formId:'res-form-302'});
-      VCTResources.init(303, {listId:'res-list-303', formId:'res-form-303'});
+      VCTResources.init(301, {listId:'res-list-301', compact:true});
+      VCTResources.init(302, {listId:'res-list-302', compact:true});
+      VCTResources.init(303, {listId:'res-list-303', compact:true});
     }, 500);
   });
 </script>

@@ -385,11 +385,7 @@
     <div class="practice-actions">
       <span class="action-btn disabled">Coming Soon</span>
     </div>
-    <div class="practice-section" style="margin-top:1.25rem;border-top:1px solid var(--border,#E2E8F0);padding-top:1rem;">
-      <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Practice Resources</h4>
-      <div id="res-list-201" class="resources-grid"></div>
-      <div id="res-form-201" style="margin-top:.5rem"></div>
-    </div>
+    <div class="practice-res-wrap" id="res-list-201" style="margin-top:.75rem;border-top:1px solid var(--border,#E2E8F0);padding-top:.5rem;"></div>
   </div>
 
   <!-- Practice 2: Strategic Ambition Setting -->
@@ -422,11 +418,7 @@
     <div class="practice-actions">
       <span class="action-btn disabled">Coming Soon</span>
     </div>
-    <div class="practice-section" style="margin-top:1.25rem;border-top:1px solid var(--border,#E2E8F0);padding-top:1rem;">
-      <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Practice Resources</h4>
-      <div id="res-list-202" class="resources-grid"></div>
-      <div id="res-form-202" style="margin-top:.5rem"></div>
-    </div>
+    <div class="practice-res-wrap" id="res-list-202" style="margin-top:.75rem;border-top:1px solid var(--border,#E2E8F0);padding-top:.5rem;"></div>
   </div>
 
   <!-- Practice 3: Backcasting -->
@@ -459,11 +451,7 @@
     <div class="practice-actions">
       <span class="action-btn disabled">Coming Soon</span>
     </div>
-    <div class="practice-section" style="margin-top:1.25rem;border-top:1px solid var(--border,#E2E8F0);padding-top:1rem;">
-      <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Practice Resources</h4>
-      <div id="res-list-203" class="resources-grid"></div>
-      <div id="res-form-203" style="margin-top:.5rem"></div>
-    </div>
+    <div class="practice-res-wrap" id="res-list-203" style="margin-top:.75rem;border-top:1px solid var(--border,#E2E8F0);padding-top:.5rem;"></div>
   </div>
 
   <!-- Practice 4: The Future Backwards -->
@@ -498,11 +486,7 @@
     <div class="practice-actions">
       <span class="action-btn disabled">Coming Soon</span>
     </div>
-    <div class="practice-section" style="margin-top:1.25rem;border-top:1px solid var(--border,#E2E8F0);padding-top:1rem;">
-      <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Practice Resources</h4>
-      <div id="res-list-204" class="resources-grid"></div>
-      <div id="res-form-204" style="margin-top:.5rem"></div>
-    </div>
+    <div class="practice-res-wrap" id="res-list-204" style="margin-top:.75rem;border-top:1px solid var(--border,#E2E8F0);padding-top:.5rem;"></div>
   </div>
 
   <!-- Dynamic Resources -->
@@ -525,10 +509,10 @@
   document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
       VCTResources.init(2);
-      VCTResources.init(201, {listId:'res-list-201', formId:'res-form-201'});
-      VCTResources.init(202, {listId:'res-list-202', formId:'res-form-202'});
-      VCTResources.init(203, {listId:'res-list-203', formId:'res-form-203'});
-      VCTResources.init(204, {listId:'res-list-204', formId:'res-form-204'});
+      VCTResources.init(201, {listId:'res-list-201', compact:true});
+      VCTResources.init(202, {listId:'res-list-202', compact:true});
+      VCTResources.init(203, {listId:'res-list-203', compact:true});
+      VCTResources.init(204, {listId:'res-list-204', compact:true});
     }, 500);
   });
 </script>

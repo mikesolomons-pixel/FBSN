@@ -406,11 +406,7 @@
     <div class="practice-action">
       <span class="action-btn coming-soon">Coming Soon &mdash; Automated Tool in Development</span>
     </div>
-    <div class="practice-section" style="margin-top:1.25rem;border-top:1px solid var(--border,#E2E8F0);padding-top:1rem;">
-      <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Practice Resources</h4>
-      <div id="res-list-401" class="resources-grid"></div>
-      <div id="res-form-401" style="margin-top:.5rem"></div>
-    </div>
+    <div class="practice-res-wrap" id="res-list-401" style="margin-top:.75rem;border-top:1px solid var(--border,#E2E8F0);padding-top:.5rem;"></div>
   </div>
 
   <!-- Practice 2: Trust & Candor Protocol -->
@@ -443,11 +439,7 @@
     <div class="practice-action">
       <span class="action-btn coming-soon">Coming Soon &mdash; Automated Tool in Development</span>
     </div>
-    <div class="practice-section" style="margin-top:1.25rem;border-top:1px solid var(--border,#E2E8F0);padding-top:1rem;">
-      <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Practice Resources</h4>
-      <div id="res-list-402" class="resources-grid"></div>
-      <div id="res-form-402" style="margin-top:.5rem"></div>
-    </div>
+    <div class="practice-res-wrap" id="res-list-402" style="margin-top:.75rem;border-top:1px solid var(--border,#E2E8F0);padding-top:.5rem;"></div>
   </div>
 
   <!-- Practice 3: Collaborative Reflection -->
@@ -480,11 +472,7 @@
     <div class="practice-action">
       <span class="action-btn coming-soon">Coming Soon &mdash; Automated Tool in Development</span>
     </div>
-    <div class="practice-section" style="margin-top:1.25rem;border-top:1px solid var(--border,#E2E8F0);padding-top:1rem;">
-      <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Practice Resources</h4>
-      <div id="res-list-403" class="resources-grid"></div>
-      <div id="res-form-403" style="margin-top:.5rem"></div>
-    </div>
+    <div class="practice-res-wrap" id="res-list-403" style="margin-top:.75rem;border-top:1px solid var(--border,#E2E8F0);padding-top:.5rem;"></div>
   </div>
 
   <!-- Dynamic Resources -->
@@ -519,7 +507,7 @@
 </script>
 
 <script src="resources.js"></script>
-<script>setTimeout(function() { VCTResources.init(4); VCTResources.init(401, {listId:'res-list-401', formId:'res-form-401'}); VCTResources.init(402, {listId:'res-list-402', formId:'res-form-402'}); VCTResources.init(403, {listId:'res-list-403', formId:'res-form-403'}); }, 500);</script>
+<script>setTimeout(function() { VCTResources.init(4); VCTResources.init(401, {listId:'res-list-401', compact:true}); VCTResources.init(402, {listId:'res-list-402', compact:true}); VCTResources.init(403, {listId:'res-list-403', compact:true}); }, 500);</script>
 
 </body>
 </html>
