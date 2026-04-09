@@ -221,6 +221,63 @@
     }
   }
 
+  /* ── CRUD: beliefs ─────────────────────────────────────── */
+  async function fetchBeliefs() {
+    const sb = await getClient();
+    if (!sb) return [];
+    const { data, error } = await sb.from('beliefs').select('*').order('sort_order');
+    if (error) { console.warn('beliefs fetch error', error); return []; }
+    return data || [];
+  }
+
+  async function createBelief(belief) {
+    const sb = await getClient();
+    if (!sb) return null;
+    const { data, error } = await sb.from('beliefs').insert([belief]).select();
+    if (error) { console.error('belief insert error', error); alert('Failed to create belief: ' + error.message); return null; }
+    return data?.[0];
+  }
+
+  async function updateBelief(id, updates) {
+    const sb = await getClient();
+    if (!sb) return null;
+    updates.updated_at = new Date().toISOString();
+    const { data, error } = await sb.from('beliefs').update(updates).eq('id', id).select();
+    if (error) { console.error('belief update error', error); alert('Failed to update belief: ' + error.message); return null; }
+    return data?.[0];
+  }
+
+  async function deleteBelief(id) {
+    const sb = await getClient();
+    if (!sb) return false;
+    const { error } = await sb.from('beliefs').delete().eq('id', id);
+    if (error) { console.error('belief delete error', error); alert('Failed to delete belief: ' + error.message); return false; }
+    return true;
+  }
+
+  /* ── Dynamic beliefs renderer for homepage ──────────────── */
+  async function renderBeliefs(containerId) {
+    const container = document.getElementById(containerId || 'beliefs-container');
+    if (!container) return;
+
+    const beliefs = await fetchBeliefs();
+
+    if (!beliefs.length) {
+      container.innerHTML = '<p style="font-size:.85rem;color:var(--text-secondary,#5A6B8A);padding:1rem 0;">No principles added yet.</p>';
+      return;
+    }
+
+    container.innerHTML = beliefs.map((b, idx) => `
+      <div class="big-idea-card">
+        <div class="bi-num">${idx + 1}</div>
+        <div>
+          <h4>${esc(b.title)}</h4>
+          <p>${esc(b.description)}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
   /* ── Expose ────────────────────────────────────────────── */
   window.VCTPractices = {
     fetchPractices,
@@ -232,6 +289,11 @@
     unassignPracticeFromPlay,
     updateSortOrder,
     renderPlayPage,
+    fetchBeliefs,
+    createBelief,
+    updateBelief,
+    deleteBelief,
+    renderBeliefs,
     PLAY_NAMES,
     PLAY_COLORS
   };

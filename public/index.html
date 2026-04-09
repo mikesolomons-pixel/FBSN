@@ -769,42 +769,8 @@
     <p style="font-size:0.9rem;opacity:0.8;line-height:1.65;" data-editable="principles-intro">These principles and beliefs are evolving. They represent our current thinking about what makes executive teams capable of creating extraordinary value &mdash; shaped by experience, research, and ongoing conversation.</p>
   </div>
 
-  <div class="big-ideas">
-    <div class="big-idea-card">
-      <div class="bi-num">1</div>
-      <div>
-        <h4 data-editable="belief-1-title">Leadership is a Team Sport</h4>
-        <p data-editable="belief-1-desc">The most critical unit of leadership in any organization is the top team, not the individual at the top.</p>
-      </div>
-    </div>
-    <div class="big-idea-card">
-      <div class="bi-num">2</div>
-      <div>
-        <h4 data-editable="belief-2-title">Team Building Happens by Achieving Outcomes in New Ways</h4>
-        <p data-editable="belief-2-desc">Not just shareholder returns. Teams exist to create value across all stakeholders. If we're honest, most organizations are falling short.</p>
-      </div>
-    </div>
-    <div class="big-idea-card">
-      <div class="bi-num">3</div>
-      <div>
-        <h4 data-editable="belief-3-title">Plays, Not Prescriptions</h4>
-        <p data-editable="belief-3-desc">Like a sports team, executive teams need a playbook of adaptable moves, not rigid processes.</p>
-      </div>
-    </div>
-    <div class="big-idea-card">
-      <div class="bi-num">4</div>
-      <div>
-        <h4 data-editable="belief-4-title">Practice Makes Permanent</h4>
-        <p data-editable="belief-4-desc">Real change comes through repeated practice, not one-off events or workshops.</p>
-      </div>
-    </div>
-    <div class="big-idea-card">
-      <div class="bi-num">5</div>
-      <div>
-        <h4 data-editable="belief-5-title">Conflict is Data, Not Dysfunction</h4>
-        <p data-editable="belief-5-desc">Divergent views tell us where reality is unclear and where assumptions differ. The goal isn't consensus &mdash; it's shared clarity.</p>
-      </div>
-    </div>
+  <div class="big-ideas" id="beliefs-container">
+    <p style="font-size:.85rem;color:var(--text-secondary);padding:1rem 0;">Loading principles...</p>
   </div>
 
   <!-- Resources -->
@@ -823,11 +789,15 @@
   Value Creating Teams &bull; Helping teams solve their most intractable challenges
 </div>
 
+<script src="practices.js"></script>
 <script src="resources.js"></script>
 <script src="tutorial.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() { VCTResources.initAll(); }, 500);
+    setTimeout(function() {
+      VCTResources.initAll();
+      VCTPractices.renderBeliefs('beliefs-container');
+    }, 500);
   });
 </script>
 

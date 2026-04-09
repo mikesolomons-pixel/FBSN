@@ -271,6 +271,48 @@
     font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.25rem;
     font-style: italic;
   }
+
+  /* Beliefs manager */
+  .belief-list { list-style: none; }
+  .belief-item {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--border);
+    transition: background 0.12s;
+  }
+  .belief-item:hover { background: #FAFBFD; }
+  .belief-item.editing { background: #FFF8F0; }
+  .belief-num {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--navy);
+    color: #fff; font-size: 0.72rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .belief-content { flex: 1; min-width: 0; }
+  .belief-content h4 { font-size: 0.88rem; font-weight: 700; color: var(--navy); margin-bottom: 0.15rem; }
+  .belief-content p { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
+  .belief-actions { display: flex; gap: 0.35rem; flex-shrink: 0; margin-top: 2px; }
+  .belief-actions button {
+    background: none; border: none; cursor: pointer; font-size: 0.78rem;
+    padding: 0.25rem 0.5rem; border-radius: 6px; font-weight: 600; font-family: inherit;
+    transition: background 0.12s;
+  }
+  .belief-actions .b-edit { color: var(--teal); }
+  .belief-actions .b-edit:hover { background: rgba(0,137,123,0.1); }
+  .belief-actions .b-del { color: #EF5350; }
+  .belief-actions .b-del:hover { background: rgba(239,83,80,0.1); }
+  .belief-actions .b-up, .belief-actions .b-down { color: var(--text-secondary); font-size: 0.85rem; }
+  .belief-actions .b-up:hover, .belief-actions .b-down:hover { background: var(--bg); }
+
+  .belief-edit-form { margin-top: 0.5rem; }
+  .belief-edit-form input, .belief-edit-form textarea {
+    width: 100%; padding: 0.5rem 0.7rem; border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: 0.82rem; font-family: inherit; outline: none;
+    margin-bottom: 0.4rem;
+  }
+  .belief-edit-form input:focus, .belief-edit-form textarea:focus { border-color: var(--coral); }
+  .belief-edit-form textarea { min-height: 50px; resize: vertical; }
+  .belief-edit-actions { display: flex; gap: 0.5rem; margin-top: 0.35rem; }
+  .belief-empty { font-size: 0.82rem; color: var(--text-secondary); padding: 1.5rem 1.25rem; text-align: center; }
 </style>
 </head>
 <body>
@@ -334,6 +376,17 @@
     </div>
 
   </div>
+
+  <!-- Principles & Beliefs Manager -->
+  <div class="panel" style="margin-top:1.5rem;">
+    <div class="panel-header">
+      <h2>Principles &amp; Beliefs</h2>
+      <button class="btn btn-primary btn-sm" id="new-belief-btn">+ New Principle</button>
+    </div>
+    <div class="panel-body" id="beliefs-panel-body" style="padding:0;">
+      <p style="font-size:.82rem;color:var(--text-secondary);padding:1rem 1.25rem;">Loading...</p>
+    </div>
+  </div>
 </div>
 
 <!-- Toast -->
@@ -387,6 +440,7 @@
     renderLibrary();
     renderPlayTabs();
     renderPlayList();
+    loadBeliefs();
   }
 
   /* ── Practice Library ───────────────────────────────────── */
@@ -886,6 +940,157 @@
       });
     });
   }
+
+  /* ── Beliefs Manager ─────────────────────────────────────── */
+  let beliefs = [];
+  let editingBeliefId = null;
+
+  async function loadBeliefs() {
+    beliefs = await VCTPractices.fetchBeliefs();
+    renderBeliefsList();
+  }
+
+  function renderBeliefsList() {
+    const body = document.getElementById('beliefs-panel-body');
+    if (!beliefs.length) {
+      body.innerHTML = '<div class="belief-empty">No principles yet. Click "+ New Principle" to add one.</div>';
+      return;
+    }
+
+    body.innerHTML = beliefs.map((b, idx) => {
+      const isEditing = editingBeliefId === b.id;
+      return `<div class="belief-item${isEditing ? ' editing' : ''}" data-id="${b.id}">
+        <div class="belief-num">${idx + 1}</div>
+        <div class="belief-content">
+          ${isEditing ? `
+            <div class="belief-edit-form">
+              <input id="bef-title-${b.id}" value="${esc(b.title)}" placeholder="Principle title">
+              <textarea id="bef-desc-${b.id}" placeholder="Description">${esc(b.description)}</textarea>
+              <div class="belief-edit-actions">
+                <button class="btn btn-primary btn-sm bef-save" data-id="${b.id}">Save</button>
+                <button class="btn btn-outline btn-sm bef-cancel">Cancel</button>
+              </div>
+            </div>
+          ` : `
+            <h4>${esc(b.title)}</h4>
+            <p>${esc(b.description)}</p>
+          `}
+        </div>
+        ${!isEditing ? `
+          <div class="belief-actions">
+            ${idx > 0 ? `<button class="b-up" data-id="${b.id}" data-idx="${idx}" title="Move up">&#9650;</button>` : ''}
+            ${idx < beliefs.length - 1 ? `<button class="b-down" data-id="${b.id}" data-idx="${idx}" title="Move down">&#9660;</button>` : ''}
+            <button class="b-edit" data-id="${b.id}">Edit</button>
+            <button class="b-del" data-id="${b.id}">Delete</button>
+          </div>
+        ` : ''}
+      </div>`;
+    }).join('');
+
+    wireBeliefEvents();
+  }
+
+  function wireBeliefEvents() {
+    // Edit
+    document.querySelectorAll('.b-edit').forEach(btn => {
+      btn.onclick = function () {
+        editingBeliefId = btn.getAttribute('data-id');
+        renderBeliefsList();
+      };
+    });
+
+    // Cancel edit
+    document.querySelectorAll('.bef-cancel').forEach(btn => {
+      btn.onclick = function () {
+        editingBeliefId = null;
+        renderBeliefsList();
+      };
+    });
+
+    // Save edit
+    document.querySelectorAll('.bef-save').forEach(btn => {
+      btn.onclick = async function () {
+        const id = btn.getAttribute('data-id');
+        const title = document.getElementById('bef-title-' + id).value.trim();
+        const description = document.getElementById('bef-desc-' + id).value.trim();
+        if (!title) { alert('Title is required'); return; }
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        await VCTPractices.updateBelief(id, { title, description });
+        editingBeliefId = null;
+        toast('Principle updated');
+        await loadBeliefs();
+      };
+    });
+
+    // Delete
+    document.querySelectorAll('.b-del').forEach(btn => {
+      btn.onclick = async function () {
+        const id = btn.getAttribute('data-id');
+        const b = beliefs.find(x => x.id === id);
+        if (!confirm('Delete "' + (b ? b.title : 'this principle') + '"?')) return;
+        await VCTPractices.deleteBelief(id);
+        toast('Principle deleted');
+        // Re-number sort_order after delete
+        await reorderBeliefs();
+        await loadBeliefs();
+      };
+    });
+
+    // Move up
+    document.querySelectorAll('.b-up').forEach(btn => {
+      btn.onclick = async function () {
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        if (idx <= 0) return;
+        await swapBeliefs(idx, idx - 1);
+      };
+    });
+
+    // Move down
+    document.querySelectorAll('.b-down').forEach(btn => {
+      btn.onclick = async function () {
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        if (idx >= beliefs.length - 1) return;
+        await swapBeliefs(idx, idx + 1);
+      };
+    });
+  }
+
+  async function swapBeliefs(idxA, idxB) {
+    const a = beliefs[idxA];
+    const b = beliefs[idxB];
+    await Promise.all([
+      VCTPractices.updateBelief(a.id, { sort_order: idxB }),
+      VCTPractices.updateBelief(b.id, { sort_order: idxA })
+    ]);
+    toast('Order updated');
+    await loadBeliefs();
+  }
+
+  async function reorderBeliefs() {
+    // Fetch fresh, then set sort_order = 0,1,2,...
+    const fresh = await VCTPractices.fetchBeliefs();
+    await Promise.all(fresh.map((b, i) =>
+      VCTPractices.updateBelief(b.id, { sort_order: i })
+    ));
+  }
+
+  // New belief button
+  document.getElementById('new-belief-btn').onclick = async function () {
+    const title = prompt('New principle title:');
+    if (!title || !title.trim()) return;
+    const maxOrder = beliefs.reduce((max, b) => Math.max(max, b.sort_order || 0), -1);
+    const result = await VCTPractices.createBelief({
+      title: title.trim(),
+      description: '',
+      sort_order: maxOrder + 1
+    });
+    if (result) {
+      toast('Principle created');
+      editingBeliefId = result.id; // open in edit mode right away
+      await loadBeliefs();
+    }
+  };
 
   /* ── Helpers ─────────────────────────────────────────────── */
   function esc(s) {
