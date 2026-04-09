@@ -36,6 +36,12 @@
     .resources-play-group{margin-bottom:1.5rem}
     .resources-play-group h3{font-size:.95rem;font-weight:700;color:var(--navy,#1B2A4A);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
     .resources-play-group .play-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .add-resource-toggle{display:flex;align-items:center;gap:.4rem;padding:.5rem 0;cursor:pointer;font-size:.8rem;font-weight:600;color:var(--teal,#00897B);border:none;background:none;font-family:inherit}
+    .add-resource-toggle:hover{color:var(--teal-dark,#006B5E)}
+    .add-resource-toggle .toggle-arrow{transition:transform .2s;font-size:.65rem}
+    .add-resource-toggle.open .toggle-arrow{transform:rotate(90deg)}
+    .add-resource-form-wrap{display:none;overflow:hidden}
+    .add-resource-form-wrap.open{display:block}
     @media(max-width:600px){.add-resource-form .form-row{flex-direction:column}.resources-grid{grid-template-columns:1fr}}
   `;
   document.head.appendChild(style);
@@ -87,7 +93,7 @@
     const sb = await getClient();
     if (!sb) return null;
     const { data, error } = await sb.from('resources').insert([resource]).select();
-    if (error) { console.error('resource insert error', error); return null; }
+    if (error) { console.error('resource insert error', error); alert('Failed to save resource: ' + error.message); return null; }
     return data?.[0];
   }
 
@@ -188,8 +194,11 @@
       : buildPlaySelect(null);
 
     container.innerHTML = `
+      <button class="add-resource-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+        <span class="toggle-arrow">&#9654;</span> Add a Resource
+      </button>
+      <div class="add-resource-form-wrap">
       <div class="add-resource-form">
-        <h4>+ Add a Resource</h4>
         <div class="form-row">
           <input type="text" placeholder="Title" class="res-title" required>
           <input type="text" placeholder="Author (optional)" class="res-author">
@@ -218,6 +227,7 @@
           ${playInput}
           <button class="add-resource-btn">Add</button>
         </div>
+      </div>
       </div>`;
 
     const fileInput = container.querySelector('.res-file');
