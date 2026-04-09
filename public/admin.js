@@ -24,8 +24,8 @@
     .admin-badge button:hover{background:rgba(255,255,255,.35)}
 
     /* Admin login button (for non-admin users) */
-    .admin-login-btn{position:fixed;bottom:12px;left:12px;z-index:10000;background:rgba(27,42,74,0.06);border:1px solid rgba(27,42,74,0.1);color:#9AA5B8;padding:.3rem .6rem;border-radius:16px;font-size:.6rem;font-weight:600;letter-spacing:.5px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;transition:all .2s;display:flex;align-items:center;gap:.3rem;opacity:.5}
-    .admin-login-btn:hover{opacity:1;background:rgba(27,42,74,0.1);color:#5A6B8A}
+    .admin-login-btn{position:fixed;bottom:12px;left:12px;z-index:10000;background:rgba(27,42,74,0.08);border:1px solid rgba(27,42,74,0.15);color:#5A6B8A;padding:.35rem .7rem;border-radius:16px;font-size:.65rem;font-weight:600;letter-spacing:.5px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;transition:all .2s;display:flex;align-items:center;gap:.3rem}
+    .admin-login-btn:hover{background:rgba(224,122,95,0.12);border-color:rgba(224,122,95,0.3);color:#E07A5F}
     .admin-login-btn svg{width:10px;height:10px;opacity:.6}
 
     /* Admin login popover */
