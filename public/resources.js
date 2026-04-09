@@ -41,8 +41,22 @@
   document.head.appendChild(style);
 
   /* ── Colours ────────────────────────────────────────────── */
-  const PLAY_COLORS = { 0: '#4A90D9', 1: '#00897B', 2: '#7C5CBF', 3: '#E07A5F', 4: '#D4A843', 5: '#1B2A4A', 11: '#00897B', 12: '#E07A5F', 13: '#1B2A4A' };
-  const PLAY_NAMES  = { 0: 'All of VCT', 1: 'Sensemaking', 2: 'Imagining', 3: 'Navigating', 4: 'Collaborating', 5: 'Value Creating', 11: 'FBSN Practice', 12: 'Cynefin Practice', 13: 'Calibration' };
+  const PLAY_COLORS = {
+    0: '#4A90D9', 1: '#00897B', 2: '#7C5CBF', 3: '#E07A5F', 4: '#D4A843', 5: '#1B2A4A',
+    101: '#00897B', 102: '#00897B', 103: '#00897B',
+    201: '#7C5CBF', 202: '#7C5CBF', 203: '#7C5CBF', 204: '#7C5CBF',
+    301: '#E07A5F', 302: '#E07A5F', 303: '#E07A5F',
+    401: '#D4A843', 402: '#D4A843', 403: '#D4A843',
+    501: '#1B2A4A', 502: '#1B2A4A', 503: '#1B2A4A'
+  };
+  const PLAY_NAMES = {
+    0: 'All of VCT', 1: 'Sensemaking', 2: 'Imagining', 3: 'Navigating', 4: 'Collaborating', 5: 'Value Creating',
+    101: 'FBSN Exercise', 102: 'Three Horizons Scanning', 103: 'Assumption Mapping',
+    201: 'Future Visioning', 202: 'Strategic Ambition Setting', 203: 'Backcasting', 204: 'The Future Backwards',
+    301: 'Cynefin Navigator', 302: 'Safe-to-Fail Experiments', 303: 'Decision Architecture',
+    401: 'Team Operating System', 402: 'Trust & Candor Protocol', 403: 'Collaborative Reflection',
+    501: 'Value Creation Cycle', 502: 'Impact Assessment', 503: 'Portfolio of Bets'
+  };
   const TYPE_COLORS = { book: '#00897B', article: '#4A90D9', reference: '#7C5CBF', video: '#E07A5F', podcast: '#D4A843', tool: '#1B2A4A', powerpoint: '#C4451C' };
   const TYPE_ICONS  = { book: '\u{1F4D6}', article: '\u{1F4C4}', reference: '\u{1F517}', video: '\u{1F3A5}', podcast: '\u{1F3A7}', tool: '\u{1F6E0}', powerpoint: '\u{1F4CA}' };
 
@@ -60,8 +74,8 @@
     if (!sb) return [];
     let q = sb.from('resources').select('*').order('created_at', { ascending: true });
     if (play) {
-      // Practices (11+) only show their own; plays (1-5) also show VCT-wide (0)
-      if (play >= 11) q = q.eq('play', play);
+      // Practices (100+) only show their own; plays (1-5) also show VCT-wide (0)
+      if (play >= 100) q = q.eq('play', play);
       else q = q.in('play', [play, 0]);
     }
     const { data, error } = await q;
@@ -136,11 +150,11 @@
     }
     const groups = {};
     resources.forEach(r => { (groups[r.play] = groups[r.play] || []).push(r); });
-    const order = [0, 1, 2, 3, 4, 5, 11, 12, 13]; // VCT-wide, plays, then practices
+    const order = [0, 1, 101, 102, 103, 2, 201, 202, 203, 204, 3, 301, 302, 303, 4, 401, 402, 403, 5, 501, 502, 503];
     container.innerHTML = order.filter(p => groups[p]).map(p => {
       let heading;
       if (p === 0) heading = 'Value Creating Teams (General)';
-      else if (p >= 11) heading = PLAY_NAMES[p];
+      else if (p >= 100) heading = PLAY_NAMES[p];
       else heading = 'Play ' + p + ': ' + PLAY_NAMES[p];
       return `<div class="resources-play-group">
         <h3><span class="play-dot" style="background:${PLAY_COLORS[p]}"></span> ${heading}</h3>
@@ -151,17 +165,14 @@
   }
 
   function buildPlaySelect(currentPlay) {
-    // currentPlay: number if on a play/practice page, null if on homepage
+    // Only used on homepage — play/practice pages use hidden input
     const options = [
       { value: 0, label: 'All of VCT (general)' },
       { value: 1, label: 'Play 1: Sensemaking' },
       { value: 2, label: 'Play 2: Imagining' },
       { value: 3, label: 'Play 3: Navigating' },
       { value: 4, label: 'Play 4: Collaborating' },
-      { value: 5, label: 'Play 5: Value Creating' },
-      { value: 11, label: 'FBSN Practice' },
-      { value: 12, label: 'Cynefin Practice' },
-      { value: 13, label: 'Calibration' }
+      { value: 5, label: 'Play 5: Value Creating' }
     ];
     const selected = currentPlay || 0;
     return `<select class="res-play">${options.map(o =>
@@ -277,10 +288,11 @@
     };
   }
 
-  /* ── Public init for play pages ─────────────────────────── */
-  async function init(play) {
-    const listEl = document.getElementById('resources-list');
-    const formEl = document.getElementById('resources-form');
+  /* ── Public init for play/practice pages ─────────────────── */
+  async function init(play, opts) {
+    opts = opts || {};
+    const listEl = document.getElementById(opts.listId || 'resources-list');
+    const formEl = document.getElementById(opts.formId || 'resources-form');
     if (!listEl) return;
 
     async function refresh() {
