@@ -1524,10 +1524,10 @@ function exportResults() {
 
   const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `FBSN-${(state.title || 'exercise').replace(/\s+/g, '-')}.txt`;
-  a.click();
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `FBSN-${(state.title || 'exercise').replace(/\s+/g, '-')}.txt`;
+  link.click();
   URL.revokeObjectURL(url);
 }
 
