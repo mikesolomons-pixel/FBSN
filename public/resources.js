@@ -43,8 +43,8 @@
   /* ── Colours ────────────────────────────────────────────── */
   const PLAY_COLORS = { 0: '#4A90D9', 1: '#00897B', 2: '#7C5CBF', 3: '#E07A5F', 4: '#D4A843', 5: '#1B2A4A', 11: '#00897B', 12: '#E07A5F', 13: '#1B2A4A' };
   const PLAY_NAMES  = { 0: 'All of VCT', 1: 'Sensemaking', 2: 'Imagining', 3: 'Navigating', 4: 'Collaborating', 5: 'Value Creating', 11: 'FBSN Practice', 12: 'Cynefin Practice', 13: 'Calibration' };
-  const TYPE_COLORS = { book: '#00897B', article: '#4A90D9', reference: '#7C5CBF', video: '#E07A5F', podcast: '#D4A843', tool: '#1B2A4A' };
-  const TYPE_ICONS  = { book: '\u{1F4D6}', article: '\u{1F4C4}', reference: '\u{1F517}', video: '\u{1F3A5}', podcast: '\u{1F3A7}', tool: '\u{1F6E0}' };
+  const TYPE_COLORS = { book: '#00897B', article: '#4A90D9', reference: '#7C5CBF', video: '#E07A5F', podcast: '#D4A843', tool: '#1B2A4A', powerpoint: '#C4451C' };
+  const TYPE_ICONS  = { book: '\u{1F4D6}', article: '\u{1F4C4}', reference: '\u{1F517}', video: '\u{1F3A5}', podcast: '\u{1F3A7}', tool: '\u{1F6E0}', powerpoint: '\u{1F4CA}' };
 
   /* ── Supabase helper ────────────────────────────────────── */
   async function getClient() {
@@ -137,12 +137,16 @@
     const groups = {};
     resources.forEach(r => { (groups[r.play] = groups[r.play] || []).push(r); });
     const order = [0, 1, 2, 3, 4, 5, 11, 12, 13]; // VCT-wide, plays, then practices
-    container.innerHTML = order.filter(p => groups[p]).map(p => `
-      <div class="resources-play-group">
-        <h3><span class="play-dot" style="background:${PLAY_COLORS[p]}"></span> ${p === 0 ? 'Value Creating Teams (General)' : 'Play ' + p + ': ' + PLAY_NAMES[p]}</h3>
+    container.innerHTML = order.filter(p => groups[p]).map(p => {
+      let heading;
+      if (p === 0) heading = 'Value Creating Teams (General)';
+      else if (p >= 11) heading = PLAY_NAMES[p];
+      else heading = 'Play ' + p + ': ' + PLAY_NAMES[p];
+      return `<div class="resources-play-group">
+        <h3><span class="play-dot" style="background:${PLAY_COLORS[p]}"></span> ${heading}</h3>
         <div class="resources-grid">${groups[p].map(r => renderItem(r, {})).join('')}</div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
     wireDeleteButtons(container);
   }
 
@@ -166,6 +170,12 @@
   }
 
   function renderAddForm(container, play) {
+    // On a specific play/practice page, lock to that play (no dropdown).
+    // On homepage (play=null), show the full dropdown.
+    const playInput = play != null
+      ? `<input type="hidden" class="res-play" value="${play}">`
+      : buildPlaySelect(null);
+
     container.innerHTML = `
       <div class="add-resource-form">
         <h4>+ Add a Resource</h4>
@@ -191,9 +201,10 @@
             <option value="reference">Reference</option>
             <option value="video">Video</option>
             <option value="podcast">Podcast</option>
+            <option value="powerpoint">PowerPoint</option>
             <option value="tool">Tool</option>
           </select>
-          ${buildPlaySelect(play)}
+          ${playInput}
           <button class="add-resource-btn">Add</button>
         </div>
       </div>`;

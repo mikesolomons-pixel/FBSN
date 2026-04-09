@@ -7,7 +7,7 @@ create table resources (
   play integer not null check (play between 0 and 99),  -- 0 = All VCT, 1-5 = Plays, 11+ = Practices
   title text not null,
   author text,
-  resource_type text not null default 'book' check (resource_type in ('book','article','reference','video','podcast','tool')),
+  resource_type text not null default 'book' check (resource_type in ('book','article','reference','video','podcast','tool','powerpoint')),
   url text,
   description text,
   created_at timestamptz default now()
