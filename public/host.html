@@ -185,7 +185,7 @@
 <!-- SETUP -->
 <div class="setup-screen" id="setupScreen">
   <div class="setup-card">
-    <h2>Start a Live Session</h2>
+    <h2>In-Room Facilitated Session</h2>
     <p>Set up your exercise, then share the room code with participants.</p>
     <div class="form-group">
       <label>Exercise Title</label>
@@ -219,7 +219,7 @@
     <ul class="persp-list" id="perspList"></ul>
 
     <div class="btn-row">
-      <button class="btn btn-primary" id="startBtn" disabled onclick="startSession()">Start Live Session</button>
+      <button class="btn btn-primary" id="startBtn" disabled onclick="startSession()">Start Session</button>
     </div>
   </div>
 </div>
@@ -792,6 +792,38 @@ window.addHostAction = addHostAction;
 window.removeHostAction = removeHostAction;
 window.perspectives = perspectives;
 window.renderPerspList = renderPerspList;
+
+// ========== TEMPLATES ==========
+const TEMPLATES = {
+  netflix: {
+    title: 'Netflix Strategic Crossroads (Example)',
+    context: 'It is the late 2000s. Netflix faces a major inflection point. DVD-by-mail is still profitable but growth is slowing. Consumer behavior is shifting toward on-demand digital content. Broadband is expanding rapidly, and competitors are entering streaming. Your team must decide what to scale, what to explore, and what to leave behind.',
+    perspectives: [
+      'Broadband adoption is accelerating',
+      'Customers want on-demand access',
+      'Streaming is scalable and reduces delivery cost',
+      'We can secure long-term studio deals',
+      'Users will accept streaming over DVDs',
+      'Subscription-based models will be sustainable',
+      'The DVD business is currently profitable',
+      'Most current customers use mail rentals',
+      'Streaming is a temporary fad',
+      'Older customers will reject digital',
+      'Competitors won\'t adapt fast enough'
+    ]
+  }
+};
+
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const tmpl = params.get('template');
+  if (tmpl && TEMPLATES[tmpl]) {
+    const t = TEMPLATES[tmpl];
+    document.getElementById('titleInput').value = t.title;
+    document.getElementById('contextInput').value = t.context;
+    perspectives.push(...t.perspectives);
+  }
+})();
 
 renderPerspList();
 </script>

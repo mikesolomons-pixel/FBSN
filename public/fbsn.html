@@ -858,14 +858,14 @@
   <div class="phase active" id="phase-1">
     <!-- Mode selector -->
     <div class="mode-selector">
-      <a class="mode-card" href="/host.html">
+      <a class="mode-card" href="host.html">
         <div class="mode-icon">&#127891;</div>
-        <div class="mode-title">Host Live Session</div>
+        <div class="mode-title">In-Room Facilitated</div>
         <div class="mode-desc">Present on a big screen and let your team vote from their devices.</div>
       </a>
-      <a class="mode-card" href="/join.html">
+      <a class="mode-card" href="join.html">
         <div class="mode-icon">&#9995;</div>
-        <div class="mode-title">Join a Session</div>
+        <div class="mode-title">Virtual Multiplayer</div>
         <div class="mode-desc">Enter a room code to vote on perspectives from your device.</div>
       </a>
     </div>
@@ -1856,6 +1856,48 @@ function escapeHtml(str) {
   d.textContent = str;
   return d.innerHTML;
 }
+
+// ========== TEMPLATES ==========
+const TEMPLATES = {
+  netflix: {
+    title: 'Netflix Strategic Crossroads (Example)',
+    context: 'It is the late 2000s. Netflix faces a major inflection point. DVD-by-mail is still profitable but growth is slowing. Consumer behavior is shifting toward on-demand digital content. Broadband is expanding rapidly, and competitors are entering streaming. Your team must decide what to scale, what to explore, and what to leave behind.',
+    perspectives: [
+      'Broadband adoption is accelerating',
+      'Customers want on-demand access',
+      'Streaming is scalable and reduces delivery cost',
+      'We can secure long-term studio deals',
+      'Users will accept streaming over DVDs',
+      'Subscription-based models will be sustainable',
+      'The DVD business is currently profitable',
+      'Most current customers use mail rentals',
+      'Streaming is a temporary fad',
+      'Older customers will reject digital',
+      'Competitors won\'t adapt fast enough'
+    ]
+  }
+};
+
+function loadTemplate(name) {
+  const tmpl = TEMPLATES[name];
+  if (!tmpl) return;
+  state.title = tmpl.title;
+  state.context = tmpl.context;
+  state.perspectives = tmpl.perspectives.slice();
+  document.getElementById('titleInput').value = tmpl.title;
+  document.getElementById('contextInput').value = tmpl.context;
+  renderPerspectiveList();
+  goToPhase(2);
+}
+
+// Check for ?template= parameter on load
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const tmpl = params.get('template');
+  if (tmpl && TEMPLATES[tmpl]) {
+    loadTemplate(tmpl);
+  }
+})();
 
 // Init
 renderPerspectiveList();
