@@ -14,6 +14,12 @@
     --coral: #E07A5F;
     --coral-light: #F4A691;
     --coral-bg: #FDF0EC;
+    --desirability: #E07A5F;
+    --desirability-bg: #FDF0EC;
+    --viability: #4A90D9;
+    --viability-bg: #E3F2FD;
+    --feasibility: #00897B;
+    --feasibility-bg: #E0F2F1;
     --test-now: #E07A5F;
     --test-now-bg: #FDF0EC;
     --monitor: #4A90D9;
@@ -120,9 +126,9 @@
   .btn-sm { padding: 0.45rem 0.85rem; font-size: 0.78rem; }
   .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
 
-  /* Netflix example card */
+  /* Example card */
   .example-card {
-    background: linear-gradient(135deg, #1B2A4A 0%, #8B1A1A 100%);
+    background: linear-gradient(135deg, #1B2A4A 0%, #00695C 100%);
     border-radius: 12px;
     padding: 1.5rem 2rem;
     margin-bottom: 1.25rem;
@@ -178,35 +184,93 @@
   }
   .session-item .remove-btn:hover { color: var(--test-now); }
 
-  /* Assumption list */
-  .assumption-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
-  .assumption-item {
-    display: flex; align-items: center; gap: 0.75rem;
-    padding: 0.75rem 1rem; background: var(--bg); border-radius: 8px;
-    font-size: 0.9rem; border: 1.5px solid var(--border);
+  /* DVF Columns layout */
+  .dvf-columns {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;
   }
-  .assumption-item .num {
-    width: 24px; height: 24px; border-radius: 50%;
-    background: var(--coral); color: white;
+  .dvf-column {
+    background: var(--card); border-radius: 12px; padding: 1.25rem;
+    box-shadow: var(--shadow); border-top: 4px solid;
+  }
+  .dvf-column.desirability { border-top-color: var(--desirability); }
+  .dvf-column.viability { border-top-color: var(--viability); }
+  .dvf-column.feasibility { border-top-color: var(--feasibility); }
+  .dvf-column h3 {
+    font-size: 0.95rem; font-weight: 700; margin-bottom: 0.15rem;
+  }
+  .dvf-column.desirability h3 { color: var(--desirability); }
+  .dvf-column.viability h3 { color: var(--viability); }
+  .dvf-column.feasibility h3 { color: var(--feasibility); }
+  .dvf-column .dvf-subtitle {
+    font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.75rem;
+  }
+  .dvf-column .dvf-prompts {
+    font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5;
+    padding: 0.6rem 0.75rem; border-radius: 6px; margin-bottom: 0.75rem;
+  }
+  .dvf-column.desirability .dvf-prompts { background: var(--desirability-bg); }
+  .dvf-column.viability .dvf-prompts { background: var(--viability-bg); }
+  .dvf-column.feasibility .dvf-prompts { background: var(--feasibility-bg); }
+
+  .dvf-add-row { display: flex; gap: 0.4rem; margin-bottom: 0.75rem; }
+  .dvf-add-row input {
+    flex: 1; padding: 0.55rem 0.75rem; font-size: 0.82rem;
+  }
+  .dvf-add-row button {
+    padding: 0.55rem 0.85rem; border: none; border-radius: 8px;
+    font-size: 0.78rem; font-weight: 600; color: white; cursor: pointer;
+    flex-shrink: 0;
+  }
+  .dvf-column.desirability .dvf-add-row button { background: var(--desirability); }
+  .dvf-column.desirability .dvf-add-row button:hover { background: #D06A50; }
+  .dvf-column.viability .dvf-add-row button { background: var(--viability); }
+  .dvf-column.viability .dvf-add-row button:hover { background: #3A7BC0; }
+  .dvf-column.feasibility .dvf-add-row button { background: var(--feasibility); }
+  .dvf-column.feasibility .dvf-add-row button:hover { background: #00695C; }
+
+  .dvf-list { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+  .dvf-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 0.75rem; border-radius: 6px; font-size: 0.82rem;
+    border: 1.5px solid var(--border); background: var(--bg);
+    line-height: 1.4;
+  }
+  .dvf-item .dvf-num {
+    width: 20px; height: 20px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.7rem; font-weight: 700; flex-shrink: 0;
+    font-size: 0.65rem; font-weight: 700; flex-shrink: 0; color: white;
   }
-  .assumption-item .assumption-text { flex: 1; line-height: 1.45; }
-  .assumption-item .remove-btn {
-    margin-left: auto; background: none; border: none;
-    color: var(--text-secondary); cursor: pointer; font-size: 1.1rem;
-    padding: 0 0.25rem; line-height: 1;
+  .dvf-column.desirability .dvf-num { background: var(--desirability); }
+  .dvf-column.viability .dvf-num { background: var(--viability); }
+  .dvf-column.feasibility .dvf-num { background: var(--feasibility); }
+  .dvf-item .dvf-text { flex: 1; }
+  .dvf-item .remove-btn {
+    background: none; border: none; color: var(--text-secondary);
+    cursor: pointer; font-size: 1rem; padding: 0 0.2rem; line-height: 1;
   }
-  .assumption-item .remove-btn:hover { color: var(--test-now); }
+  .dvf-item .remove-btn:hover { color: var(--test-now); }
+  .dvf-empty {
+    text-align: center; padding: 1.25rem 0.5rem;
+    color: var(--text-secondary); font-size: 0.8rem;
+    font-style: italic;
+  }
 
-  .add-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
-  .add-row input { flex: 1; }
-
-  .help-prompt {
-    padding: 0.75rem 1rem; background: #FFF8E1; border-radius: 8px;
-    border-left: 3px solid #F9A825; font-size: 0.82rem; color: #5D4037;
-    line-height: 1.5; margin-bottom: 1rem;
+  .dvf-total-bar {
+    background: var(--card); border-radius: 10px; padding: 1rem 1.5rem;
+    box-shadow: var(--shadow); margin-top: 1rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.75rem;
   }
+  .dvf-total-count {
+    font-size: 0.9rem; font-weight: 600; color: var(--navy);
+  }
+  .dvf-total-count span { color: var(--coral); }
+  .dvf-category-counts {
+    display: flex; gap: 0.75rem; font-size: 0.78rem; font-weight: 600;
+  }
+  .dvf-category-counts .cc-d { color: var(--desirability); }
+  .dvf-category-counts .cc-v { color: var(--viability); }
+  .dvf-category-counts .cc-f { color: var(--feasibility); }
 
   /* Exercise layout - split */
   .exercise-layout {
@@ -221,12 +285,20 @@
     font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;
   }
   .exercise-assumption {
-    font-size: 1.15rem; font-weight: 600; color: var(--text);
-    line-height: 1.5; margin-bottom: 1.5rem; padding: 1.25rem;
-    background: var(--coral-bg); border-radius: 12px;
-    border-left: 4px solid var(--coral);
-    text-align: left;
+    font-size: 1.1rem; font-weight: 600; color: var(--text);
+    line-height: 1.5; margin-bottom: 1.25rem; padding: 1.25rem;
+    background: var(--bg); border-radius: 12px;
+    text-align: left; position: relative;
   }
+  .exercise-assumption .dvf-badge {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 0.15rem 0.5rem; border-radius: 4px; color: white;
+    margin-bottom: 0.5rem;
+  }
+  .exercise-assumption .dvf-badge.d { background: var(--desirability); }
+  .exercise-assumption .dvf-badge.v { background: var(--viability); }
+  .exercise-assumption .dvf-badge.f { background: var(--feasibility); }
   .exercise-question {
     font-size: 0.9rem; color: var(--navy); font-weight: 600; margin-bottom: 0.75rem;
   }
@@ -310,10 +382,17 @@
   .matrix-cell.safe .matrix-cell-title { color: var(--safe); }
 
   .matrix-tag {
-    font-size: 0.78rem; padding: 0.35rem 0.55rem;
-    background: rgba(255,255,255,0.8); border-radius: 6px;
+    font-size: 0.75rem; padding: 0.3rem 0.5rem;
+    background: rgba(255,255,255,0.85); border-radius: 6px;
     line-height: 1.3; cursor: default;
+    display: flex; align-items: center; gap: 0.35rem;
   }
+  .matrix-tag .dvf-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .matrix-tag .dvf-dot.d { background: var(--desirability); }
+  .matrix-tag .dvf-dot.v { background: var(--viability); }
+  .matrix-tag .dvf-dot.f { background: var(--feasibility); }
 
   /* Draggable tags in results */
   .matrix-tag.draggable {
@@ -353,6 +432,27 @@
   .stat-safe { background: var(--safe-bg); }
   .stat-safe .stat-num, .stat-safe .stat-label { color: var(--safe); }
 
+  /* DVF breakdown stats */
+  .dvf-stats-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .dvf-stat-card {
+    border-radius: 10px; padding: 0.85rem; text-align: center;
+    border-top: 3px solid;
+  }
+  .dvf-stat-card.ds { border-top-color: var(--desirability); background: var(--desirability-bg); }
+  .dvf-stat-card.vs { border-top-color: var(--viability); background: var(--viability-bg); }
+  .dvf-stat-card.fs { border-top-color: var(--feasibility); background: var(--feasibility-bg); }
+  .dvf-stat-card .stat-num { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.1rem; }
+  .dvf-stat-card.ds .stat-num { color: var(--desirability); }
+  .dvf-stat-card.vs .stat-num { color: var(--viability); }
+  .dvf-stat-card.fs .stat-num { color: var(--feasibility); }
+  .dvf-stat-card .stat-label {
+    font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-secondary);
+  }
+
   /* Recommendations */
   .recommendations {
     display: flex; flex-direction: column; gap: 0.75rem;
@@ -385,7 +485,7 @@
   }
   .action-plan-item .ap-assumption {
     font-size: 0.9rem; font-weight: 600; color: var(--text);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;
   }
   .action-plan-item .ap-label {
     font-size: 0.75rem; font-weight: 600; color: var(--test-now);
@@ -447,7 +547,9 @@
   /* Responsive */
   @media (max-width: 900px) {
     .exercise-layout { grid-template-columns: 1fr; }
+    .dvf-columns { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .dvf-stats-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 768px) {
     .main { padding: 1rem; }
@@ -470,11 +572,13 @@
 <div class="progress-bar">
   <div class="progress-step active" data-step="1"><span class="step-num">1</span><span>Context</span></div>
   <div class="progress-connector"></div>
-  <div class="progress-step" data-step="2"><span class="step-num">2</span><span>Brainstorm</span></div>
+  <div class="progress-step" data-step="2"><span class="step-num">2</span><span>Categorize</span></div>
   <div class="progress-connector"></div>
   <div class="progress-step" data-step="3"><span class="step-num">3</span><span>Map</span></div>
   <div class="progress-connector"></div>
   <div class="progress-step" data-step="4"><span class="step-num">4</span><span>Results</span></div>
+  <div class="progress-connector"></div>
+  <div class="progress-step" data-step="5"><span class="step-num">5</span><span>Actions</span></div>
 </div>
 
 <div class="main">
@@ -482,13 +586,13 @@
   <!-- PHASE 1: Context Setup -->
   <div class="phase active" id="phase-1">
 
-    <!-- Netflix example -->
+    <!-- Tutorial example -->
     <div class="example-card">
       <div class="example-card-info">
-        <h3>&#127916; Netflix Case Study</h3>
-        <p>Practice assumption mapping with Netflix's early pivot from DVD to streaming &mdash; 10 key assumptions.</p>
+        <h3>&#9749; AI Drone Coffee Delivery</h3>
+        <p>Practice assumption mapping with a fun innovation scenario &mdash; 12 pre-loaded assumptions across D/V/F categories.</p>
       </div>
-      <button class="btn-example" onclick="loadTemplate('netflix')">Run Netflix Example &#8594;</button>
+      <button class="btn-example" onclick="loadTemplate('drone-coffee')">Run Tutorial &#8594;</button>
     </div>
 
     <!-- Saved sessions -->
@@ -501,46 +605,85 @@
     <!-- New exercise -->
     <div class="card">
       <h2>New Exercise</h2>
-      <p class="desc">Set the context for your assumption mapping exercise. What strategy, initiative, or decision are you evaluating?</p>
+      <p class="desc">Set the context for your assumption mapping exercise. What idea, strategy, or initiative are you testing?</p>
       <div class="form-group">
-        <label>What strategy, initiative, or decision are you mapping assumptions for?</label>
+        <label>What idea, strategy, or initiative are you testing?</label>
         <input type="text" id="titleInput" placeholder="e.g. New product launch, Market expansion, Platform migration">
       </div>
       <div class="form-group">
-        <label>Describe the situation briefly (optional)</label>
+        <label>Describe it briefly (optional)</label>
         <textarea id="contextInput" placeholder="Provide any background context that will help frame the assumptions you'll identify..."></textarea>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" onclick="goToPhase(2)">Next: Brainstorm Assumptions</button>
+        <button class="btn btn-primary" onclick="goToPhase(2)">Next: Brainstorm &amp; Categorize</button>
       </div>
     </div>
   </div>
 
-  <!-- PHASE 2: Brainstorm Assumptions -->
+  <!-- PHASE 2: Brainstorm & Categorize Assumptions -->
   <div class="phase" id="phase-2">
-    <div class="card">
-      <h2>Brainstorm Assumptions</h2>
-      <p class="desc">List the assumptions underlying your strategy or decision. What must be true for this to succeed?</p>
+    <div class="card" style="margin-bottom:1rem">
+      <h2>Brainstorm &amp; Categorize Assumptions</h2>
+      <p class="desc">List the assumptions underlying your idea. Categorize each into one of three risk areas to ensure you're covering all angles. What must be true for this to succeed?</p>
+    </div>
 
-      <div class="help-prompt">
-        <strong>Think about:</strong> What must be true for this to work? What are we taking for granted? What would kill this if we're wrong?
+    <div class="dvf-columns">
+      <!-- Desirability -->
+      <div class="dvf-column desirability">
+        <h3>Desirability</h3>
+        <div class="dvf-subtitle">Do people actually want this?</div>
+        <div class="dvf-prompts">
+          Will customers actually use this? Is there real demand? Will people change their behavior?
+        </div>
+        <div class="dvf-add-row">
+          <input type="text" id="addDesirability" placeholder="Add assumption...">
+          <button onclick="addDvfAssumption('desirability')">Add</button>
+        </div>
+        <ul class="dvf-list" id="listDesirability"></ul>
+        <div class="dvf-empty" id="emptyDesirability">No assumptions yet</div>
       </div>
 
-      <label>Add assumptions one at a time</label>
-      <div class="add-row">
-        <input type="text" id="assumptionInput" placeholder="Type an assumption and press Enter or click Add">
-        <button class="btn btn-primary" onclick="addAssumption()">Add</button>
+      <!-- Viability -->
+      <div class="dvf-column viability">
+        <h3>Viability</h3>
+        <div class="dvf-subtitle">Does the business model work?</div>
+        <div class="dvf-prompts">
+          Can we make money from this? Will partners/suppliers support it? Are there regulatory barriers?
+        </div>
+        <div class="dvf-add-row">
+          <input type="text" id="addViability" placeholder="Add assumption...">
+          <button onclick="addDvfAssumption('viability')">Add</button>
+        </div>
+        <ul class="dvf-list" id="listViability"></ul>
+        <div class="dvf-empty" id="emptyViability">No assumptions yet</div>
       </div>
 
-      <div style="margin-top: 1rem">
-        <label>Assumptions (<span id="assumptionCount">0</span>)</label>
-        <ul class="assumption-list" id="assumptionList"></ul>
-        <div class="empty-state" id="emptyAssumptions">No assumptions added yet. Start brainstorming above.</div>
+      <!-- Feasibility -->
+      <div class="dvf-column feasibility">
+        <h3>Feasibility</h3>
+        <div class="dvf-subtitle">Can we build and deliver this?</div>
+        <div class="dvf-prompts">
+          Do we have the technology? Can our team execute this? Can we scale it?
+        </div>
+        <div class="dvf-add-row">
+          <input type="text" id="addFeasibility" placeholder="Add assumption...">
+          <button onclick="addDvfAssumption('feasibility')">Add</button>
+        </div>
+        <ul class="dvf-list" id="listFeasibility"></ul>
+        <div class="dvf-empty" id="emptyFeasibility">No assumptions yet</div>
       </div>
+    </div>
 
-      <div class="btn-row">
+    <div class="dvf-total-bar">
+      <div class="dvf-total-count">Total assumptions: <span id="dvfTotalCount">0</span></div>
+      <div class="dvf-category-counts">
+        <span class="cc-d">D: <span id="dvfCountD">0</span></span>
+        <span class="cc-v">V: <span id="dvfCountV">0</span></span>
+        <span class="cc-f">F: <span id="dvfCountF">0</span></span>
+      </div>
+      <div class="btn-row" style="margin-top:0">
         <button class="btn btn-ghost" onclick="goToPhase(1)">Back</button>
-        <button class="btn btn-primary" id="toMappingBtn" disabled onclick="goToPhase(3)">Next: Map Assumptions (min 3)</button>
+        <button class="btn btn-primary" id="toMappingBtn" disabled onclick="goToPhase(3)">Next: Map Assumptions (min 4)</button>
       </div>
     </div>
   </div>
@@ -627,14 +770,17 @@
     </div>
   </div>
 
-  <!-- PHASE 4: Results -->
+  <!-- PHASE 4: Results Matrix -->
   <div class="phase" id="phase-4">
     <div class="card">
       <h2 id="resultsTitle">Assumption Map Results</h2>
       <p class="desc" id="resultsSubtitle">Your assumptions have been mapped across the Importance vs Evidence matrix.</p>
 
-      <!-- Stats -->
+      <!-- Quadrant Stats -->
       <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- DVF Breakdown Stats -->
+      <div class="dvf-stats-grid" id="dvfStatsGrid"></div>
 
       <!-- Full Matrix -->
       <div class="matrix-container" id="resultsMatrix">
@@ -661,7 +807,7 @@
         </div>
       </div>
 
-      <!-- Answer key for Netflix template -->
+      <!-- Answer key for template -->
       <div class="answer-key-section" id="answerKeySection" style="display:none">
         <h3>&#128269; Answer Key Comparison</h3>
         <div id="answerKeyList"></div>
@@ -672,14 +818,30 @@
       <h3 style="font-size:1.1rem;font-weight:700;color:var(--navy);margin:1.5rem 0 0.75rem;">Recommendations</h3>
       <div class="recommendations" id="recommendations"></div>
 
-      <!-- Action Planning -->
+      <div class="btn-row" style="margin-top:1.5rem">
+        <button class="btn btn-ghost" onclick="goToPhase(3)">Back to Mapping</button>
+        <button class="btn btn-primary" onclick="goToPhase(5)">Next: Action Planning</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 5: Action Planning & Export -->
+  <div class="phase" id="phase-5">
+    <div class="card">
+      <h2>Action Planning</h2>
+      <p class="desc">Focus on your "Test Now" assumptions &mdash; these are the most dangerous because they are critical and unvalidated. For each one, design the smallest experiment you could run to get evidence.</p>
+
       <div class="action-plan" id="actionPlan">
-        <h3>Action Planning: How will you test your critical assumptions?</h3>
+        <h3>Critical Assumptions to Test</h3>
         <div id="actionPlanList"></div>
       </div>
 
+      <!-- Recommendations recap -->
+      <h3 style="font-size:1.1rem;font-weight:700;color:var(--navy);margin:1.5rem 0 0.75rem;">Quadrant Recommendations</h3>
+      <div class="recommendations" id="recommendationsPhase5"></div>
+
       <div class="btn-row" style="margin-top:1.5rem">
-        <button class="btn btn-ghost" onclick="goToPhase(3)">Back to Mapping</button>
+        <button class="btn btn-ghost" onclick="goToPhase(4)">Back to Results</button>
         <button class="btn btn-secondary" id="saveSessionBtn" onclick="saveSession()">Save Session</button>
         <button class="btn btn-secondary" onclick="exportPDF()">Export to PDF</button>
         <button class="btn btn-secondary" onclick="exportExcel()">Export to Excel</button>
@@ -695,8 +857,8 @@
 let state = {
   title: '',
   context: '',
-  assumptions: [],
-  categorized: [],
+  assumptions: [],       // [{text, category}]  category = 'desirability' | 'viability' | 'feasibility'
+  categorized: [],       // [{text, category, importance, evidence, quadrant}]
   currentIndex: 0,
   currentImportance: null,
   currentEvidence: null,
@@ -707,34 +869,45 @@ let state = {
 
 // ========== TEMPLATES ==========
 const TEMPLATES = {
-  netflix: {
-    title: "Netflix: DVD to Streaming Pivot",
-    context: "Netflix is evaluating the strategic pivot from its DVD-by-mail business to a streaming-first model. The company must assess which assumptions are critical and which have evidence to support them.",
+  'drone-coffee': {
+    title: "AI Drone Coffee Delivery",
+    context: "A global coffee chain is piloting autonomous drone delivery of fresh coffee directly to office workers on their building rooftops.",
     assumptions: [
-      "Customers will pay a monthly subscription for unlimited streaming",
-      "Broadband internet penetration will grow fast enough to support streaming",
-      "Content owners will license their libraries for streaming at reasonable rates",
-      "Our recommendation algorithm gives us a competitive advantage",
-      "Customers prefer the convenience of streaming over physical media",
-      "We can build a streaming technology platform that scales reliably",
-      "Original content production will reduce dependency on licensed content",
-      "International markets will adopt streaming similarly to the US",
-      "Competitors won't be able to replicate our recommendation engine quickly",
-      "DVD revenue will decline gradually enough to fund the streaming transition"
+      { text: "Office workers will pay a premium for drone-delivered coffee", category: 'desirability' },
+      { text: "People trust drones to deliver food and beverages safely", category: 'desirability' },
+      { text: "Customers will order frequently enough to build a daily habit", category: 'desirability' },
+      { text: "The novelty factor will drive strong initial adoption", category: 'desirability' },
+      { text: "Drone delivery costs will be lower than human courier delivery within 2 years", category: 'viability' },
+      { text: "Local aviation regulators will approve commercial drone delivery routes", category: 'viability' },
+      { text: "Building owners will allow rooftop drone landing pads", category: 'viability' },
+      { text: "The unit economics work at a $2 delivery premium per order", category: 'viability' },
+      { text: "Drones can reliably carry hot beverages without spilling in variable weather", category: 'feasibility' },
+      { text: "Our existing app can be extended to support drone tracking and delivery", category: 'feasibility' },
+      { text: "We can maintain a fleet of delivery drones with less than 5% downtime", category: 'feasibility' },
+      { text: "Drone noise levels will be acceptable in office districts", category: 'feasibility' },
     ],
     answers: {
-      "Customers will pay a monthly subscription for unlimited streaming": { importance: 'high', evidence: 'some', quadrant: 'monitor' },
-      "Broadband internet penetration will grow fast enough to support streaming": { importance: 'high', evidence: 'some', quadrant: 'monitor' },
-      "Content owners will license their libraries for streaming at reasonable rates": { importance: 'high', evidence: 'none', quadrant: 'test-now' },
-      "Our recommendation algorithm gives us a competitive advantage": { importance: 'medium', evidence: 'strong', quadrant: 'safe' },
-      "Customers prefer the convenience of streaming over physical media": { importance: 'high', evidence: 'some', quadrant: 'monitor' },
-      "We can build a streaming technology platform that scales reliably": { importance: 'high', evidence: 'none', quadrant: 'test-now' },
-      "Original content production will reduce dependency on licensed content": { importance: 'high', evidence: 'none', quadrant: 'test-now' },
-      "International markets will adopt streaming similarly to the US": { importance: 'medium', evidence: 'none', quadrant: 'test-now' },
-      "Competitors won't be able to replicate our recommendation engine quickly": { importance: 'low', evidence: 'some', quadrant: 'defer' },
-      "DVD revenue will decline gradually enough to fund the streaming transition": { importance: 'high', evidence: 'some', quadrant: 'monitor' }
+      "Office workers will pay a premium for drone-delivered coffee":      { importance: 'high',   evidence: 'some',   quadrant: 'monitor' },
+      "People trust drones to deliver food and beverages safely":          { importance: 'high',   evidence: 'none',   quadrant: 'test-now' },
+      "Customers will order frequently enough to build a daily habit":     { importance: 'high',   evidence: 'none',   quadrant: 'test-now' },
+      "The novelty factor will drive strong initial adoption":             { importance: 'medium', evidence: 'some',   quadrant: 'monitor' },
+      "Drone delivery costs will be lower than human courier delivery within 2 years": { importance: 'high', evidence: 'none', quadrant: 'test-now' },
+      "Local aviation regulators will approve commercial drone delivery routes":       { importance: 'high', evidence: 'none', quadrant: 'test-now' },
+      "Building owners will allow rooftop drone landing pads":             { importance: 'high',   evidence: 'none',   quadrant: 'test-now' },
+      "The unit economics work at a $2 delivery premium per order":        { importance: 'high',   evidence: 'some',   quadrant: 'test-now' },
+      "Drones can reliably carry hot beverages without spilling in variable weather":  { importance: 'high', evidence: 'none', quadrant: 'test-now' },
+      "Our existing app can be extended to support drone tracking and delivery":       { importance: 'medium', evidence: 'strong', quadrant: 'safe' },
+      "We can maintain a fleet of delivery drones with less than 5% downtime":         { importance: 'medium', evidence: 'some', quadrant: 'monitor' },
+      "Drone noise levels will be acceptable in office districts":         { importance: 'high',   evidence: 'none',   quadrant: 'test-now' },
     }
   }
+};
+
+// ========== DVF CATEGORY INFO ==========
+const DVF_INFO = {
+  'desirability': { label: 'Desirability', short: 'D', color: '#E07A5F', bg: '#FDF0EC' },
+  'viability':    { label: 'Viability',    short: 'V', color: '#4A90D9', bg: '#E3F2FD' },
+  'feasibility':  { label: 'Feasibility',  short: 'F', color: '#00897B', bg: '#E0F2F1' },
 };
 
 // ========== QUADRANT LOGIC ==========
@@ -752,10 +925,10 @@ function getQuadrant(importance, evidence) {
 }
 
 const QUADRANT_INFO = {
-  'test-now': { label: 'Test Now', color: '#E07A5F', bg: '#FDF0EC', guidance: 'Design a quick experiment to validate this assumption. These are the most dangerous — critical and unvalidated.' },
-  'monitor':  { label: 'Monitor',  color: '#4A90D9', bg: '#E3F2FD', guidance: 'Set up tracking to ensure these remain true. Important and currently supported by evidence.' },
-  'defer':    { label: 'Defer',    color: '#9E9E9E', bg: '#F5F5F5', guidance: 'Revisit these if importance changes. Not critical right now and lacking evidence.' },
-  'safe':     { label: 'Safe',     color: '#43A047', bg: '#E8F5E9', guidance: 'No action needed. Low importance and well-evidenced.' },
+  'test-now': { label: 'Test Now', color: '#E07A5F', bg: '#FDF0EC', guidance: 'Design a quick experiment to validate this assumption. These are the most dangerous -- critical and unvalidated.' },
+  'monitor':  { label: 'Monitor',  color: '#4A90D9', bg: '#E3F2FD', guidance: 'Set up tracking to ensure these remain true. Important and currently supported by evidence, but keep watching.' },
+  'defer':    { label: 'Defer',    color: '#9E9E9E', bg: '#F5F5F5', guidance: 'Revisit these if importance changes. Not critical right now and lacking evidence -- park for later.' },
+  'safe':     { label: 'Safe',     color: '#43A047', bg: '#E8F5E9', guidance: 'No action needed right now. Well-supported by evidence and not the highest priority.' },
 };
 
 // ========== NAVIGATION ==========
@@ -779,7 +952,8 @@ function goToPhase(n) {
     if (!state.sessionId && state.title) {
       state.sessionId = Date.now().toString();
     }
-    updateAssumptionCount();
+    renderDvfLists();
+    updateDvfCounts();
   }
   if (n === 3) {
     state.categorized = [];
@@ -797,6 +971,9 @@ function goToPhase(n) {
   if (n === 4) {
     renderResults();
   }
+  if (n === 5) {
+    renderActionPlan();
+  }
 }
 
 // ========== TEMPLATE ==========
@@ -805,69 +982,88 @@ function loadTemplate(name) {
   if (!tmpl) return;
   state.title = tmpl.title;
   state.context = tmpl.context;
-  state.assumptions = [...tmpl.assumptions];
+  state.assumptions = tmpl.assumptions.map(a => ({ text: a.text, category: a.category }));
   state.isTemplate = name;
   state.sessionId = null;
   document.getElementById('titleInput').value = tmpl.title;
   document.getElementById('contextInput').value = tmpl.context;
   goToPhase(2);
-  renderAssumptionList();
 }
 
-// ========== ASSUMPTIONS MANAGEMENT ==========
-function addAssumption() {
-  const input = document.getElementById('assumptionInput');
+// ========== DVF ASSUMPTION MANAGEMENT ==========
+function addDvfAssumption(category) {
+  const inputId = 'add' + category.charAt(0).toUpperCase() + category.slice(1);
+  const input = document.getElementById(inputId);
   const text = input.value.trim();
   if (!text) return;
-  state.assumptions.push(text);
+  state.assumptions.push({ text, category });
   input.value = '';
   input.focus();
-  renderAssumptionList();
+  renderDvfLists();
+  updateDvfCounts();
   autoSave();
 }
 
-function removeAssumption(idx) {
+function removeDvfAssumption(idx) {
   state.assumptions.splice(idx, 1);
-  renderAssumptionList();
+  renderDvfLists();
+  updateDvfCounts();
   autoSave();
 }
 
-function renderAssumptionList() {
-  const list = document.getElementById('assumptionList');
-  const empty = document.getElementById('emptyAssumptions');
-  list.innerHTML = '';
-  if (state.assumptions.length === 0) {
-    empty.style.display = 'block';
-  } else {
-    empty.style.display = 'none';
-    state.assumptions.forEach((text, i) => {
-      const li = document.createElement('li');
-      li.className = 'assumption-item';
-      li.innerHTML = `
-        <span class="num">${i + 1}</span>
-        <span class="assumption-text">${escapeHtml(text)}</span>
-        <button class="remove-btn" onclick="removeAssumption(${i})" title="Remove">&times;</button>
-      `;
-      list.appendChild(li);
-    });
-  }
-  updateAssumptionCount();
+function renderDvfLists() {
+  ['desirability', 'viability', 'feasibility'].forEach(cat => {
+    const listEl = document.getElementById('list' + cat.charAt(0).toUpperCase() + cat.slice(1));
+    const emptyEl = document.getElementById('empty' + cat.charAt(0).toUpperCase() + cat.slice(1));
+    const items = state.assumptions.map((a, i) => ({ ...a, idx: i })).filter(a => a.category === cat);
+
+    listEl.innerHTML = '';
+    if (items.length === 0) {
+      emptyEl.style.display = 'block';
+    } else {
+      emptyEl.style.display = 'none';
+      let counter = 1;
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'dvf-item';
+        li.innerHTML = `
+          <span class="dvf-num">${counter}</span>
+          <span class="dvf-text">${escapeHtml(item.text)}</span>
+          <button class="remove-btn" onclick="removeDvfAssumption(${item.idx})" title="Remove">&times;</button>
+        `;
+        listEl.appendChild(li);
+        counter++;
+      });
+    }
+  });
 }
 
-function updateAssumptionCount() {
-  document.getElementById('assumptionCount').textContent = state.assumptions.length;
+function updateDvfCounts() {
+  const dCount = state.assumptions.filter(a => a.category === 'desirability').length;
+  const vCount = state.assumptions.filter(a => a.category === 'viability').length;
+  const fCount = state.assumptions.filter(a => a.category === 'feasibility').length;
+  const total = dCount + vCount + fCount;
+
+  document.getElementById('dvfTotalCount').textContent = total;
+  document.getElementById('dvfCountD').textContent = dCount;
+  document.getElementById('dvfCountV').textContent = vCount;
+  document.getElementById('dvfCountF').textContent = fCount;
+
   const btn = document.getElementById('toMappingBtn');
-  if (state.assumptions.length >= 3) {
+  if (total >= 4) {
     btn.disabled = false;
-    btn.textContent = `Next: Map Assumptions (${state.assumptions.length})`;
+    btn.textContent = `Next: Map Assumptions (${total})`;
   } else {
     btn.disabled = true;
-    btn.textContent = `Next: Map Assumptions (min 3)`;
+    btn.textContent = `Next: Map Assumptions (min 4)`;
   }
 }
 
-document.getElementById('assumptionInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); addAssumption(); }
+// Enter key listeners for DVF inputs
+['Desirability', 'Viability', 'Feasibility'].forEach(cat => {
+  document.getElementById('add' + cat).addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); addDvfAssumption(cat.toLowerCase()); }
+  });
 });
 
 // ========== MAPPING EXERCISE ==========
@@ -881,7 +1077,7 @@ function showCurrentAssumption() {
 
   if (idx >= total) {
     // All done
-    document.getElementById('currentAssumption').textContent = 'All assumptions have been mapped!';
+    document.getElementById('currentAssumption').innerHTML = '<div style="text-align:center;padding:1rem;color:var(--safe);">All assumptions have been mapped!</div>';
     document.getElementById('mappingAxes').style.display = 'none';
     document.getElementById('confirmBtn').style.display = 'none';
     document.getElementById('finishMappingBtn').style.display = '';
@@ -890,7 +1086,13 @@ function showCurrentAssumption() {
     return;
   }
 
-  document.getElementById('currentAssumption').textContent = state.assumptions[idx];
+  const assumption = state.assumptions[idx];
+  const dvfInfo = DVF_INFO[assumption.category];
+  const shortLetter = dvfInfo.short.toLowerCase();
+  document.getElementById('currentAssumption').innerHTML = `
+    <span class="dvf-badge ${shortLetter}">${dvfInfo.label}</span>
+    <div>${escapeHtml(assumption.text)}</div>
+  `;
 
   // Reset selections
   state.currentImportance = null;
@@ -921,53 +1123,61 @@ function checkConfirmReady() {
 }
 
 function confirmMapping() {
-  const text = state.assumptions[state.currentIndex];
+  const assumption = state.assumptions[state.currentIndex];
   const quadrant = getQuadrant(state.currentImportance, state.currentEvidence);
   state.categorized.push({
-    text: text,
+    text: assumption.text,
+    category: assumption.category,
     importance: state.currentImportance,
     evidence: state.currentEvidence,
     quadrant: quadrant,
   });
 
   // Add tag to live matrix
-  addLiveMatrixTag(text, quadrant);
+  addLiveMatrixTag(assumption.text, assumption.category, quadrant);
 
   state.currentIndex++;
   showCurrentAssumption();
   autoSave();
 }
 
-function addLiveMatrixTag(text, quadrant) {
-  const cell = document.querySelector(`#liveMatrix .matrix-cell.${quadrant === 'test-now' ? 'test-now' : quadrant}`);
+function addLiveMatrixTag(text, category, quadrant) {
+  const cell = document.querySelector(`#liveMatrix .matrix-cell[data-quadrant="${quadrant}"]`);
   if (!cell) return;
+  const dvfInfo = DVF_INFO[category];
+  const shortLetter = dvfInfo.short.toLowerCase();
   const tag = document.createElement('div');
   tag.className = 'matrix-tag tag-' + quadrant;
-  tag.textContent = text.length > 50 ? text.substring(0, 47) + '...' : text;
+  const truncated = text.length > 45 ? text.substring(0, 42) + '...' : text;
+  tag.innerHTML = `<span class="dvf-dot ${shortLetter}"></span>${escapeHtml(truncated)}`;
   tag.title = text;
   cell.appendChild(tag);
 }
 
 // ========== RESULTS ==========
-function renderResults() {
-  // Use answer key for templates
+function gatherCatData() {
   const tmpl = state.isTemplate && TEMPLATES[state.isTemplate];
   let catData = { 'test-now': [], 'monitor': [], 'defer': [], 'safe': [] };
 
   if (tmpl && tmpl.answers) {
-    state.assumptions.forEach(text => {
-      const answer = tmpl.answers[text];
+    state.assumptions.forEach(a => {
+      const answer = tmpl.answers[a.text];
       if (answer) {
-        catData[answer.quadrant].push(text);
+        catData[answer.quadrant].push({ text: a.text, category: a.category });
       }
     });
   } else {
     state.categorized.forEach(c => {
-      if (catData[c.quadrant]) catData[c.quadrant].push(c.text);
+      if (catData[c.quadrant]) catData[c.quadrant].push({ text: c.text, category: c.category });
     });
   }
+  return catData;
+}
 
-  // Stats
+function renderResults() {
+  const catData = gatherCatData();
+
+  // Quadrant stats
   const statsGrid = document.getElementById('statsGrid');
   statsGrid.innerHTML = `
     <div class="stat-card stat-test-now">
@@ -988,19 +1198,42 @@ function renderResults() {
     </div>
   `;
 
+  // DVF breakdown stats
+  const allItems = Object.values(catData).flat();
+  const dCount = allItems.filter(i => i.category === 'desirability').length;
+  const vCount = allItems.filter(i => i.category === 'viability').length;
+  const fCount = allItems.filter(i => i.category === 'feasibility').length;
+
+  document.getElementById('dvfStatsGrid').innerHTML = `
+    <div class="dvf-stat-card ds">
+      <div class="stat-num">${dCount}</div>
+      <div class="stat-label">Desirability</div>
+    </div>
+    <div class="dvf-stat-card vs">
+      <div class="stat-num">${vCount}</div>
+      <div class="stat-label">Viability</div>
+    </div>
+    <div class="dvf-stat-card fs">
+      <div class="stat-num">${fCount}</div>
+      <div class="stat-label">Feasibility</div>
+    </div>
+  `;
+
   // Matrix tags
   ['test-now', 'monitor', 'defer', 'safe'].forEach(q => {
     const cellId = 'results' + q.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
     const cell = document.getElementById(cellId);
-    // Remove old tags
     cell.querySelectorAll('.matrix-tag').forEach(t => t.remove());
-    catData[q].forEach((text, i) => {
+    catData[q].forEach(item => {
+      const dvfInfo = DVF_INFO[item.category];
+      const shortLetter = dvfInfo.short.toLowerCase();
       const tag = document.createElement('div');
       tag.className = 'matrix-tag draggable tag-' + q;
-      tag.textContent = text;
-      tag.title = text;
+      tag.innerHTML = `<span class="dvf-dot ${shortLetter}"></span>${escapeHtml(item.text)}`;
+      tag.title = `[${dvfInfo.label}] ${item.text}`;
       tag.draggable = true;
-      tag.dataset.text = text;
+      tag.dataset.text = item.text;
+      tag.dataset.category = item.category;
       tag.dataset.quadrant = q;
       tag.addEventListener('dragstart', onDragStart);
       tag.addEventListener('dragend', onDragEnd);
@@ -1016,52 +1249,34 @@ function renderResults() {
   });
 
   // Recommendations
-  const recs = document.getElementById('recommendations');
-  recs.innerHTML = '';
-  ['test-now', 'monitor', 'defer', 'safe'].forEach(q => {
-    if (catData[q].length === 0) return;
-    const info = QUADRANT_INFO[q];
-    const recDiv = document.createElement('div');
-    recDiv.className = `rec-card rec-${q}`;
-    recDiv.innerHTML = `
-      <h4>${info.label} (${catData[q].length})</h4>
-      <p>${info.guidance}</p>
-    `;
-    recs.appendChild(recDiv);
-  });
+  renderRecommendations('recommendations', catData);
 
-  // Action planning for Test Now items
-  const testNowItems = catData['test-now'];
-  const actionPlan = document.getElementById('actionPlanList');
-  actionPlan.innerHTML = '';
-  if (testNowItems.length === 0) {
-    actionPlan.innerHTML = '<p style="color:var(--text-secondary);font-size:0.85rem;">No "Test Now" assumptions identified. All your critical assumptions have some evidence.</p>';
-  } else {
-    testNowItems.forEach((text, i) => {
-      const div = document.createElement('div');
-      div.className = 'action-plan-item';
-      const existingPlan = state.testPlans[text] || '';
-      div.innerHTML = `
-        <div class="ap-assumption">${escapeHtml(text)}</div>
-        <div class="ap-label">How will you test this?</div>
-        <input type="text" placeholder="e.g. Run a survey, build an MVP, interview 5 customers..."
-               value="${escapeHtml(existingPlan)}"
-               oninput="state.testPlans['${escapeHtml(text).replace(/'/g, "\\'")}'] = this.value; autoSave();">
-      `;
-      actionPlan.appendChild(div);
-    });
-  }
-
-  // Answer key for Netflix template
+  // Answer key for template
+  const tmpl = state.isTemplate && TEMPLATES[state.isTemplate];
   if (tmpl && tmpl.answers) {
     document.getElementById('answerKeySection').style.display = 'block';
     renderAnswerKey(tmpl);
   } else {
     document.getElementById('answerKeySection').style.display = 'none';
   }
+}
 
-  // Hide save button for templates
-  document.getElementById('saveSessionBtn').style.display = state.isTemplate ? 'none' : '';
+function renderRecommendations(containerId, catData) {
+  const recs = document.getElementById(containerId);
+  recs.innerHTML = '';
+  ['test-now', 'monitor', 'defer', 'safe'].forEach(q => {
+    const items = catData ? catData[q] : [];
+    if (!catData) return;
+    if (items.length === 0) return;
+    const info = QUADRANT_INFO[q];
+    const recDiv = document.createElement('div');
+    recDiv.className = `rec-card rec-${q}`;
+    recDiv.innerHTML = `
+      <h4>${info.label} (${items.length})</h4>
+      <p>${info.guidance}</p>
+    `;
+    recs.appendChild(recDiv);
+  });
 }
 
 function renderAnswerKey(tmpl) {
@@ -1069,18 +1284,20 @@ function renderAnswerKey(tmpl) {
   list.innerHTML = '';
   let correct = 0;
 
-  state.assumptions.forEach(text => {
-    const answer = tmpl.answers[text];
+  state.assumptions.forEach(a => {
+    const answer = tmpl.answers[a.text];
     if (!answer) return;
-    const userCat = state.categorized.find(c => c.text === text);
+    const userCat = state.categorized.find(c => c.text === a.text);
     const userQuadrant = userCat ? userCat.quadrant : null;
     const isMatch = userQuadrant === answer.quadrant;
     if (isMatch) correct++;
 
+    const dvfInfo = DVF_INFO[a.category];
     const div = document.createElement('div');
     div.className = `answer-key-item ${isMatch ? 'match' : 'mismatch'}`;
     div.innerHTML = `
-      <span class="ak-text">${escapeHtml(text)}</span>
+      <span class="dvf-dot ${dvfInfo.short.toLowerCase()}" style="width:8px;height:8px;border-radius:50%;background:${dvfInfo.color};flex-shrink:0;display:inline-block;"></span>
+      <span class="ak-text">${escapeHtml(a.text)}</span>
       <span class="ak-badge ${answer.quadrant}">${QUADRANT_INFO[answer.quadrant].label}</span>
       ${userQuadrant ? `<span class="ak-result ${isMatch ? 'correct' : 'incorrect'}">${isMatch ? 'Match' : 'You: ' + QUADRANT_INFO[userQuadrant].label}</span>` : ''}
     `;
@@ -1089,6 +1306,42 @@ function renderAnswerKey(tmpl) {
 
   const total = state.assumptions.length;
   document.getElementById('answerKeyScore').textContent = `Score: ${correct} of ${total} match the answer key (${Math.round(correct / total * 100)}%)`;
+}
+
+// ========== ACTION PLAN (Phase 5) ==========
+function renderActionPlan() {
+  const catData = gatherCatData();
+  const testNowItems = catData['test-now'];
+  const actionPlan = document.getElementById('actionPlanList');
+  actionPlan.innerHTML = '';
+
+  if (testNowItems.length === 0) {
+    actionPlan.innerHTML = '<p style="color:var(--text-secondary);font-size:0.85rem;">No "Test Now" assumptions identified. All your critical assumptions have some evidence.</p>';
+  } else {
+    testNowItems.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'action-plan-item';
+      const existingPlan = state.testPlans[item.text] || '';
+      const dvfInfo = DVF_INFO[item.category];
+      div.innerHTML = `
+        <div class="ap-assumption">
+          <span class="dvf-dot ${dvfInfo.short.toLowerCase()}" style="width:8px;height:8px;border-radius:50%;background:${dvfInfo.color};flex-shrink:0;display:inline-block;"></span>
+          ${escapeHtml(item.text)}
+        </div>
+        <div class="ap-label">What's the smallest experiment you could run?</div>
+        <input type="text" placeholder="e.g. Run a survey, build an MVP, interview 5 customers..."
+               value="${escapeHtml(existingPlan)}"
+               oninput="state.testPlans[${JSON.stringify(item.text)}] = this.value; autoSave();">
+      `;
+      actionPlan.appendChild(div);
+    });
+  }
+
+  // Recommendations recap
+  renderRecommendations('recommendationsPhase5', catData);
+
+  // Hide save button for templates
+  document.getElementById('saveSessionBtn').style.display = state.isTemplate ? 'none' : '';
 }
 
 // ========== DRAG & DROP ==========
@@ -1131,6 +1384,11 @@ function onDrop(e) {
   // Move the tag
   draggedTag.dataset.quadrant = newQuadrant;
   draggedTag.className = `matrix-tag draggable tag-${newQuadrant}`;
+  // Re-add inner HTML to preserve dvf dot
+  const category = draggedTag.dataset.category;
+  const dvfInfo = DVF_INFO[category];
+  const shortLetter = dvfInfo.short.toLowerCase();
+  draggedTag.innerHTML = `<span class="dvf-dot ${shortLetter}"></span>${escapeHtml(text)}`;
   targetCell.appendChild(draggedTag);
 
   // Update categorized data
@@ -1139,7 +1397,7 @@ function onDrop(e) {
     cat.quadrant = newQuadrant;
   }
 
-  // Re-render stats and recommendations
+  // Re-render stats
   updateResultStats();
   autoSave();
 }
@@ -1147,14 +1405,14 @@ function onDrop(e) {
 function updateResultStats() {
   let catData = { 'test-now': [], 'monitor': [], 'defer': [], 'safe': [] };
 
-  // Gather from DOM (source of truth after drag-drop)
   document.querySelectorAll('#resultsMatrix .matrix-tag').forEach(tag => {
     const q = tag.dataset.quadrant;
     const text = tag.dataset.text;
-    if (catData[q]) catData[q].push(text);
+    const category = tag.dataset.category;
+    if (catData[q]) catData[q].push({ text, category });
   });
 
-  // Update stats
+  // Update quadrant stats
   document.getElementById('statsGrid').innerHTML = `
     <div class="stat-card stat-test-now"><div class="stat-num">${catData['test-now'].length}</div><div class="stat-label">Test Now</div></div>
     <div class="stat-card stat-monitor"><div class="stat-num">${catData['monitor'].length}</div><div class="stat-label">Monitor</div></div>
@@ -1162,63 +1420,29 @@ function updateResultStats() {
     <div class="stat-card stat-safe"><div class="stat-num">${catData['safe'].length}</div><div class="stat-label">Safe</div></div>
   `;
 
-  // Update recommendations
-  const recs = document.getElementById('recommendations');
-  recs.innerHTML = '';
-  ['test-now', 'monitor', 'defer', 'safe'].forEach(q => {
-    if (catData[q].length === 0) return;
-    const info = QUADRANT_INFO[q];
-    const recDiv = document.createElement('div');
-    recDiv.className = `rec-card rec-${q}`;
-    recDiv.innerHTML = `<h4>${info.label} (${catData[q].length})</h4><p>${info.guidance}</p>`;
-    recs.appendChild(recDiv);
-  });
+  // Update DVF stats
+  const allItems = Object.values(catData).flat();
+  const dCount = allItems.filter(i => i.category === 'desirability').length;
+  const vCount = allItems.filter(i => i.category === 'viability').length;
+  const fCount = allItems.filter(i => i.category === 'feasibility').length;
+  document.getElementById('dvfStatsGrid').innerHTML = `
+    <div class="dvf-stat-card ds"><div class="stat-num">${dCount}</div><div class="stat-label">Desirability</div></div>
+    <div class="dvf-stat-card vs"><div class="stat-num">${vCount}</div><div class="stat-label">Viability</div></div>
+    <div class="dvf-stat-card fs"><div class="stat-num">${fCount}</div><div class="stat-label">Feasibility</div></div>
+  `;
 
-  // Update action plan
-  const testNowItems = catData['test-now'];
-  const actionPlan = document.getElementById('actionPlanList');
-  actionPlan.innerHTML = '';
-  if (testNowItems.length === 0) {
-    actionPlan.innerHTML = '<p style="color:var(--text-secondary);font-size:0.85rem;">No "Test Now" assumptions identified.</p>';
-  } else {
-    testNowItems.forEach(text => {
-      const div = document.createElement('div');
-      div.className = 'action-plan-item';
-      const existingPlan = state.testPlans[text] || '';
-      div.innerHTML = `
-        <div class="ap-assumption">${escapeHtml(text)}</div>
-        <div class="ap-label">How will you test this?</div>
-        <input type="text" placeholder="e.g. Run a survey, build an MVP, interview 5 customers..."
-               value="${escapeHtml(existingPlan)}"
-               oninput="state.testPlans[${JSON.stringify(text)}] = this.value; autoSave();">
-      `;
-      actionPlan.appendChild(div);
-    });
-  }
+  // Update recommendations
+  renderRecommendations('recommendations', catData);
 }
 
 // ========== EXPORT PDF ==========
 function exportPDF() {
   const title = state.title || 'Untitled Exercise';
   const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-
-  const tmpl = state.isTemplate && TEMPLATES[state.isTemplate];
-  let catData = { 'test-now': [], 'monitor': [], 'defer': [], 'safe': [] };
-
-  if (tmpl && tmpl.answers) {
-    state.assumptions.forEach(text => {
-      const answer = tmpl.answers[text];
-      if (answer) catData[answer.quadrant].push(text);
-    });
-  } else {
-    state.categorized.forEach(c => {
-      if (catData[c.quadrant]) catData[c.quadrant].push(c.text);
-    });
-  }
-
+  const catData = gatherCatData();
   const testPlans = state.testPlans || {};
 
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Assumption Map — ${escapeHtml(title)}</title>
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Assumption Map &mdash; ${escapeHtml(title)}</title>
 <style>
   @page { size: A4; margin: 1.5cm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1230,16 +1454,22 @@ function exportPDF() {
   .context { background: #F5F7FA; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; font-size: .85rem; color: #5A6B8A; }
   .context strong { color: #1B2A4A; }
   .section-title { font-size: 1.1rem; font-weight: 700; color: #1B2A4A; margin: 1.5rem 0 .75rem; padding-bottom: .35rem; border-bottom: 1px solid #E2E8F0; }
+  .dvf-summary { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+  .dvf-box { flex: 1; border-radius: 8px; padding: .6rem .75rem; }
+  .dvf-box h4 { font-size: .75rem; font-weight: 700; margin-bottom: .3rem; text-transform: uppercase; letter-spacing: .5px; }
+  .dvf-box ul { list-style: none; padding: 0; }
+  .dvf-box li { font-size: .78rem; padding: .2rem 0; }
   .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.5rem; }
   .quadrant { border-radius: 8px; padding: .75rem; page-break-inside: avoid; }
   .quadrant h3 { font-size: .8rem; font-weight: 700; margin-bottom: .5rem; text-transform: uppercase; letter-spacing: .5px; }
   .quadrant ul { list-style: none; padding: 0; }
-  .quadrant li { font-size: .8rem; padding: .3rem 0; border-bottom: 1px solid rgba(0,0,0,.06); }
+  .quadrant li { font-size: .8rem; padding: .3rem 0; border-bottom: 1px solid rgba(0,0,0,.06); display: flex; align-items: center; gap: .3rem; }
   .quadrant li:last-child { border-bottom: none; }
+  .dvf-dot-pdf { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
   .action-plan { margin-top: 1rem; }
   .action-plan h3 { font-size: .9rem; font-weight: 700; color: #E07A5F; margin-bottom: .5rem; }
   .ap-item { padding: .5rem; margin-bottom: .4rem; background: #FDF0EC; border-radius: 6px; border-left: 3px solid #E07A5F; }
-  .ap-item .ap-title { font-size: .8rem; font-weight: 600; }
+  .ap-item .ap-title { font-size: .8rem; font-weight: 600; display: flex; align-items: center; gap: .3rem; }
   .ap-item .ap-plan { font-size: .78rem; color: #5A6B8A; margin-top: .15rem; }
   .footer { margin-top: 2rem; padding-top: .75rem; border-top: 1px solid #E2E8F0; text-align: center; font-size: .7rem; color: #9AA5B8; }
   @media print { body { padding: 0; } }
@@ -1255,19 +1485,34 @@ ${state.context ? `<div class="context"><strong>Context:</strong> ${escapeHtml(s
 ${[['test-now', 'Test Now', '#E07A5F', '#FDF0EC'], ['monitor', 'Monitor', '#4A90D9', '#E3F2FD'], ['defer', 'Defer', '#9E9E9E', '#F5F5F5'], ['safe', 'Safe', '#43A047', '#E8F5E9']].map(([key, label, color, bg]) => `
   <div class="quadrant" style="background:${bg}">
     <h3 style="color:${color}">${label}</h3>
-    <ul>${catData[key].length ? catData[key].map(t => `<li>${escapeHtml(t)}</li>`).join('') : '<li style="color:#9AA5B8;font-style:italic">(none)</li>'}</ul>
+    <ul>${catData[key].length ? catData[key].map(item => {
+      const dvf = DVF_INFO[item.category];
+      return `<li><span class="dvf-dot-pdf" style="background:${dvf.color}"></span>${escapeHtml(item.text)}</li>`;
+    }).join('') : '<li style="color:#9AA5B8;font-style:italic">(none)</li>'}</ul>
   </div>`).join('')}
 </div>
 ${catData['test-now'].length > 0 ? `
 <div class="action-plan">
   <h3>Action Plans for Critical Assumptions</h3>
-  ${catData['test-now'].map(t => `
+  ${catData['test-now'].map(item => {
+    const dvf = DVF_INFO[item.category];
+    return `
     <div class="ap-item">
-      <div class="ap-title">${escapeHtml(t)}</div>
-      <div class="ap-plan">${testPlans[t] ? escapeHtml(testPlans[t]) : '<em>No test plan defined</em>'}</div>
-    </div>
-  `).join('')}
+      <div class="ap-title"><span class="dvf-dot-pdf" style="background:${dvf.color}"></span>${escapeHtml(item.text)}</div>
+      <div class="ap-plan">${testPlans[item.text] ? escapeHtml(testPlans[item.text]) : '<em>No test plan defined</em>'}</div>
+    </div>`;
+  }).join('')}
 </div>` : ''}
+<div class="section-title">D/V/F Breakdown</div>
+<div class="dvf-summary">
+${[['desirability', '#E07A5F', '#FDF0EC'], ['viability', '#4A90D9', '#E3F2FD'], ['feasibility', '#00897B', '#E0F2F1']].map(([cat, color, bg]) => {
+  const items = state.assumptions.filter(a => a.category === cat);
+  return `<div class="dvf-box" style="background:${bg}">
+    <h4 style="color:${color}">${DVF_INFO[cat].label} (${items.length})</h4>
+    <ul>${items.map(a => `<li>${escapeHtml(a.text)}</li>`).join('') || '<li style="color:#9AA5B8">(none)</li>'}</ul>
+  </div>`;
+}).join('')}
+</div>
 <div class="footer">Generated by VCT &mdash; Value Creating Teams Framework</div>
 </body></html>`;
 
@@ -1281,22 +1526,9 @@ ${catData['test-now'].length > 0 ? `
 function exportExcel() {
   const title = state.title || 'Untitled Exercise';
   const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-
-  const tmpl = state.isTemplate && TEMPLATES[state.isTemplate];
-  let catData = { 'test-now': [], 'monitor': [], 'defer': [], 'safe': [] };
-
-  if (tmpl && tmpl.answers) {
-    state.assumptions.forEach(text => {
-      const answer = tmpl.answers[text];
-      if (answer) catData[answer.quadrant].push(text);
-    });
-  } else {
-    state.categorized.forEach(c => {
-      if (catData[c.quadrant]) catData[c.quadrant].push(c.text);
-    });
-  }
-
+  const catData = gatherCatData();
   const testPlans = state.testPlans || {};
+
   const matrixMax = Math.max(1, catData['test-now'].length, catData['monitor'].length, catData['defer'].length, catData['safe'].length);
   const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
@@ -1316,12 +1548,18 @@ function exportExcel() {
   <Style ss:ID="cMO"><Interior ss:Color="#E3F2FD" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
   <Style ss:ID="cDE"><Interior ss:Color="#F5F5F5" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
   <Style ss:ID="cSA"><Interior ss:Color="#E8F5E9" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
+  <Style ss:ID="hD"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#E07A5F" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="hV"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#4A90D9" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="hF"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#00897B" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="cD"><Interior ss:Color="#FDF0EC" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
+  <Style ss:ID="cV"><Interior ss:Color="#E3F2FD" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
+  <Style ss:ID="cF"><Interior ss:Color="#E0F2F1" ss:Pattern="Solid"/><Font ss:Size="10"/></Style>
   <Style ss:ID="apHead"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#E07A5F" ss:Pattern="Solid"/></Style>
   <Style ss:ID="def"><Font ss:Size="10"/></Style>
 </Styles>
 <Worksheet ss:Name="Assumption Map">
 <Table ss:DefaultColumnWidth="200">
-  <Column ss:Width="240"/><Column ss:Width="240"/><Column ss:Width="240"/><Column ss:Width="240"/>
+  <Column ss:Width="260"/><Column ss:Width="260"/><Column ss:Width="260"/><Column ss:Width="260"/>
   <Row><Cell ss:StyleID="title"><Data ss:Type="String">Assumption Map: ${esc(title)}</Data></Cell></Row>
   <Row><Cell ss:StyleID="subtitle"><Data ss:Type="String">${esc(date)}${state.context ? ' | Context: ' + esc(state.context) : ''}</Data></Cell></Row>
   <Row></Row>
@@ -1335,10 +1573,10 @@ function exportExcel() {
 
   for (let i = 0; i < matrixMax; i++) {
     xml += `\n  <Row>`;
-    xml += `<Cell ss:StyleID="cTN"><Data ss:Type="String">${esc(catData['test-now'][i] || '')}</Data></Cell>`;
-    xml += `<Cell ss:StyleID="cMO"><Data ss:Type="String">${esc(catData['monitor'][i] || '')}</Data></Cell>`;
-    xml += `<Cell ss:StyleID="cDE"><Data ss:Type="String">${esc(catData['defer'][i] || '')}</Data></Cell>`;
-    xml += `<Cell ss:StyleID="cSA"><Data ss:Type="String">${esc(catData['safe'][i] || '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="cTN"><Data ss:Type="String">${esc(catData['test-now'][i] ? '[' + DVF_INFO[catData['test-now'][i].category].short + '] ' + catData['test-now'][i].text : '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="cMO"><Data ss:Type="String">${esc(catData['monitor'][i] ? '[' + DVF_INFO[catData['monitor'][i].category].short + '] ' + catData['monitor'][i].text : '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="cDE"><Data ss:Type="String">${esc(catData['defer'][i] ? '[' + DVF_INFO[catData['defer'][i].category].short + '] ' + catData['defer'][i].text : '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="cSA"><Data ss:Type="String">${esc(catData['safe'][i] ? '[' + DVF_INFO[catData['safe'][i].category].short + '] ' + catData['safe'][i].text : '')}</Data></Cell>`;
     xml += `</Row>`;
   }
 
@@ -1349,14 +1587,39 @@ function exportExcel() {
   <Row><Cell ss:StyleID="secHead"><Data ss:Type="String">ACTION PLANS (Test Now)</Data></Cell></Row>
   <Row>
     <Cell ss:StyleID="apHead"><Data ss:Type="String">Assumption</Data></Cell>
+    <Cell ss:StyleID="apHead"><Data ss:Type="String">Category</Data></Cell>
     <Cell ss:StyleID="apHead"><Data ss:Type="String">Test Plan</Data></Cell>
   </Row>`;
-    catData['test-now'].forEach(text => {
+    catData['test-now'].forEach(item => {
       xml += `\n  <Row>`;
-      xml += `<Cell ss:StyleID="def"><Data ss:Type="String">${esc(text)}</Data></Cell>`;
-      xml += `<Cell ss:StyleID="def"><Data ss:Type="String">${esc(testPlans[text] || '')}</Data></Cell>`;
+      xml += `<Cell ss:StyleID="def"><Data ss:Type="String">${esc(item.text)}</Data></Cell>`;
+      xml += `<Cell ss:StyleID="def"><Data ss:Type="String">${esc(DVF_INFO[item.category].label)}</Data></Cell>`;
+      xml += `<Cell ss:StyleID="def"><Data ss:Type="String">${esc(testPlans[item.text] || '')}</Data></Cell>`;
       xml += `</Row>`;
     });
+  }
+
+  // DVF breakdown sheet section
+  const dItems = state.assumptions.filter(a => a.category === 'desirability');
+  const vItems = state.assumptions.filter(a => a.category === 'viability');
+  const fItems = state.assumptions.filter(a => a.category === 'feasibility');
+  const dvfMax = Math.max(1, dItems.length, vItems.length, fItems.length);
+
+  xml += `
+  <Row></Row>
+  <Row><Cell ss:StyleID="secHead"><Data ss:Type="String">D/V/F BREAKDOWN</Data></Cell></Row>
+  <Row>
+    <Cell ss:StyleID="hD"><Data ss:Type="String">Desirability (${dItems.length})</Data></Cell>
+    <Cell ss:StyleID="hV"><Data ss:Type="String">Viability (${vItems.length})</Data></Cell>
+    <Cell ss:StyleID="hF"><Data ss:Type="String">Feasibility (${fItems.length})</Data></Cell>
+  </Row>`;
+
+  for (let i = 0; i < dvfMax; i++) {
+    xml += `\n  <Row>`;
+    xml += `<Cell ss:StyleID="cD"><Data ss:Type="String">${esc(dItems[i] ? dItems[i].text : '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="cV"><Data ss:Type="String">${esc(vItems[i] ? vItems[i].text : '')}</Data></Cell>`;
+    xml += `<Cell ss:StyleID="cF"><Data ss:Type="String">${esc(fItems[i] ? fItems[i].text : '')}</Data></Cell>`;
+    xml += `</Row>`;
   }
 
   xml += `
@@ -1386,7 +1649,7 @@ function saveSessions(sessions) {
 }
 
 function getCurrentPhase() {
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 5; i++) {
     if (document.getElementById(`phase-${i}`).classList.contains('active')) return i;
   }
   return 1;
@@ -1443,7 +1706,6 @@ function loadSession(id) {
 
   document.getElementById('titleInput').value = state.title;
   document.getElementById('contextInput').value = state.context;
-  renderAssumptionList();
 
   goToPhase(data.phase || 1);
 }
@@ -1473,7 +1735,7 @@ function renderSessionList() {
     const li = document.createElement('li');
     li.className = 'session-item';
     li.onclick = () => loadSession(s.id);
-    const isComplete = s.phase >= 4;
+    const isComplete = s.phase >= 5;
     const saved = new Date(s.savedAt);
     const dateStr = saved.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     const count = (s.assumptions || []).length;
@@ -1504,7 +1766,6 @@ function resetApp() {
   };
   document.getElementById('titleInput').value = '';
   document.getElementById('contextInput').value = '';
-  renderAssumptionList();
   renderSessionList();
   goToPhase(1);
 }
