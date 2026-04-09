@@ -23,27 +23,26 @@
       return;
     }
 
-    // User is authenticated
-    window.VCTUser = {
+    // Build user object locally — do NOT assign to window.VCTUser
+    // until the profile (including role) has been fetched.
+    var user = {
       id: session.user.id,
       email: session.user.email,
       fullName: session.user.user_metadata?.full_name || session.user.email,
-      role: null
+      role: 'practitioner'
     };
 
     // Fetch profile to get role
     var profileResult = await sb.from('profiles').select('role, full_name').eq('id', session.user.id).single();
-    console.log('AUTH DEBUG — user id:', session.user.id);
-    console.log('AUTH DEBUG — profile result:', JSON.stringify(profileResult));
     if (profileResult.data) {
-      window.VCTUser.role = profileResult.data.role;
-      window.VCTUser.fullName = profileResult.data.full_name || window.VCTUser.fullName;
-    } else {
-      // Profile doesn't exist or can't be read — default to practitioner
-      console.warn('Profile fetch failed:', profileResult.error);
-      window.VCTUser.role = 'practitioner';
+      user.role = profileResult.data.role;
+      user.fullName = profileResult.data.full_name || user.fullName;
+    } else if (profileResult.error) {
+      console.warn('Profile fetch failed, defaulting to practitioner:', profileResult.error.message);
     }
-    console.log('AUTH DEBUG — final role:', window.VCTUser.role);
+
+    // NOW expose the fully-populated user object
+    window.VCTUser = user;
 
     // Show the page
     document.documentElement.style.visibility = 'visible';
