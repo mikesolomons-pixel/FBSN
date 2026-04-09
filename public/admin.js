@@ -23,6 +23,26 @@
     .admin-badge button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.2rem .5rem;border-radius:4px;font-size:.6rem;font-weight:600;cursor:pointer;font-family:inherit}
     .admin-badge button:hover{background:rgba(255,255,255,.35)}
 
+    /* Admin login button (for non-admin users) */
+    .admin-login-btn{position:fixed;top:12px;right:12px;z-index:10000;background:rgba(27,42,74,0.08);border:1px solid rgba(27,42,74,0.12);color:#5A6B8A;padding:.35rem .7rem;border-radius:20px;font-size:.65rem;font-weight:600;letter-spacing:.5px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;transition:all .2s;display:flex;align-items:center;gap:.35rem}
+    .admin-login-btn:hover{background:rgba(27,42,74,0.14);color:#1B2A4A}
+    .admin-login-btn svg{width:12px;height:12px;opacity:.6}
+
+    /* Admin login popover */
+    .admin-popover{position:fixed;top:48px;right:12px;z-index:10001;background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 8px 32px rgba(27,42,74,0.18);border:1px solid #E2E8F0;width:260px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;display:none}
+    .admin-popover.open{display:block}
+    .admin-popover h4{font-size:.8rem;font-weight:700;color:#1B2A4A;margin:0 0 .1rem 0}
+    .admin-popover .ap-sub{font-size:.7rem;color:#5A6B8A;margin:0 0 .75rem 0}
+    .admin-popover input{width:100%;padding:.55rem .75rem;border:1.5px solid #E2E8F0;border-radius:8px;font-size:.82rem;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s}
+    .admin-popover input:focus{border-color:#E07A5F}
+    .admin-popover .ap-error{color:#EF5350;font-size:.7rem;margin-top:.35rem;display:none}
+    .admin-popover .ap-actions{display:flex;gap:.5rem;margin-top:.75rem}
+    .admin-popover .ap-btn{flex:1;padding:.5rem;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+    .admin-popover .ap-btn.primary{background:linear-gradient(135deg,#E07A5F,#D4A843);color:#fff}
+    .admin-popover .ap-btn.primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(224,122,95,.3)}
+    .admin-popover .ap-btn.cancel{background:#F5F7FA;color:#5A6B8A;border:1px solid #E2E8F0}
+    .admin-popover .ap-btn.cancel:hover{background:#E2E8F0}
+
     /* Editable elements */
     body.vct-admin [data-editable]{position:relative;transition:outline .15s}
     body.vct-admin [data-editable]:hover{outline:2px dashed rgba(224,122,95,.5);outline-offset:3px;cursor:text}
@@ -133,17 +153,108 @@
     };
   }
 
+  /* ── Admin login button (for non-admins) ────────────────── */
+  function addAdminLoginButton() {
+    // Button
+    const btn = document.createElement('button');
+    btn.className = 'admin-login-btn';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Admin';
+    document.body.appendChild(btn);
+
+    // Popover
+    const pop = document.createElement('div');
+    pop.className = 'admin-popover';
+    pop.innerHTML = `
+      <h4>Admin Login</h4>
+      <p class="ap-sub">Enter admin password to enable editing</p>
+      <input type="password" id="ap-pass" placeholder="Admin password" autocomplete="off">
+      <div class="ap-error" id="ap-error">Incorrect admin password</div>
+      <div class="ap-actions">
+        <button class="ap-btn cancel" id="ap-cancel">Cancel</button>
+        <button class="ap-btn primary" id="ap-submit">Login</button>
+      </div>
+    `;
+    document.body.appendChild(pop);
+
+    // Toggle popover
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      pop.classList.toggle('open');
+      if (pop.classList.contains('open')) {
+        const input = document.getElementById('ap-pass');
+        input.value = '';
+        document.getElementById('ap-error').style.display = 'none';
+        setTimeout(() => input.focus(), 50);
+      }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', function (e) {
+      if (!pop.contains(e.target) && e.target !== btn) {
+        pop.classList.remove('open');
+      }
+    });
+
+    // Cancel
+    document.getElementById('ap-cancel').addEventListener('click', function () {
+      pop.classList.remove('open');
+    });
+
+    // Hash helper (same as auth.js)
+    function simpleHash(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0;
+      }
+      return (hash >>> 0).toString(16);
+    }
+
+    // Submit
+    function tryAdminLogin() {
+      const input = document.getElementById('ap-pass');
+      const hash = simpleHash(input.value);
+      if (hash === ADMIN_HASH) {
+        sessionStorage.setItem('vct_auth', 'b89ca00e');
+        sessionStorage.setItem('vct_admin', ADMIN_HASH);
+        // Remove login button and popover, activate admin mode
+        btn.remove();
+        pop.remove();
+        document.body.classList.add('vct-admin');
+        addAdminBadge();
+        enableEditing();
+        // Re-render resources if the function exists (to show delete buttons)
+        if (window.VCTResources && window.VCTResources.refresh) {
+          window.VCTResources.refresh();
+        }
+      } else {
+        document.getElementById('ap-error').style.display = 'block';
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    document.getElementById('ap-submit').addEventListener('click', tryAdminLogin);
+    document.getElementById('ap-pass').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') tryAdminLogin();
+    });
+  }
+
   /* ── Init ───────────────────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', function () {
     // Always load saved content (for all users)
     setTimeout(loadContent, 600);
 
-    // Admin-only features
-    if (!isAdmin()) return;
-    document.body.classList.add('vct-admin');
-    addAdminBadge();
-    // Wait a tick for content to load, then enable editing
-    setTimeout(enableEditing, 800);
+    if (isAdmin()) {
+      // Admin-only features
+      document.body.classList.add('vct-admin');
+      addAdminBadge();
+      setTimeout(enableEditing, 800);
+    } else {
+      // Show admin login button for regular users
+      addAdminLoginButton();
+    }
   });
 
   // Expose for resources.js to check
