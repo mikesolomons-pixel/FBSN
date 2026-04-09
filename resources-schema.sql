@@ -4,7 +4,7 @@
 -- Resources table
 create table resources (
   id uuid default gen_random_uuid() primary key,
-  play integer not null check (play between 0 and 5),  -- 0 = All of VCT
+  play integer not null check (play between 0 and 99),  -- 0 = All VCT, 1-5 = Plays, 11+ = Practices
   title text not null,
   author text,
   resource_type text not null default 'book' check (resource_type in ('book','article','reference','video','podcast','tool')),
@@ -95,3 +95,10 @@ insert into resources (play, title, author, resource_type, url) values
 (5, 'The Alchemy of Growth', 'Mehrdad Baghai, Stephen Coley & David White', 'book', 'https://www.amazon.com/Alchemy-Growth-Practical-Insights-Building/dp/0738203092'),
 (5, 'Discovery-Driven Growth', 'Rita McGrath & Ian MacMillan', 'book', 'https://www.amazon.com/Discovery-Driven-Growth-Breakthrough-Process-Opportunity/dp/1591396859'),
 (5, 'Antifragile', 'Nassim Nicholas Taleb', 'book', 'https://www.amazon.com/Antifragile-Things-That-Disorder-Incerto/dp/0812979680');
+
+-- =============================================================
+-- MIGRATION: Expand play column to support practices (11+)
+-- Run this if the table already exists with the old constraint
+-- =============================================================
+-- alter table resources drop constraint resources_play_check;
+-- alter table resources add constraint resources_play_check check (play between 0 and 99);
