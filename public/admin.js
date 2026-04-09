@@ -144,8 +144,11 @@
   function addAdminBadge() {
     const badge = document.createElement('div');
     badge.className = 'admin-badge';
-    badge.innerHTML = 'Admin Mode <button id="admin-logout">Logout</button>';
+    badge.innerHTML = 'Admin Mode <button id="admin-console-link">Console</button> <button id="admin-logout">Logout</button>';
     document.body.appendChild(badge);
+    document.getElementById('admin-console-link').onclick = function () {
+      window.location.href = 'admin-console.html';
+    };
     document.getElementById('admin-logout').onclick = function () {
       sessionStorage.removeItem('vct_admin');
       sessionStorage.removeItem('vct_auth');

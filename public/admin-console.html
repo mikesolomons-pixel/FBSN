@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Console - Value Creating Teams</title>
+<script src="auth.js"></script>
+<script type="module" src="supabase-config.js"></script>
+<script src="admin.js"></script>
+<script src="practices.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --teal: #00897B;
+    --teal-dark: #006B5E;
+    --teal-light: #4DB6AC;
+    --gold: #D4A843;
+    --coral: #E07A5F;
+    --purple: #7C5CBF;
+    --blue: #4A90D9;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1B2A4A;
+    --text-secondary: #5A6B8A;
+    --border: #E2E8F0;
+    --shadow: 0 2px 8px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 32px rgba(27,42,74,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, #3D1F5C 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    position: relative;
+  }
+  .header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+  .header .back-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.8rem; transition: color 0.15s;
+  }
+  .header .back-link:hover { color: white; }
+  .header h1 { font-size: 1.4rem; font-weight: 800; }
+  .header .subtitle { font-size: 0.82rem; opacity: 0.7; }
+
+  /* Auth gate */
+  .auth-gate {
+    max-width: 400px; margin: 4rem auto; background: var(--card); border-radius: 16px;
+    padding: 2.5rem; box-shadow: var(--shadow-lg); text-align: center;
+  }
+  .auth-gate h2 { font-size: 1.2rem; color: var(--navy); margin-bottom: 0.5rem; }
+  .auth-gate p { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
+  .auth-gate a { color: var(--coral); font-weight: 600; }
+
+  /* Layout */
+  .console { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: none; }
+  .console.active { display: block; }
+
+  .two-panel { display: grid; grid-template-columns: 340px 1fr; gap: 1.5rem; align-items: start; }
+  @media (max-width: 900px) { .two-panel { grid-template-columns: 1fr; } }
+
+  /* Panel */
+  .panel {
+    background: var(--card); border-radius: 16px; box-shadow: var(--shadow);
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .panel-header {
+    padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .panel-header h2 { font-size: 1rem; font-weight: 700; color: var(--navy); }
+  .panel-body { padding: 0.75rem; }
+
+  /* Practice list item */
+  .prac-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.6rem 0.75rem; border-radius: 10px; cursor: pointer;
+    transition: background 0.12s; font-size: 0.82rem; margin-bottom: 0.25rem;
+  }
+  .prac-item:hover { background: var(--bg); }
+  .prac-item.selected { background: rgba(224,122,95,0.12); border: 1px solid rgba(224,122,95,0.3); }
+  .prac-item .prac-status {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .prac-item .prac-status.automated { background: var(--teal); }
+  .prac-item .prac-status.coming-soon { background: var(--border); }
+  .prac-item .prac-label { font-weight: 600; color: var(--navy); flex: 1; }
+  .prac-item .prac-plays {
+    font-size: 0.65rem; color: var(--text-secondary); white-space: nowrap;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem;
+    font-weight: 600; cursor: pointer; border: none; font-family: inherit;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-primary { background: var(--coral); color: #fff; }
+  .btn-primary:hover { background: #c9664a; transform: translateY(-1px); }
+  .btn-teal { background: var(--teal); color: #fff; }
+  .btn-teal:hover { background: var(--teal-dark); }
+  .btn-outline {
+    background: transparent; color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover { background: var(--bg); }
+  .btn-danger { background: #EF5350; color: #fff; }
+  .btn-danger:hover { background: #D32F2F; }
+  .btn-sm { padding: 0.3rem 0.65rem; font-size: 0.72rem; }
+
+  /* Editor form */
+  .editor-empty {
+    text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); font-size: 0.9rem;
+  }
+  .editor-form { padding: 1.25rem; }
+  .ef-group { margin-bottom: 1rem; }
+  .ef-label {
+    display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 0.35rem;
+  }
+  .ef-input, .ef-textarea, .ef-select {
+    width: 100%; padding: 0.55rem 0.75rem;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 0.85rem; font-family: inherit; outline: none;
+    transition: border-color 0.15s; background: #fff;
+  }
+  .ef-input:focus, .ef-textarea:focus, .ef-select:focus { border-color: var(--coral); }
+  .ef-textarea { min-height: 60px; resize: vertical; }
+  .ef-row { display: flex; gap: 0.75rem; }
+  .ef-row > * { flex: 1; }
+
+  /* JSONB list editor */
+  .jsonb-list { margin-top: 0.35rem; }
+  .jsonb-item {
+    display: flex; align-items: flex-start; gap: 0.4rem; margin-bottom: 0.35rem;
+  }
+  .jsonb-item input, .jsonb-item textarea {
+    flex: 1; padding: 0.4rem 0.6rem; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 0.8rem; font-family: inherit; outline: none;
+  }
+  .jsonb-item input:focus, .jsonb-item textarea:focus { border-color: var(--coral); }
+  .jsonb-remove {
+    background: none; border: none; color: #EF5350; font-size: 1rem;
+    cursor: pointer; padding: 0.3rem; line-height: 1; flex-shrink: 0;
+  }
+  .jsonb-add {
+    font-size: 0.75rem; color: var(--teal); cursor: pointer;
+    background: none; border: none; font-weight: 600; font-family: inherit;
+    margin-top: 0.2rem;
+  }
+  .jsonb-add:hover { color: var(--teal-dark); }
+
+  /* Mode editor (label + description) */
+  .mode-item {
+    background: var(--bg); border-radius: 8px; padding: 0.6rem;
+    margin-bottom: 0.4rem; position: relative;
+  }
+  .mode-item input { width: 100%; margin-bottom: 0.3rem; }
+  .mode-item textarea {
+    width: 100%; min-height: 40px; resize: vertical;
+    padding: 0.4rem 0.6rem; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 0.78rem; font-family: inherit; outline: none;
+  }
+  .mode-remove { position: absolute; top: 0.4rem; right: 0.4rem; }
+
+  /* Action link editor */
+  .link-item { display: flex; gap: 0.4rem; margin-bottom: 0.35rem; align-items: center; }
+  .link-item input { flex: 1; }
+  .link-item select {
+    width: 90px; padding: 0.4rem; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 0.78rem; font-family: inherit;
+  }
+
+  /* Play assignments section */
+  .play-assignments { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+  .play-assign-row {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.5rem 0.6rem; background: var(--bg); border-radius: 8px; margin-bottom: 0.4rem;
+  }
+  .play-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .play-assign-name { font-size: 0.82rem; font-weight: 600; color: var(--navy); flex: 1; }
+  .play-assign-order {
+    width: 50px; padding: 0.3rem; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 0.78rem; text-align: center; font-family: inherit;
+  }
+
+  .add-play-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+  .add-play-row select {
+    flex: 1; padding: 0.45rem; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 0.82rem; font-family: inherit;
+  }
+
+  /* Editor actions bar */
+  .editor-actions {
+    display: flex; gap: 0.75rem; padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border); background: var(--bg);
+  }
+  .editor-actions .spacer { flex: 1; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--navy);
+    color: #fff; padding: 0.6rem 1.2rem; border-radius: 10px;
+    font-size: 0.82rem; font-weight: 600; z-index: 10001;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  /* Play column (right panel top) */
+  .play-tabs {
+    display: flex; gap: 0.35rem; padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .play-tab {
+    padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.72rem;
+    font-weight: 700; cursor: pointer; border: 1px solid var(--border);
+    background: #fff; color: var(--text-secondary); transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .play-tab:hover { background: var(--bg); }
+  .play-tab.active { color: #fff; border-color: transparent; }
+
+  /* Play practice list (reorderable) */
+  .play-practice-list { min-height: 50px; padding: 0.75rem 1.25rem; }
+  .pp-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 0.75rem; background: var(--bg); border-radius: 8px;
+    margin-bottom: 0.35rem; border: 1px solid transparent;
+    transition: border-color 0.12s;
+  }
+  .pp-item:hover { border-color: var(--border); }
+  .pp-handle {
+    cursor: grab; color: var(--text-secondary); font-size: 0.9rem; flex-shrink: 0;
+    user-select: none;
+  }
+  .pp-handle:active { cursor: grabbing; }
+  .pp-name { flex: 1; font-size: 0.82rem; font-weight: 600; color: var(--navy); }
+  .pp-badge {
+    font-size: 0.6rem; font-weight: 700; padding: 0.15rem 0.45rem;
+    border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .pp-badge.automated { background: var(--teal); color: #fff; }
+  .pp-badge.coming-soon { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
+  .pp-remove {
+    background: none; border: none; color: #EF5350; cursor: pointer;
+    font-size: 0.85rem; padding: 0.2rem; opacity: 0.6; transition: opacity 0.12s;
+  }
+  .pp-remove:hover { opacity: 1; }
+  .pp-empty { font-size: 0.82rem; color: var(--text-secondary); padding: 1rem 0; text-align: center; }
+
+  .play-add-bar {
+    padding: 0.5rem 1.25rem 1rem; display: flex; gap: 0.5rem;
+  }
+  .play-add-bar select {
+    flex: 1; padding: 0.45rem 0.6rem; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 0.82rem; font-family: inherit; outline: none;
+  }
+
+  /* Resource ID display */
+  .res-id-note {
+    font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.25rem;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <a href="index.html" class="back-link">&#8592; Value Creating Teams</a>
+      <h1>Admin Console</h1>
+      <p class="subtitle">Manage practices, assignments, and ordering</p>
+    </div>
+  </div>
+</div>
+
+<!-- Auth Gate (shown if not admin) -->
+<div class="auth-gate" id="auth-gate">
+  <h2>Admin Access Required</h2>
+  <p>You need to be logged in as an admin to access this page. Use the admin login button on any page, then come back here.</p>
+  <a href="index.html">&#8592; Back to Home</a>
+</div>
+
+<!-- Console (shown only for admin) -->
+<div class="console" id="console">
+  <div class="two-panel">
+
+    <!-- Left: Practice Library -->
+    <div>
+      <div class="panel" id="library-panel">
+        <div class="panel-header">
+          <h2>Practice Library</h2>
+          <button class="btn btn-primary btn-sm" id="new-practice-btn">+ New Practice</button>
+        </div>
+        <div class="panel-body" id="practice-list">
+          <p style="font-size:.82rem;color:var(--text-secondary);padding:.5rem;">Loading...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Editor + Play Manager -->
+    <div>
+      <!-- Practice Editor -->
+      <div class="panel" id="editor-panel" style="margin-bottom:1.5rem;">
+        <div class="panel-header">
+          <h2 id="editor-title">Practice Editor</h2>
+        </div>
+        <div id="editor-body">
+          <div class="editor-empty">Select a practice from the library to edit it, or create a new one.</div>
+        </div>
+      </div>
+
+      <!-- Play Manager -->
+      <div class="panel" id="play-panel">
+        <div class="panel-header">
+          <h2>Play Assignments</h2>
+        </div>
+        <div class="play-tabs" id="play-tabs"></div>
+        <div class="play-practice-list" id="play-practice-list"></div>
+        <div class="play-add-bar" id="play-add-bar"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const PLAY_NAMES = { 1: 'Sensemaking', 2: 'Imagining', 3: 'Navigating', 4: 'Collaborating', 5: 'Value Creating' };
+  const PLAY_COLORS = { 1: '#00897B', 2: '#7C5CBF', 3: '#E07A5F', 4: '#D4A843', 5: '#1B2A4A' };
+
+  let practices = [];
+  let playPractices = [];
+  let selectedPracticeId = null;
+  let activePlay = 1;
+
+  /* ── Auth check ─────────────────────────────────────────── */
+  function isAdmin() {
+    return sessionStorage.getItem('vct_admin') === '6c221976';
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    if (isAdmin()) {
+      document.getElementById('auth-gate').style.display = 'none';
+      document.getElementById('console').classList.add('active');
+      setTimeout(loadAll, 500);
+    }
+    // Also check periodically in case admin logs in via the popover
+    const interval = setInterval(function () {
+      if (isAdmin() && !document.getElementById('console').classList.contains('active')) {
+        document.getElementById('auth-gate').style.display = 'none';
+        document.getElementById('console').classList.add('active');
+        loadAll();
+        clearInterval(interval);
+      }
+    }, 1000);
+  });
+
+  /* ── Toast ──────────────────────────────────────────────── */
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 2000);
+  }
+
+  /* ── Data loading ───────────────────────────────────────── */
+  async function loadAll() {
+    practices = await VCTPractices.fetchPractices();
+    playPractices = await VCTPractices.fetchPlayPractices();
+    renderLibrary();
+    renderPlayTabs();
+    renderPlayList();
+  }
+
+  /* ── Practice Library ───────────────────────────────────── */
+  function renderLibrary() {
+    const container = document.getElementById('practice-list');
+    if (!practices.length) {
+      container.innerHTML = '<p style="font-size:.82rem;color:var(--text-secondary);padding:.5rem;">No practices found. Create one!</p>';
+      return;
+    }
+    container.innerHTML = practices.map(p => {
+      // Which plays is this practice in?
+      const plays = playPractices
+        .filter(pp => pp.practice_id === p.id)
+        .map(pp => pp.play_number)
+        .sort();
+      const playStr = plays.length ? plays.map(n => 'P' + n).join(', ') : 'Unassigned';
+      const selected = p.id === selectedPracticeId ? ' selected' : '';
+      return `<div class="prac-item${selected}" data-id="${p.id}">
+        <span class="prac-status ${p.status}"></span>
+        <span class="prac-label">${esc(p.title)}</span>
+        <span class="prac-plays">${playStr}</span>
+      </div>`;
+    }).join('');
+
+    container.querySelectorAll('.prac-item').forEach(item => {
+      item.onclick = function () {
+        selectedPracticeId = item.getAttribute('data-id');
+        renderLibrary();
+        renderEditor();
+      };
+    });
+  }
+
+  /* ── Practice Editor ────────────────────────────────────── */
+  function renderEditor() {
+    const body = document.getElementById('editor-body');
+    const titleEl = document.getElementById('editor-title');
+
+    if (!selectedPracticeId) {
+      titleEl.textContent = 'Practice Editor';
+      body.innerHTML = '<div class="editor-empty">Select a practice from the library to edit it, or create a new one.</div>';
+      return;
+    }
+
+    const p = practices.find(x => x.id === selectedPracticeId);
+    if (!p) { body.innerHTML = '<div class="editor-empty">Practice not found.</div>'; return; }
+
+    titleEl.textContent = 'Editing: ' + p.title;
+
+    const modes = Array.isArray(p.modes) ? p.modes : [];
+    const outcomes = Array.isArray(p.outcomes) ? p.outcomes : [];
+    const outputs = Array.isArray(p.outputs) ? p.outputs : [];
+    const actionLinks = Array.isArray(p.action_links) ? p.action_links : [];
+
+    // Which plays assigned
+    const assigned = playPractices.filter(pp => pp.practice_id === p.id);
+
+    body.innerHTML = `
+      <div class="editor-form">
+        <!-- Basic fields -->
+        <div class="ef-group">
+          <label class="ef-label">Title</label>
+          <input class="ef-input" id="ef-title" value="${esc(p.title)}">
+        </div>
+        <div class="ef-group">
+          <label class="ef-label">Description</label>
+          <textarea class="ef-textarea" id="ef-description">${esc(p.description)}</textarea>
+        </div>
+        <div class="ef-row">
+          <div class="ef-group">
+            <label class="ef-label">Status</label>
+            <select class="ef-select" id="ef-status">
+              <option value="automated"${p.status === 'automated' ? ' selected' : ''}>Automated</option>
+              <option value="coming-soon"${p.status === 'coming-soon' ? ' selected' : ''}>Coming Soon</option>
+            </select>
+          </div>
+          <div class="ef-group">
+            <label class="ef-label">Resource Play ID</label>
+            <input class="ef-input" id="ef-resource-play-id" type="number" value="${p.resource_play_id || ''}" placeholder="e.g. 101">
+            <div class="res-id-note">Unique ID for linking resources (e.g. 101, 202). Leave blank for auto.</div>
+          </div>
+        </div>
+
+        <!-- Modes -->
+        <div class="ef-group">
+          <label class="ef-label">How to Run It (Modes)</label>
+          <div class="jsonb-list" id="modes-list">
+            ${modes.map((m, i) => `
+              <div class="mode-item" data-idx="${i}">
+                <button class="jsonb-remove mode-remove" data-idx="${i}">&times;</button>
+                <input placeholder="Mode label (e.g. Facilitated In-Room)" value="${esc(m.label || '')}">
+                <textarea placeholder="Description">${esc(m.description || '')}</textarea>
+              </div>
+            `).join('')}
+          </div>
+          <button class="jsonb-add" id="add-mode">+ Add mode</button>
+        </div>
+
+        <!-- Outcomes -->
+        <div class="ef-group">
+          <label class="ef-label">Outcomes</label>
+          <div class="jsonb-list" id="outcomes-list">
+            ${outcomes.map((o, i) => `
+              <div class="jsonb-item" data-idx="${i}">
+                <input value="${esc(o)}" placeholder="Outcome">
+                <button class="jsonb-remove" data-idx="${i}">&times;</button>
+              </div>
+            `).join('')}
+          </div>
+          <button class="jsonb-add" id="add-outcome">+ Add outcome</button>
+        </div>
+
+        <!-- Outputs -->
+        <div class="ef-group">
+          <label class="ef-label">Outputs</label>
+          <div class="jsonb-list" id="outputs-list">
+            ${outputs.map((o, i) => `
+              <div class="jsonb-item" data-idx="${i}">
+                <input value="${esc(o)}" placeholder="Output">
+                <button class="jsonb-remove" data-idx="${i}">&times;</button>
+              </div>
+            `).join('')}
+          </div>
+          <button class="jsonb-add" id="add-output">+ Add output</button>
+        </div>
+
+        <!-- Action Links -->
+        <div class="ef-group">
+          <label class="ef-label">Action Buttons</label>
+          <div class="jsonb-list" id="links-list">
+            ${actionLinks.map((l, i) => `
+              <div class="link-item" data-idx="${i}">
+                <input value="${esc(l.label || '')}" placeholder="Label">
+                <input value="${esc(l.url || '')}" placeholder="URL">
+                <select>
+                  <option value="primary"${l.style === 'primary' ? ' selected' : ''}>Primary</option>
+                  <option value="secondary"${l.style === 'secondary' ? ' selected' : ''}>Secondary</option>
+                  <option value="disabled"${l.style === 'disabled' ? ' selected' : ''}>Disabled</option>
+                </select>
+                <button class="jsonb-remove" data-idx="${i}">&times;</button>
+              </div>
+            `).join('')}
+          </div>
+          <button class="jsonb-add" id="add-link">+ Add action button</button>
+        </div>
+
+        <!-- Play assignments inline -->
+        <div class="play-assignments">
+          <label class="ef-label">Assigned to Plays</label>
+          ${assigned.map(pp => `
+            <div class="play-assign-row" data-junction-id="${pp.id}">
+              <span class="play-dot" style="background:${PLAY_COLORS[pp.play_number]}"></span>
+              <span class="play-assign-name">Play ${pp.play_number}: ${PLAY_NAMES[pp.play_number]}</span>
+              <label style="font-size:.72rem;color:var(--text-secondary);">Order:</label>
+              <input type="number" class="play-assign-order" value="${pp.sort_order}" data-junction-id="${pp.id}">
+              <button class="btn btn-outline btn-sm pp-unassign" data-junction-id="${pp.id}">&times;</button>
+            </div>
+          `).join('')}
+          <div class="add-play-row">
+            <select id="assign-play-select">
+              <option value="">Add to play...</option>
+              ${[1,2,3,4,5].filter(n => !assigned.some(pp => pp.play_number === n)).map(n =>
+                `<option value="${n}">Play ${n}: ${PLAY_NAMES[n]}</option>`
+              ).join('')}
+            </select>
+            <button class="btn btn-teal btn-sm" id="assign-play-btn">Assign</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-actions">
+        <button class="btn btn-danger btn-sm" id="delete-practice-btn">Delete Practice</button>
+        <span class="spacer"></span>
+        <button class="btn btn-outline" id="cancel-edit-btn">Cancel</button>
+        <button class="btn btn-primary" id="save-practice-btn">Save Changes</button>
+      </div>`;
+
+    wireEditorEvents(p);
+  }
+
+  function wireEditorEvents(practice) {
+    // Add mode
+    document.getElementById('add-mode').onclick = function () {
+      const list = document.getElementById('modes-list');
+      const idx = list.children.length;
+      const div = document.createElement('div');
+      div.className = 'mode-item';
+      div.innerHTML = `<button class="jsonb-remove mode-remove">&times;</button>
+        <input placeholder="Mode label"><textarea placeholder="Description"></textarea>`;
+      list.appendChild(div);
+      wireRemoveButtons(list);
+    };
+
+    // Add outcome
+    document.getElementById('add-outcome').onclick = function () {
+      const list = document.getElementById('outcomes-list');
+      const div = document.createElement('div');
+      div.className = 'jsonb-item';
+      div.innerHTML = `<input placeholder="Outcome"><button class="jsonb-remove">&times;</button>`;
+      list.appendChild(div);
+      wireRemoveButtons(list);
+    };
+
+    // Add output
+    document.getElementById('add-output').onclick = function () {
+      const list = document.getElementById('outputs-list');
+      const div = document.createElement('div');
+      div.className = 'jsonb-item';
+      div.innerHTML = `<input placeholder="Output"><button class="jsonb-remove">&times;</button>`;
+      list.appendChild(div);
+      wireRemoveButtons(list);
+    };
+
+    // Add action link
+    document.getElementById('add-link').onclick = function () {
+      const list = document.getElementById('links-list');
+      const div = document.createElement('div');
+      div.className = 'link-item';
+      div.innerHTML = `<input placeholder="Label"><input placeholder="URL">
+        <select><option value="primary">Primary</option><option value="secondary">Secondary</option><option value="disabled">Disabled</option></select>
+        <button class="jsonb-remove">&times;</button>`;
+      list.appendChild(div);
+      wireRemoveButtons(list);
+    };
+
+    // Wire all remove buttons
+    ['modes-list', 'outcomes-list', 'outputs-list', 'links-list'].forEach(id => {
+      wireRemoveButtons(document.getElementById(id));
+    });
+
+    // Assign to play
+    document.getElementById('assign-play-btn').onclick = async function () {
+      const sel = document.getElementById('assign-play-select');
+      const playNum = parseInt(sel.value, 10);
+      if (!playNum) return;
+      const maxOrder = playPractices
+        .filter(pp => pp.play_number === playNum)
+        .reduce((max, pp) => Math.max(max, pp.sort_order), -1);
+      await VCTPractices.assignPracticeToPlay(playNum, selectedPracticeId, maxOrder + 1);
+      toast('Assigned to Play ' + playNum);
+      await loadAll();
+      renderEditor();
+    };
+
+    // Unassign from play
+    document.querySelectorAll('.pp-unassign').forEach(btn => {
+      btn.onclick = async function () {
+        const jId = btn.getAttribute('data-junction-id');
+        if (!confirm('Remove from this play?')) return;
+        await VCTPractices.unassignPracticeFromPlay(jId);
+        toast('Removed from play');
+        await loadAll();
+        renderEditor();
+      };
+    });
+
+    // Sort order change
+    document.querySelectorAll('.play-assign-order').forEach(input => {
+      input.onchange = async function () {
+        const jId = input.getAttribute('data-junction-id');
+        await VCTPractices.updateSortOrder(jId, parseInt(input.value, 10) || 0);
+        toast('Order updated');
+        await loadAll();
+      };
+    });
+
+    // Save
+    document.getElementById('save-practice-btn').onclick = async function () {
+      const btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      const updates = {
+        title: document.getElementById('ef-title').value.trim(),
+        description: document.getElementById('ef-description').value.trim(),
+        status: document.getElementById('ef-status').value,
+        resource_play_id: parseInt(document.getElementById('ef-resource-play-id').value, 10) || null,
+        modes: collectModes(),
+        outcomes: collectSimpleList('outcomes-list'),
+        outputs: collectSimpleList('outputs-list'),
+        action_links: collectLinks()
+      };
+
+      if (!updates.title) { alert('Title is required'); btn.disabled = false; btn.textContent = 'Save Changes'; return; }
+
+      const result = await VCTPractices.updatePractice(selectedPracticeId, updates);
+      btn.disabled = false;
+      btn.textContent = 'Save Changes';
+      if (result) {
+        toast('Practice saved!');
+        await loadAll();
+        renderEditor();
+      }
+    };
+
+    // Cancel
+    document.getElementById('cancel-edit-btn').onclick = function () {
+      selectedPracticeId = null;
+      renderLibrary();
+      renderEditor();
+    };
+
+    // Delete
+    document.getElementById('delete-practice-btn').onclick = async function () {
+      if (!confirm('Delete this practice? This will also remove it from all plays.')) return;
+      const ok = await VCTPractices.deletePractice(selectedPracticeId);
+      if (ok) {
+        toast('Practice deleted');
+        selectedPracticeId = null;
+        await loadAll();
+        renderEditor();
+      }
+    };
+  }
+
+  function wireRemoveButtons(container) {
+    container.querySelectorAll('.jsonb-remove').forEach(btn => {
+      btn.onclick = function () { btn.closest('.mode-item, .jsonb-item, .link-item').remove(); };
+    });
+  }
+
+  function collectModes() {
+    const items = document.querySelectorAll('#modes-list .mode-item');
+    return Array.from(items).map(item => ({
+      label: item.querySelector('input').value.trim(),
+      description: item.querySelector('textarea').value.trim()
+    })).filter(m => m.label);
+  }
+
+  function collectSimpleList(listId) {
+    const items = document.querySelectorAll('#' + listId + ' .jsonb-item');
+    return Array.from(items).map(item => item.querySelector('input').value.trim()).filter(Boolean);
+  }
+
+  function collectLinks() {
+    const items = document.querySelectorAll('#links-list .link-item');
+    return Array.from(items).map(item => {
+      const inputs = item.querySelectorAll('input');
+      return {
+        label: inputs[0].value.trim(),
+        url: inputs[1].value.trim(),
+        style: item.querySelector('select').value
+      };
+    }).filter(l => l.label);
+  }
+
+  /* ── New Practice ───────────────────────────────────────── */
+  document.getElementById('new-practice-btn').onclick = async function () {
+    const title = prompt('New practice title:');
+    if (!title || !title.trim()) return;
+
+    // Find next available resource_play_id
+    const usedIds = practices.map(p => p.resource_play_id).filter(Boolean);
+    let nextId = 101;
+    while (usedIds.includes(nextId)) nextId++;
+
+    const result = await VCTPractices.createPractice({
+      title: title.trim(),
+      description: '',
+      status: 'coming-soon',
+      modes: [],
+      outcomes: [],
+      outputs: [],
+      action_links: [{ label: 'Coming Soon', url: '', style: 'disabled' }],
+      resource_play_id: nextId
+    });
+
+    if (result) {
+      toast('Practice created!');
+      selectedPracticeId = result.id;
+      await loadAll();
+      renderEditor();
+    }
+  };
+
+  /* ── Play Manager (bottom right panel) ─────────────────── */
+  function renderPlayTabs() {
+    const tabsEl = document.getElementById('play-tabs');
+    tabsEl.innerHTML = [1,2,3,4,5].map(n => {
+      const count = playPractices.filter(pp => pp.play_number === n).length;
+      return `<div class="play-tab${n === activePlay ? ' active' : ''}" data-play="${n}" style="${n === activePlay ? 'background:' + PLAY_COLORS[n] : ''}">
+        Play ${n}: ${PLAY_NAMES[n]} (${count})
+      </div>`;
+    }).join('');
+
+    tabsEl.querySelectorAll('.play-tab').forEach(tab => {
+      tab.onclick = function () {
+        activePlay = parseInt(tab.getAttribute('data-play'), 10);
+        renderPlayTabs();
+        renderPlayList();
+      };
+    });
+  }
+
+  function renderPlayList() {
+    const listEl = document.getElementById('play-practice-list');
+    const addBar = document.getElementById('play-add-bar');
+
+    const items = playPractices
+      .filter(pp => pp.play_number === activePlay)
+      .sort((a, b) => a.sort_order - b.sort_order);
+
+    if (!items.length) {
+      listEl.innerHTML = '<div class="pp-empty">No practices assigned to this play yet.</div>';
+    } else {
+      listEl.innerHTML = items.map(pp => {
+        const p = practices.find(x => x.id === pp.practice_id);
+        if (!p) return '';
+        return `<div class="pp-item" data-junction-id="${pp.id}" data-sort="${pp.sort_order}">
+          <span class="pp-handle" title="Drag to reorder">&#9776;</span>
+          <span class="pp-name">${esc(p.title)}</span>
+          <span class="pp-badge ${p.status}">${p.status === 'automated' ? 'Automated' : 'Coming Soon'}</span>
+          <button class="pp-remove" data-junction-id="${pp.id}" title="Remove from play">&times;</button>
+        </div>`;
+      }).join('');
+
+      // Wire remove
+      listEl.querySelectorAll('.pp-remove').forEach(btn => {
+        btn.onclick = async function () {
+          const jId = btn.getAttribute('data-junction-id');
+          if (!confirm('Remove this practice from Play ' + activePlay + '?')) return;
+          await VCTPractices.unassignPracticeFromPlay(jId);
+          toast('Removed');
+          await loadAll();
+          if (selectedPracticeId) renderEditor();
+        };
+      });
+
+      // Wire drag-and-drop reordering
+      enableDragReorder(listEl);
+    }
+
+    // Add practice dropdown
+    const assignedIds = items.map(pp => pp.practice_id);
+    const available = practices.filter(p => !assignedIds.includes(p.id));
+    addBar.innerHTML = `
+      <select id="pp-add-select">
+        <option value="">Add a practice to Play ${activePlay}...</option>
+        ${available.map(p => `<option value="${p.id}">${esc(p.title)}</option>`).join('')}
+      </select>
+      <button class="btn btn-teal btn-sm" id="pp-add-btn">Add</button>`;
+
+    document.getElementById('pp-add-btn').onclick = async function () {
+      const sel = document.getElementById('pp-add-select');
+      const practiceId = sel.value;
+      if (!practiceId) return;
+      const maxOrder = items.reduce((max, pp) => Math.max(max, pp.sort_order), -1);
+      await VCTPractices.assignPracticeToPlay(activePlay, practiceId, maxOrder + 1);
+      toast('Added to Play ' + activePlay);
+      await loadAll();
+      if (selectedPracticeId) renderEditor();
+    };
+  }
+
+  /* ── Drag & Drop Reordering ─────────────────────────────── */
+  function enableDragReorder(container) {
+    let dragItem = null;
+    let placeholder = null;
+
+    container.querySelectorAll('.pp-item').forEach(item => {
+      item.setAttribute('draggable', 'true');
+
+      item.addEventListener('dragstart', function (e) {
+        dragItem = item;
+        item.style.opacity = '0.4';
+        e.dataTransfer.effectAllowed = 'move';
+      });
+
+      item.addEventListener('dragend', async function () {
+        item.style.opacity = '';
+        if (placeholder && placeholder.parentNode) placeholder.remove();
+        dragItem = null;
+
+        // Save new order
+        const items = container.querySelectorAll('.pp-item');
+        const updates = [];
+        items.forEach((el, idx) => {
+          const jId = el.getAttribute('data-junction-id');
+          updates.push(VCTPractices.updateSortOrder(jId, idx));
+        });
+        await Promise.all(updates);
+        toast('Order saved');
+        await loadAll();
+        if (selectedPracticeId) renderEditor();
+      });
+
+      item.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const rect = item.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        if (e.clientY < midY) {
+          container.insertBefore(dragItem, item);
+        } else {
+          container.insertBefore(dragItem, item.nextSibling);
+        }
+      });
+    });
+  }
+
+  /* ── Helpers ─────────────────────────────────────────────── */
+  function esc(s) {
+    if (!s) return '';
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+})();
+</script>
+
+</body>
+</html>
