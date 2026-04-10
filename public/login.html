@@ -462,7 +462,10 @@
       const { data, error } = await sb.auth.signUp({
         email,
         password,
-        options: { data: { full_name: name, role: assignedRole } }
+        options: {
+          data: { full_name: name, role: assignedRole },
+          emailRedirectTo: window.location.origin + '/confirm.html'
+        }
       });
 
       if (error) {
@@ -496,7 +499,7 @@
       }
 
       const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/login.html'
+        redirectTo: window.location.origin + '/confirm.html'
       });
 
       if (error) {

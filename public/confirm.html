@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirming — Value Creating Teams</title>
+  <style>
+    :root {
+      --navy: #1B2A4A;
+      --navy-light: #2C3E6B;
+      --teal: #00897B;
+      --teal-dark: #006B5E;
+      --gold: #D4A843;
+      --coral: #E07A5F;
+      --bg: #F5F7FA;
+      --card: #FFFFFF;
+      --text: #1B2A4A;
+      --text-secondary: #5A6B8A;
+      --border: #E2E8F0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1B2A4A 0%, #2C3E6B 50%, #006B5E 100%);
+      color: var(--text);
+    }
+
+    .confirm-card {
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 440px;
+      padding: 48px 40px;
+      text-align: center;
+    }
+
+    /* States: processing, success, error */
+    .state { display: none; }
+    .state.active { display: block; }
+
+    /* Processing spinner */
+    .spinner-ring {
+      width: 64px; height: 64px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      border: 4px solid var(--border);
+      border-top-color: var(--teal);
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .state-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+
+    .state-text {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    /* Success checkmark */
+    .check-circle {
+      width: 72px; height: 72px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #43A047, #2E7D32);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 6px 20px rgba(67, 160, 71, 0.35);
+    }
+    @keyframes scaleIn {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .check-circle svg {
+      width: 36px; height: 36px;
+      stroke: white;
+      stroke-width: 3;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .check-circle svg path {
+      stroke-dasharray: 48;
+      stroke-dashoffset: 48;
+      animation: drawCheck 0.4s 0.3s ease forwards;
+    }
+    @keyframes drawCheck {
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Error X */
+    .error-circle {
+      width: 72px; height: 72px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #EF5350, #C62828);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 6px 20px rgba(239, 83, 80, 0.35);
+    }
+    .error-circle svg {
+      width: 32px; height: 32px;
+      stroke: white;
+      stroke-width: 3;
+      fill: none;
+      stroke-linecap: round;
+    }
+
+    /* Password reset icon */
+    .reset-circle {
+      width: 72px; height: 72px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--coral), #c9694f);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 6px 20px rgba(224, 122, 95, 0.35);
+      font-size: 1.8rem;
+      color: white;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 28px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--teal);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--teal-dark); transform: translateY(-1px); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1.5px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--navy); color: var(--navy); }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Countdown */
+    .countdown {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 16px;
+      opacity: 0.7;
+    }
+
+    /* Welcome text */
+    .welcome-name {
+      color: var(--teal);
+      font-weight: 700;
+    }
+
+    /* Password form */
+    .reset-form { text-align: left; margin-top: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus {
+      border-color: var(--coral);
+      box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.15);
+    }
+
+    .message {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .message.error { display: block; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .message.success { display: block; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+    /* Branding */
+    .brand {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-secondary);
+      opacity: 0.5;
+      margin-bottom: 28px;
+    }
+  </style>
+</head>
+<body>
+  <div class="confirm-card">
+    <div class="brand">Value Creating Teams</div>
+
+    <!-- Processing state -->
+    <div class="state active" id="state-processing">
+      <div class="spinner-ring"></div>
+      <h2 class="state-title">Verifying your account</h2>
+      <p class="state-text">Hang on while we confirm your email...</p>
+    </div>
+
+    <!-- Email confirmed -->
+    <div class="state" id="state-confirmed">
+      <div class="check-circle">
+        <svg viewBox="0 0 36 36"><path d="M8 18 L15 25 L28 11"></path></svg>
+      </div>
+      <h2 class="state-title">Email Confirmed!</h2>
+      <p class="state-text">Welcome, <span class="welcome-name" id="userName">team member</span>. Your account is ready.</p>
+      <a href="index.html" class="btn btn-primary">Get Started</a>
+      <div class="countdown" id="countdown">Redirecting in 5 seconds...</div>
+    </div>
+
+    <!-- Password reset -->
+    <div class="state" id="state-reset">
+      <div class="reset-circle">&#128274;</div>
+      <h2 class="state-title">Set New Password</h2>
+      <p class="state-text">Choose a new password for your account.</p>
+      <div id="msg-reset"></div>
+      <form class="reset-form" onsubmit="handleResetPassword(event)">
+        <div class="form-group">
+          <label for="rp-password">New Password</label>
+          <input type="password" id="rp-password" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label for="rp-confirm">Confirm Password</label>
+          <input type="password" id="rp-confirm" placeholder="Re-enter password" required minlength="6" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn btn-primary" id="btn-reset" style="width:100%">Update Password</button>
+      </form>
+    </div>
+
+    <!-- Error -->
+    <div class="state" id="state-error">
+      <div class="error-circle">
+        <svg viewBox="0 0 32 32"><line x1="10" y1="10" x2="22" y2="22"/><line x1="22" y1="10" x2="10" y2="22"/></svg>
+      </div>
+      <h2 class="state-title">Something went wrong</h2>
+      <p class="state-text" id="errorText">We couldn't verify your email. The link may have expired.</p>
+      <div class="btn-group">
+        <a href="login.html" class="btn btn-primary">Go to Sign In</a>
+        <a href="login.html#signup" class="btn btn-secondary">Try Again</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="supabase-config.js"></script>
+  <script>
+    async function getClient() {
+      for (let i = 0; i < 30; i++) {
+        if (window.supabaseClient) return window.supabaseClient;
+        await new Promise(r => setTimeout(r, 100));
+      }
+      return null;
+    }
+
+    function showState(id) {
+      document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    // Countdown redirect after confirmation
+    function startCountdown(seconds) {
+      const el = document.getElementById('countdown');
+      let remaining = seconds;
+      el.textContent = `Redirecting in ${remaining} seconds...`;
+      const timer = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(timer);
+          window.location.href = 'index.html';
+        } else {
+          el.textContent = `Redirecting in ${remaining} second${remaining === 1 ? '' : 's'}...`;
+        }
+      }, 1000);
+    }
+
+    // Handle password reset form
+    async function handleResetPassword(e) {
+      e.preventDefault();
+      const pw = document.getElementById('rp-password').value;
+      const confirm = document.getElementById('rp-confirm').value;
+      const msgEl = document.getElementById('msg-reset');
+
+      if (pw !== confirm) {
+        msgEl.className = 'message error';
+        msgEl.textContent = 'Passwords do not match.';
+        return;
+      }
+
+      const btn = document.getElementById('btn-reset');
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+
+      const sb = await getClient();
+      if (!sb) {
+        msgEl.className = 'message error';
+        msgEl.textContent = 'Connection error. Please try again.';
+        btn.disabled = false;
+        btn.textContent = 'Update Password';
+        return;
+      }
+
+      const { error } = await sb.auth.updateUser({ password: pw });
+
+      if (error) {
+        msgEl.className = 'message error';
+        msgEl.textContent = error.message;
+        btn.disabled = false;
+        btn.textContent = 'Update Password';
+        return;
+      }
+
+      msgEl.className = 'message success';
+      msgEl.textContent = 'Password updated successfully!';
+      btn.disabled = true;
+      btn.textContent = 'Done!';
+
+      setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+    }
+
+    // Main: detect what kind of callback this is
+    (async function init() {
+      const sb = await getClient();
+      if (!sb) {
+        showState('state-error');
+        document.getElementById('errorText').textContent = 'Unable to connect. Please try again later.';
+        return;
+      }
+
+      // Parse URL params — Supabase uses both hash fragments and query params
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const queryParams = new URLSearchParams(window.location.search);
+
+      const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
+      const type = hashParams.get('type') || queryParams.get('type');
+      const tokenHash = queryParams.get('token_hash');
+      const errorCode = hashParams.get('error') || queryParams.get('error');
+      const errorDesc = hashParams.get('error_description') || queryParams.get('error_description');
+
+      // Handle error from Supabase
+      if (errorCode) {
+        showState('state-error');
+        document.getElementById('errorText').textContent =
+          decodeURIComponent(errorDesc || 'The confirmation link is invalid or has expired.');
+        return;
+      }
+
+      // Try token_hash verification (newer Supabase PKCE flow)
+      if (tokenHash && type) {
+        try {
+          const { data, error } = await sb.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type
+          });
+
+          if (error) throw error;
+
+          if (type === 'recovery') {
+            showState('state-reset');
+          } else {
+            const name = data?.user?.user_metadata?.full_name || data?.user?.email || 'team member';
+            document.getElementById('userName').textContent = name;
+            showState('state-confirmed');
+            startCountdown(5);
+          }
+          return;
+        } catch (err) {
+          showState('state-error');
+          document.getElementById('errorText').textContent =
+            err.message || 'The confirmation link is invalid or has expired.';
+          return;
+        }
+      }
+
+      // Try access_token flow (older Supabase or implicit grant)
+      if (accessToken) {
+        try {
+          const { data, error } = await sb.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || ''
+          });
+
+          if (error) throw error;
+
+          if (type === 'recovery') {
+            showState('state-reset');
+          } else {
+            const name = data?.user?.user_metadata?.full_name || data?.user?.email || 'team member';
+            document.getElementById('userName').textContent = name;
+            showState('state-confirmed');
+            startCountdown(5);
+          }
+          return;
+        } catch (err) {
+          showState('state-error');
+          document.getElementById('errorText').textContent =
+            err.message || 'The confirmation link is invalid or has expired.';
+          return;
+        }
+      }
+
+      // Check if already authenticated (e.g. auto-detected by Supabase client)
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        const name = session.user?.user_metadata?.full_name || session.user?.email || 'team member';
+        document.getElementById('userName').textContent = name;
+        showState('state-confirmed');
+        startCountdown(5);
+        return;
+      }
+
+      // No tokens and no session — show error
+      showState('state-error');
+      document.getElementById('errorText').textContent =
+        'No confirmation token found. Please use the link from your email.';
+    })();
+  </script>
+</body>
+</html>
