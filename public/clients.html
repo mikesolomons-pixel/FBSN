@@ -1061,14 +1061,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadProjects();
 });
 
+let _suppressHashChange = false;
+function setHash(h) {
+  _suppressHashChange = true;
+  window.location.hash = h;
+  // Browser fires hashchange async; reset flag on next tick
+  setTimeout(() => { _suppressHashChange = false; }, 0);
+}
+
 function handleHash() {
+  if (_suppressHashChange) return;
   const hash = window.location.hash.replace('#', '');
   if (hash === 'projects') {
     switchTab('projects');
   } else if (hash.startsWith('project-')) {
     const projId = hash.replace('project-', '');
-    switchTab('projects');
-    setTimeout(() => openProjectDetail(projId), 300);
+    // Directly open detail without going through switchTab (which would overwrite the hash)
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+    openProjectDetail(projId);
   } else {
     switchTab('pipeline');
   }
@@ -1078,15 +1089,14 @@ function handleHash() {
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('projectDetail').classList.remove('active');
 
   if (tab === 'pipeline') {
     document.getElementById('tab-pipeline').classList.add('active');
-    document.getElementById('projectDetail').classList.remove('active');
-    window.location.hash = 'pipeline';
+    setHash('pipeline');
   } else if (tab === 'projects') {
     document.getElementById('tab-projects').classList.add('active');
-    document.getElementById('projectDetail').classList.remove('active');
-    window.location.hash = 'projects';
+    setHash('projects');
   }
 }
 
@@ -1456,7 +1466,7 @@ async function saveProject() {
 // ========== PROJECT DETAIL ==========
 async function openProjectDetail(projectId) {
   currentProjectId = projectId;
-  window.location.hash = 'project-' + projectId;
+  setHash('project-' + projectId);
 
   // Hide tabs and other views
   document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
