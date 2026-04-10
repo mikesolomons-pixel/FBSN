@@ -1047,12 +1047,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   handleHash();
   window.addEventListener('hashchange', handleHash);
 
-  // Wait for auth
+  // Wait for auth.js to fully resolve (including profile/role fetch)
   const sb = await getClient();
   if (!sb) return;
 
-  const { data: { user } } = await sb.auth.getUser();
-  if (!user) return;
+  // Wait for VCTUser to be set by auth.js (includes profile fetch)
+  for (let i = 0; i < 50; i++) {
+    if (window.VCTUser) break;
+    await new Promise(r => setTimeout(r, 100));
+  }
+  if (!window.VCTUser) return;
 
   document.getElementById('authGate').style.display = 'none';
   document.getElementById('mainContainer').classList.add('active');
