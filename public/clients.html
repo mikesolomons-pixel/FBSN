@@ -310,9 +310,8 @@
   .stage-panel.active { display: block; }
 
   .detail-workspace {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+    display: flex; flex-direction: column; gap: 1rem;
   }
-  @media (max-width: 900px) { .detail-workspace { grid-template-columns: 1fr; } }
 
   .workspace-panel {
     background: var(--card); border-radius: 14px; box-shadow: var(--shadow);
@@ -396,6 +395,119 @@
     cursor: pointer; transition: background 0.15s;
   }
   .btn-save-notes:hover { background: var(--teal-dark); }
+
+  /* ========== WORKFLOW STEPS ========== */
+  .workflow-steps { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .workflow-step {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    overflow: hidden; transition: all 0.2s;
+  }
+  .workflow-step.completed { border-color: #A5D6A7; background: #FAFFF9; }
+  .workflow-step.active-step { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(74,144,217,0.15); }
+
+  .ws-header {
+    display: flex; align-items: center; gap: 0.85rem; padding: 1rem 1.25rem;
+    cursor: pointer; user-select: none; transition: background 0.15s;
+  }
+  .ws-header:hover { background: rgba(0,0,0,0.015); }
+
+  .ws-num {
+    width: 32px; height: 32px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700;
+    flex-shrink: 0; border: 2px solid var(--border); color: var(--text-secondary); background: white;
+    transition: all 0.2s;
+  }
+  .workflow-step.completed .ws-num {
+    background: #43A047; border-color: #43A047; color: white;
+  }
+  .workflow-step.active-step .ws-num {
+    border-color: var(--blue); color: var(--blue);
+  }
+
+  .ws-info { flex: 1; min-width: 0; }
+  .ws-title { font-size: 0.92rem; font-weight: 700; color: var(--navy); }
+  .workflow-step.completed .ws-title { color: #2E7D32; }
+  .ws-subtitle { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.1rem; }
+
+  .ws-chevron {
+    font-size: 0.85rem; color: var(--text-secondary); transition: transform 0.2s; flex-shrink: 0;
+  }
+  .workflow-step.expanded .ws-chevron { transform: rotate(90deg); }
+
+  .ws-badges { display: flex; gap: 0.35rem; flex-shrink: 0; }
+  .ws-badge {
+    font-size: 0.62rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .ws-badge-exercise { background: rgba(124,92,191,0.12); color: #7C5CBF; }
+  .ws-badge-artifact { background: rgba(74,144,217,0.1); color: #1565C0; }
+
+  .ws-body {
+    display: none; padding: 0 1.25rem 1.25rem; border-top: 1px solid var(--border);
+  }
+  .workflow-step.expanded .ws-body { display: block; padding-top: 1rem; }
+
+  .ws-description {
+    font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;
+  }
+
+  .ws-actions {
+    display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;
+  }
+  .ws-action-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; border-radius: 9px; font-size: 0.82rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; text-decoration: none; border: none;
+  }
+  .ws-action-exercise {
+    background: #7C5CBF; color: white;
+  }
+  .ws-action-exercise:hover { background: #6A4DAA; }
+  .ws-action-complete {
+    background: var(--teal); color: white;
+  }
+  .ws-action-complete:hover { background: var(--teal-dark); }
+  .ws-action-complete.done {
+    background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7;
+  }
+  .ws-action-undo {
+    background: transparent; color: var(--text-secondary); border: 1px solid var(--border);
+  }
+  .ws-action-undo:hover { background: var(--bg); color: var(--text); }
+
+  .ws-artifacts-section { margin-top: 0.75rem; }
+  .ws-artifacts-label {
+    font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;
+  }
+
+  /* Stage overview card */
+  .stage-overview {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: white; border-radius: 14px; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem;
+  }
+  .stage-overview h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .stage-overview p { font-size: 0.85rem; opacity: 0.85; line-height: 1.55; }
+  .stage-overview .so-progress {
+    margin-top: 0.85rem; display: flex; align-items: center; gap: 0.75rem;
+  }
+  .so-progress-bar {
+    flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden;
+  }
+  .so-progress-fill { height: 100%; background: #43A047; border-radius: 3px; transition: width 0.3s; }
+  .so-progress-text { font-size: 0.78rem; font-weight: 600; opacity: 0.9; }
+
+  /* Notes in workflow */
+  .ws-notes-section {
+    margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);
+  }
+  .ws-notes-toggle {
+    font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+    background: none; border: none; display: flex; align-items: center; gap: 0.3rem;
+    padding: 0; transition: color 0.15s;
+  }
+  .ws-notes-toggle:hover { color: var(--text); }
 
   /* Add buttons */
   .btn-add {
@@ -505,7 +617,7 @@
     .tabs { width: 100%; }
     .tab-btn { flex: 1; text-align: center; font-size: 0.78rem; padding: 0.5rem 0.5rem; }
     .kanban { grid-template-columns: 1fr; }
-    .detail-workspace { grid-template-columns: 1fr; }
+    .detail-workspace { flex-direction: column; }
     .stage-tabs { width: 100%; }
     .stage-tab-btn { flex: 1; text-align: center; font-size: 0.75rem; padding: 0.45rem 0.5rem; }
   }
@@ -754,30 +866,163 @@ const ARTIFACT_ICONS = {
   other: { icon: 'OTH', cls: 'other' }
 };
 
-const DEFAULT_TASKS = {
+const WORKFLOW_STEPS = {
   calibration: [
-    'CEO Partnership conversation',
-    'Define value creation goals',
-    'Engagement design',
-    'Team observation',
-    'Individual conversations',
-    'Synthesis & pattern recognition',
-    'Event architecture',
-    'CEO alignment on design',
-    'The calibration event'
+    {
+      title: 'CEO Partnership Conversation',
+      description: 'Initial meeting with the CEO or sponsor to understand their aspirations, concerns, and context for the engagement. Explore what success looks like and what has been tried before.',
+      artifactType: 'meeting_notes',
+      artifactLabel: 'Meeting Notes'
+    },
+    {
+      title: 'Define Value Creation Goals',
+      description: 'Articulate what success looks like for this engagement. What value will be created? How will the team and organization be different? Document specific, measurable outcomes.',
+      artifactType: 'document',
+      artifactLabel: 'Goals Document'
+    },
+    {
+      title: 'Engagement Design',
+      description: 'Map out the full calibration journey: timing, participants, logistics, key milestones. Design the arc of discovery from observation through to the calibration event.',
+      artifactType: 'document',
+      artifactLabel: 'Engagement Plan'
+    },
+    {
+      title: 'Team Observation',
+      description: 'Observe the team in their natural working environment — meetings, decision-making, interactions. Look for patterns in how they collaborate, communicate, and handle tension.',
+      artifactType: 'meeting_notes',
+      artifactLabel: 'Observation Notes'
+    },
+    {
+      title: 'Individual Conversations',
+      description: 'Conduct 1:1 conversations with each team member. Explore their perspective on the team\'s strengths, challenges, and aspirations. Listen for themes and undercurrents.',
+      artifactType: 'document',
+      artifactLabel: 'Interview Synthesis'
+    },
+    {
+      title: 'FBSN Analysis — Synthesis & Pattern Recognition',
+      description: 'Analyze all inputs from observations and conversations using the FBSN framework. Separate Facts from Beliefs, identify Signals of change, and filter out Noise.',
+      exercise: { name: 'Run FBSN Exercise', url: 'fbsn.html' },
+      artifactType: 'exercise_output',
+      artifactLabel: 'FBSN Output'
+    },
+    {
+      title: 'Assumption Mapping',
+      description: 'Map the team\'s key assumptions — what they take for granted about their market, capabilities, and strategy. Identify which assumptions are most critical and least tested.',
+      exercise: { name: 'Run Assumption Mapping', url: 'assumptions.html' },
+      artifactType: 'exercise_output',
+      artifactLabel: 'Assumption Map'
+    },
+    {
+      title: 'Event Architecture',
+      description: 'Design the calibration event agenda and flow. Sequence the exercises, discussions, and reflections to create maximum insight and commitment.',
+      artifactType: 'document',
+      artifactLabel: 'Event Design'
+    },
+    {
+      title: 'CEO Alignment on Design',
+      description: 'Review the event design with the CEO/sponsor. Ensure alignment on objectives, participant list, sensitive topics, and expected outcomes. Get sign-off to proceed.',
+      artifactType: 'meeting_notes',
+      artifactLabel: 'Alignment Notes'
+    },
+    {
+      title: 'The Calibration Event',
+      description: 'Facilitate the calibration event with the full team. This is the pivotal moment where shared understanding is built and commitments are made for the path forward.',
+      artifactType: 'exercise_output',
+      artifactLabel: 'Event Outputs & Commitments'
+    }
   ],
   scaffolding: [
-    'Define team rhythm',
-    'Establish focus areas',
-    'Design support structure',
-    'Set up signals & metrics'
+    {
+      title: 'Define Team Rhythm',
+      description: 'Establish the cadence of team interactions — regular check-ins, strategy sessions, retrospectives. Design a rhythm that maintains momentum without overwhelming.',
+      artifactType: 'document',
+      artifactLabel: 'Rhythm Document'
+    },
+    {
+      title: 'Cynefin Contexting',
+      description: 'Use the Cynefin framework to understand which challenges are complicated vs. complex. This determines which approaches will be effective for each focus area.',
+      exercise: { name: 'Run Cynefin Navigator', url: 'cynefin.html' },
+      artifactType: 'exercise_output',
+      artifactLabel: 'Cynefin Analysis'
+    },
+    {
+      title: 'Establish Focus Areas',
+      description: 'Select which plays and practices the team will adopt first. Prioritize based on the calibration findings — where is the biggest gap between current state and aspiration?',
+      artifactType: 'document',
+      artifactLabel: 'Focus Area Selection'
+    },
+    {
+      title: 'Future Backwards',
+      description: 'Explore multiple possible futures — the aspirational, the catastrophic, and the realistic. Work backwards from each to understand the paths and decision points.',
+      exercise: { name: 'Run Future Backwards', url: 'future-backwards.html' },
+      artifactType: 'exercise_output',
+      artifactLabel: 'Future Backwards Output'
+    },
+    {
+      title: 'Design Support Structure',
+      description: 'Create the coaching, mentoring, and accountability structures that will support the team through the scaffolding period. Define who supports whom and how.',
+      artifactType: 'document',
+      artifactLabel: 'Support Structure'
+    },
+    {
+      title: 'Set Up Signals & Metrics',
+      description: 'Define the leading and lagging indicators that will tell you whether the team is making progress. Build a lightweight dashboard of signals to monitor.',
+      artifactType: 'document',
+      artifactLabel: 'Metrics & Signals Plan'
+    }
   ],
   ongoing: [
-    'First play cycle',
-    'Team retrospective',
-    'Capability assessment',
-    'Independence planning'
+    {
+      title: 'First Play Cycle',
+      description: 'Run the first selected play with the team. This is where theory meets practice — the team applies the practices to a real challenge and learns by doing.',
+      exercise: { name: 'Browse Plays', url: 'index.html#plays' },
+      artifactType: 'exercise_output',
+      artifactLabel: 'Play Cycle Output'
+    },
+    {
+      title: 'Team Retrospective',
+      description: 'Facilitate a structured reflection on the first play cycle. What worked? What didn\'t? What surprised the team? Capture insights and adjust the approach.',
+      artifactType: 'meeting_notes',
+      artifactLabel: 'Retrospective Notes'
+    },
+    {
+      title: 'Subsequent Play Cycles',
+      description: 'Continue running play cycles, building on learnings from previous rounds. Each cycle should deepen the team\'s capability and broaden their repertoire.',
+      exercise: { name: 'Browse Plays', url: 'index.html#plays' },
+      artifactType: 'exercise_output',
+      artifactLabel: 'Cycle Outputs'
+    },
+    {
+      title: 'Capability Assessment',
+      description: 'Evaluate the team\'s growing capabilities against the original value creation goals. Where have they made the most progress? Where do gaps remain?',
+      artifactType: 'document',
+      artifactLabel: 'Assessment Document'
+    },
+    {
+      title: 'Independence Planning',
+      description: 'Plan for the team\'s self-sufficiency. Transfer facilitation skills, embed practices into the team\'s operating system, and design the handover.',
+      artifactType: 'document',
+      artifactLabel: 'Independence Roadmap'
+    }
   ]
+};
+
+const STAGE_DESCRIPTIONS = {
+  calibration: {
+    title: 'Calibration',
+    subtitle: '30-60 days',
+    description: 'Synchronize understanding. Establish a shared view of where the team actually is through observation, conversation, and structured analysis.'
+  },
+  scaffolding: {
+    title: 'Designing Scaffolding',
+    subtitle: '2-4 weeks',
+    description: 'Establish rhythm, focus areas, supports, and signals. Create the conditions for the team to do their best work together.'
+  },
+  ongoing: {
+    title: 'Ongoing Practice',
+    subtitle: '6-18 months',
+    description: 'Build capability, not dependency. The team runs play cycles, reflects, and grows until they can create value independently.'
+  }
 };
 
 // ========== SUPABASE HELPER ==========
@@ -1180,15 +1425,17 @@ async function saveProject() {
   const { data, error } = await sb.from('projects').insert(payload).select().single();
   if (error) { toast('Failed to create project', 'error'); console.error(error); return; }
 
-  // Auto-create default tasks
+  // Auto-create workflow steps as tasks
   const tasks = [];
   let sortOrder = 0;
   for (const stage of ['calibration', 'scaffolding', 'ongoing']) {
-    for (const taskTitle of DEFAULT_TASKS[stage]) {
+    const stageSteps = WORKFLOW_STEPS[stage] || [];
+    for (const step of stageSteps) {
       tasks.push({
         project_id: data.id,
         stage,
-        title: taskTitle,
+        title: step.title,
+        description: step.description || '',
         is_complete: false,
         sort_order: sortOrder++
       });
@@ -1200,7 +1447,7 @@ async function saveProject() {
 
   closeProjectModal();
   await loadProjects();
-  toast('Project created with default checklists', 'success');
+  toast('Project created with workflow steps', 'success');
 
   // Navigate to the new project
   setTimeout(() => openProjectDetail(data.id), 300);
@@ -1320,78 +1567,158 @@ function renderProjectDetail() {
 }
 
 function renderStageContent(stage) {
+  const steps = WORKFLOW_STEPS[stage] || [];
   const tasks = currentStageTasks.filter(t => t.stage === stage);
-  const arts = currentArtifacts.filter(a => a.stage === stage);
+  const arts = currentArtifacts.filter(a => a.stage === stage && a.title !== '__stage_notes__');
   const done = tasks.filter(t => t.is_complete).length;
   const total = tasks.length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const stageInfo = STAGE_DESCRIPTIONS[stage];
 
-  const checklistHTML = tasks.map(t => {
-    const checked = t.is_complete ? 'checked' : '';
-    const cls = t.is_complete ? 'completed' : '';
-    return `<li class="checklist-item ${cls}">
-      <input type="checkbox" ${checked} onchange="toggleTask('${t.id}', this.checked)" id="task-${t.id}">
-      <label for="task-${t.id}">${esc(t.title)}</label>
-    </li>`;
-  }).join('');
+  // Find first incomplete step to mark as active
+  const firstIncompleteIdx = tasks.findIndex(t => !t.is_complete);
 
-  const artifactsHTML = arts.length > 0 ? arts.map(a => {
-    const info = ARTIFACT_ICONS[a.artifact_type] || ARTIFACT_ICONS.other;
-    return `<div class="artifact-item">
-      <div class="artifact-icon ${info.cls}">${info.icon}</div>
-      <div class="artifact-info">
-        <div class="a-title">${esc(a.title)}</div>
-        ${a.description ? `<div class="a-desc">${esc(a.description)}</div>` : ''}
-        ${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener" class="artifact-link">Open link &rarr;</a>` : ''}
+  const stepsHTML = tasks.map((task, idx) => {
+    const stepDef = steps[idx] || { title: task.title, description: '', artifactType: 'document', artifactLabel: 'Document' };
+    const isComplete = task.is_complete;
+    const isActive = idx === firstIncompleteIdx;
+    const cls = isComplete ? 'completed' : (isActive ? 'active-step' : '');
+
+    // Find artifacts for this step (match by convention: artifact description contains step index)
+    const stepArtifacts = arts.filter(a => a.description && a.description.startsWith('[Step ' + (idx+1) + ']'));
+
+    let exerciseBadge = '';
+    let exerciseBtn = '';
+    if (stepDef.exercise) {
+      exerciseBadge = '<span class="ws-badge ws-badge-exercise">Exercise</span>';
+      exerciseBtn = `<a href="${stepDef.exercise.url}" target="_blank" class="ws-action-btn ws-action-exercise">${stepDef.exercise.name} &rarr;</a>`;
+    }
+
+    const artifactBadge = `<span class="ws-badge ws-badge-artifact">${esc(stepDef.artifactLabel)}</span>`;
+
+    const completeBtn = isComplete
+      ? `<button class="ws-action-btn ws-action-complete done" disabled>&#10003; Completed</button>
+         <button class="ws-action-btn ws-action-undo" onclick="event.stopPropagation(); toggleTask('${task.id}', false)">Undo</button>`
+      : `<button class="ws-action-btn ws-action-complete" onclick="event.stopPropagation(); toggleTask('${task.id}', true)">Mark Complete</button>`;
+
+    const stepArtifactsHTML = stepArtifacts.length > 0
+      ? stepArtifacts.map(a => {
+          const info = ARTIFACT_ICONS[a.artifact_type] || ARTIFACT_ICONS.other;
+          return `<div class="artifact-item">
+            <div class="artifact-icon ${info.cls}">${info.icon}</div>
+            <div class="artifact-info">
+              <div class="a-title">${esc(a.title)}</div>
+              ${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener" class="artifact-link">Open &rarr;</a>` : ''}
+            </div>
+            <div class="artifact-actions">
+              <button onclick="event.stopPropagation(); editArtifact('${a.id}')" title="Edit">&#9998;</button>
+              <button class="danger" onclick="event.stopPropagation(); confirmDeleteArtifact('${a.id}')" title="Delete">&times;</button>
+            </div>
+          </div>`;
+        }).join('')
+      : '';
+
+    return `<div class="workflow-step ${cls}" id="ws-${task.id}">
+      <div class="ws-header" onclick="toggleStepExpand('${task.id}')">
+        <div class="ws-num">${isComplete ? '&#10003;' : (idx + 1)}</div>
+        <div class="ws-info">
+          <div class="ws-title">${esc(task.title)}</div>
+          <div class="ws-subtitle">${esc(stepDef.artifactLabel)}</div>
+        </div>
+        <div class="ws-badges">
+          ${exerciseBadge}
+          ${artifactBadge}
+        </div>
+        <div class="ws-chevron">&#9654;</div>
       </div>
-      <div class="artifact-actions">
-        <button onclick="editArtifact('${a.id}')" title="Edit">&#9998;</button>
-        <button class="danger" onclick="confirmDeleteArtifact('${a.id}')" title="Delete">&times;</button>
+      <div class="ws-body">
+        <div class="ws-description">${esc(stepDef.description)}</div>
+        <div class="ws-actions">
+          ${exerciseBtn}
+          <button class="ws-action-btn ws-action-undo" onclick="event.stopPropagation(); openStepArtifactModal('${stage}', ${idx})">+ Add Artifact</button>
+          ${completeBtn}
+        </div>
+        ${stepArtifactsHTML ? `<div class="ws-artifacts-section"><div class="ws-artifacts-label">Outputs</div><div class="artifact-list">${stepArtifactsHTML}</div></div>` : ''}
       </div>
     </div>`;
-  }).join('') : '<div class="artifacts-empty">No artifacts yet</div>';
+  }).join('');
 
-  // Get notes from artifacts with type 'stage_notes' or use a textarea approach
-  // We'll store notes as an artifact of a special convention, or just use a local approach.
-  // For simplicity, use the project's description + a dedicated notes field per stage stored in artifacts.
-  // Actually, let's store stage notes in a simple approach: artifact with type 'other' and title '__stage_notes__'.
-  // Better: use a dedicated approach. Let's just make it a textarea that saves to a special artifact.
+  // Stage notes
   const notesArtifact = currentArtifacts.find(a => a.stage === stage && a.title === '__stage_notes__');
   const notesContent = notesArtifact ? (notesArtifact.content || '') : '';
 
-  return `<div class="detail-workspace">
-    <div class="workspace-panel">
-      <div class="wp-header">
-        <h3>Checklist</h3>
-        <span class="progress-text">${done}/${total} complete</span>
-      </div>
-      <div class="wp-body">
-        <ul class="checklist">${checklistHTML || '<li style="padding:1rem;text-align:center;color:var(--text-secondary);font-size:0.82rem;">No tasks</li>'}</ul>
+  // Unlinked artifacts (artifacts that aren't step-specific)
+  const unlinkedArts = arts.filter(a => !a.description || !a.description.match(/^\[Step \d+\]/));
+  const unlinkedHTML = unlinkedArts.length > 0
+    ? `<div class="workspace-panel" style="margin-top:1rem">
+        <div class="wp-header">
+          <h3>Additional Artifacts</h3>
+          <button class="btn-add" onclick="openNewArtifactModal('${stage}')">+ Add</button>
+        </div>
+        <div class="wp-body">
+          <div class="artifact-list">${unlinkedArts.map(a => {
+            const info = ARTIFACT_ICONS[a.artifact_type] || ARTIFACT_ICONS.other;
+            return `<div class="artifact-item">
+              <div class="artifact-icon ${info.cls}">${info.icon}</div>
+              <div class="artifact-info">
+                <div class="a-title">${esc(a.title)}</div>
+                ${a.description ? `<div class="a-desc">${esc(a.description)}</div>` : ''}
+                ${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener" class="artifact-link">Open link &rarr;</a>` : ''}
+              </div>
+              <div class="artifact-actions">
+                <button onclick="editArtifact('${a.id}')" title="Edit">&#9998;</button>
+                <button class="danger" onclick="confirmDeleteArtifact('${a.id}')" title="Delete">&times;</button>
+              </div>
+            </div>`;
+          }).join('')}</div>
+        </div>
+      </div>`
+    : '';
+
+  return `
+    <div class="stage-overview">
+      <h3>${stageInfo.title} <span style="font-weight:400;font-size:0.82rem;opacity:0.7">${stageInfo.subtitle}</span></h3>
+      <p>${stageInfo.description}</p>
+      <div class="so-progress">
+        <div class="so-progress-bar"><div class="so-progress-fill" style="width:${pct}%"></div></div>
+        <span class="so-progress-text">${done}/${total} steps complete</span>
       </div>
     </div>
-    <div class="workspace-panel">
-      <div class="wp-header">
-        <h3>Artifacts</h3>
-        <button class="btn-add" onclick="openNewArtifactModal('${stage}')">+ Add</button>
-      </div>
-      <div class="wp-body">
-        <div class="artifact-list">${artifactsHTML}</div>
-      </div>
-    </div>
-    <div class="workspace-panel full-width">
-      <div class="wp-header">
-        <h3>Notes</h3>
-      </div>
+    <div class="workflow-steps">${stepsHTML}</div>
+    ${unlinkedHTML}
+    <div class="workspace-panel full-width" style="margin-top:1rem">
+      <div class="wp-header"><h3>Stage Notes</h3></div>
       <div class="wp-body">
         <textarea class="stage-notes-area" id="notes-${stage}" placeholder="Add notes for the ${stage} stage...">${esc(notesContent)}</textarea>
         <button class="btn-save-notes" onclick="saveStageNotes('${stage}')">Save Notes</button>
       </div>
-    </div>
-  </div>`;
+    </div>`;
 }
 
 function switchStageTab(stage) {
   document.querySelectorAll('.stage-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.stage === stage));
   document.querySelectorAll('.stage-panel').forEach(p => p.classList.toggle('active', p.dataset.stagePanel === stage));
+}
+
+function toggleStepExpand(taskId) {
+  const el = document.getElementById('ws-' + taskId);
+  if (!el) return;
+  el.classList.toggle('expanded');
+}
+
+function openStepArtifactModal(stage, stepIdx) {
+  const steps = WORKFLOW_STEPS[stage] || [];
+  const stepDef = steps[stepIdx];
+  document.getElementById('artifactModalTitle').textContent = 'Add Output — ' + (stepDef ? stepDef.title : 'Step ' + (stepIdx+1));
+  document.getElementById('artifactId').value = '';
+  document.getElementById('artifactProjectId').value = currentProjectId;
+  document.getElementById('artifactStage').value = stage;
+  document.getElementById('artifactTitle').value = '';
+  document.getElementById('artifactType').value = stepDef ? stepDef.artifactType : 'document';
+  document.getElementById('artifactDesc').value = '[Step ' + (stepIdx+1) + '] ';
+  document.getElementById('artifactUrl').value = '';
+  document.getElementById('artifactDeleteBtn').style.display = 'none';
+  document.getElementById('artifactModal').classList.add('show');
 }
 
 function backToProjects() {
