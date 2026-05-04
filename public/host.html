@@ -129,6 +129,17 @@
   .waiting .url-display { font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
   .waiting p { margin-bottom: 0.5rem; }
 
+  .live-prompt-card { background: var(--card); border-radius: 12px; padding: 1.25rem; margin: 1.5rem auto 0; max-width: 600px; text-align: left; border: 1px solid var(--border); }
+  .live-prompt-card h4 { color: var(--teal-light); font-size: 0.85rem; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1px; }
+  .live-prompt-card .lpc-hint { color: var(--text-secondary); font-size: 0.78rem; margin-bottom: 0.6rem; }
+  .live-prompt-list { list-style: none; max-height: 220px; overflow-y: auto; }
+  .live-prompt-list li { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 0.3rem; font-size: 0.85rem; line-height: 1.35; }
+  .live-prompt-list .lp-num { width: 20px; height: 20px; flex-shrink: 0; border-radius: 50%; background: var(--teal); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; }
+  .live-prompt-list .lp-text { flex: 1; color: var(--text); }
+  .live-prompt-list .lp-rm { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1rem; padding: 0 0.3rem; }
+  .live-prompt-list .lp-rm:hover { color: #EF5350; }
+  .live-prompt-list .empty { color: var(--text-secondary); font-style: italic; text-align: center; padding: 0.5rem; }
+
   .complete-screen { display: none; flex: 1; padding: 2rem; }
   .complete-screen.active { display: flex; flex-direction: column; }
   .complete-screen h2 { color: var(--teal-light); margin-bottom: 1rem; text-align: center; }
@@ -235,8 +246,9 @@
     <div class="persp-count" id="perspCount">0 perspectives</div>
     <ul class="persp-list" id="perspList"></ul>
 
+    <p class="desc" style="margin-top:0.5rem;font-size:0.78rem">You can start with zero prompts and let participants submit them once they join.</p>
     <div class="btn-row">
-      <button class="btn btn-primary" id="startBtn" disabled onclick="startSession()">Start Session</button>
+      <button class="btn btn-primary" id="startBtn" onclick="startSession()">Start Session</button>
     </div>
   </div>
 </div>
@@ -257,9 +269,21 @@
       <p style="font-size:0.85rem">Scan the QR code or enter the code at the URL above</p>
       <div id="waitingParticipants" style="margin-top:1.5rem;display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center"></div>
       <div id="waitingCount" style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.5rem"></div>
+
+      <div class="live-prompt-card">
+        <h4>Perspectives <span id="livePromptCount" style="font-weight:600;letter-spacing:0">(0)</span></h4>
+        <div class="lpc-hint">Add one yourself or wait for participants to submit. Click × to remove anything you don't want.</div>
+        <div class="add-row">
+          <input type="text" id="hostWaitingInput" placeholder="Add a perspective..." maxlength="500">
+          <button class="btn btn-primary" onclick="addHostWaitingPersp()">Add</button>
+        </div>
+        <ul class="live-prompt-list" id="livePromptList"></ul>
+      </div>
+
       <div class="btn-row" style="justify-content:center;margin-top:1rem">
         <button class="btn btn-primary" id="beginBtn" disabled onclick="beginExercise()">Begin Exercise</button>
       </div>
+      <div id="beginHint" style="font-size:0.78rem;color:var(--text-secondary);margin-top:0.4rem"></div>
     </div>
 
     <div id="activeView" style="display:none">
@@ -379,6 +403,7 @@ const supabaseClient = window.supabaseClient;
 const generateRoomCode = window.generateRoomCode;
 
 let channel;
+let roomChannel;     // postgres_changes subscription on the room row
 let roomId = '';
 let roomCode = '';
 let perspectives = [];
@@ -388,6 +413,7 @@ let currentMajority = null;
 let participantsList = [];
 let pollInterval = null;
 let votesRevealed = false;
+let exerciseStarted = false;
 
 // ========== SETUP ==========
 function addPersp() {
@@ -403,7 +429,6 @@ document.getElementById('manualInput').addEventListener('keydown', e => { if (e.
 function renderPerspList() {
   const list = document.getElementById('perspList');
   document.getElementById('perspCount').textContent = `${perspectives.length} perspectives`;
-  document.getElementById('startBtn').disabled = perspectives.length === 0;
   list.innerHTML = perspectives.map((p, i) => `<li class="persp-item"><span class="num">${i+1}</span><span>${esc(p)}</span><button class="rm" onclick="window.perspectives.splice(${i},1);window.renderPerspList()">&times;</button></li>`).join('');
 }
 
@@ -517,9 +542,85 @@ async function startSession() {
 
   channel.subscribe();
 
+  // Subscribe to perspective changes on the room row (participant submissions)
+  roomChannel = supabaseClient
+    .channel(`room-row-${roomId}`)
+    .on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
+      (msg) => {
+        const newRow = msg.new || {};
+        if (Array.isArray(newRow.perspectives)) {
+          perspectives = newRow.perspectives;
+          renderLivePromptList();
+          updateBeginGate();
+          if (exerciseStarted) {
+            // Update active view counter so newly-appended prompts show in total
+            document.getElementById('perspCounter').textContent = `Perspective ${currentIndex + 1} of ${perspectives.length}`;
+          }
+        }
+      })
+    .subscribe();
+
+  renderLivePromptList();
+  updateBeginGate();
+
   // Poll for new participants
   pollInterval = setInterval(refreshParticipants, 3000);
   refreshParticipants();
+
+  // Enter to add prompt from host waiting screen
+  document.getElementById('hostWaitingInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); addHostWaitingPersp(); }
+  });
+}
+
+function renderLivePromptList() {
+  const ul = document.getElementById('livePromptList');
+  document.getElementById('livePromptCount').textContent = `(${perspectives.length})`;
+  if (!perspectives.length) {
+    ul.innerHTML = '<li class="empty">No perspectives yet.</li>';
+    return;
+  }
+  ul.innerHTML = perspectives.map((p, i) =>
+    `<li><span class="lp-num">${i+1}</span><span class="lp-text">${esc(p)}</span><button class="lp-rm" title="Remove" onclick="removeWaitingPersp(${i})">&times;</button></li>`
+  ).join('');
+}
+
+function updateBeginGate() {
+  const btn = document.getElementById('beginBtn');
+  const hint = document.getElementById('beginHint');
+  const havePersp = perspectives.length > 0;
+  const haveParts = participantsList.length > 0;
+  btn.disabled = !(havePersp && haveParts);
+  if (!havePersp && !haveParts) hint.textContent = 'Need at least one participant and one perspective.';
+  else if (!havePersp) hint.textContent = 'Add at least one perspective to begin.';
+  else if (!haveParts) hint.textContent = 'Waiting for participants to join.';
+  else hint.textContent = '';
+}
+
+async function addHostWaitingPersp() {
+  const input = document.getElementById('hostWaitingInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.disabled = true;
+  const { data, error } = await supabaseClient.rpc('append_room_perspective', {
+    p_room_id: roomId,
+    p_text: text
+  });
+  input.disabled = false;
+  if (error) { alert('Failed to add: ' + error.message); return; }
+  if (Array.isArray(data)) perspectives = data;
+  input.value = '';
+  renderLivePromptList();
+  updateBeginGate();
+}
+
+async function removeWaitingPersp(idx) {
+  if (idx < 0 || idx >= perspectives.length) return;
+  perspectives.splice(idx, 1);
+  await supabaseClient.from('rooms').update({ perspectives }).eq('id', roomId);
+  renderLivePromptList();
+  updateBeginGate();
 }
 
 // ========== REFRESH DATA ==========
@@ -527,7 +628,7 @@ async function refreshParticipants() {
   const { data: parts } = await supabaseClient.from('participants').select('*').eq('room_id', roomId);
   if (!parts) return;
   participantsList = parts;
-  if (parts.length > 0) document.getElementById('beginBtn').disabled = false;
+  updateBeginGate();
 
   // Update waiting screen names
   const wp = document.getElementById('waitingParticipants');
@@ -566,12 +667,14 @@ async function refreshVoteStatus() {
 
 // ========== PRESENTATION ==========
 async function beginExercise() {
+  if (perspectives.length === 0) { alert('Add at least one perspective first.'); return; }
   await supabaseClient.from('rooms').update({ status: 'active', current_index: 0 }).eq('id', roomId);
 
   document.getElementById('waitingView').style.display = 'none';
   document.getElementById('activeView').style.display = '';
   document.getElementById('controls').style.display = '';
   currentIndex = 0;
+  exerciseStarted = true;
   showPerspective(perspectives[0], 0, perspectives.length);
 
   // Broadcast to participants
@@ -901,6 +1004,8 @@ window.saveEditPersp = saveEditPersp;
 window.deleteCurrentPersp = deleteCurrentPersp;
 window.toggleAddPersp = toggleAddPersp;
 window.addLivePersp = addLivePersp;
+window.addHostWaitingPersp = addHostWaitingPersp;
+window.removeWaitingPersp = removeWaitingPersp;
 
 // ========== TEMPLATES ==========
 const TEMPLATES = {

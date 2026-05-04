@@ -145,10 +145,30 @@
     text-decoration: underline;
   }
 
-  .waiting-screen { display: none; flex: 1; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
+  .waiting-screen { display: none; flex: 1; align-items: center; justify-content: flex-start; text-align: center; padding: 2rem 1.5rem; }
   .waiting-screen.active { display: flex; flex-direction: column; }
   .waiting-screen h2 { color: var(--teal-light); margin-bottom: 0.5rem; }
   .waiting-screen p { color: var(--text-secondary); }
+
+  .prompt-card { background: var(--card); border-radius: 12px; padding: 1.25rem; margin-top: 1.5rem; max-width: 520px; width: 100%; box-shadow: var(--shadow); text-align: left; }
+  .prompt-card h3 { color: var(--teal-light); font-size: 0.95rem; margin-bottom: 0.35rem; }
+  .prompt-card .hint { color: var(--text-secondary); font-size: 0.78rem; margin-bottom: 0.75rem; }
+  .prompt-add-row { display: flex; gap: 0.4rem; }
+  .prompt-add-row input { flex: 1; padding: 0.6rem 0.8rem; font-size: 0.9rem; }
+  .prompt-add-row button { padding: 0.6rem 1rem; background: var(--teal); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+  .prompt-add-row button:disabled { background: #37474F; color: #78909C; cursor: not-allowed; }
+  .prompt-list { list-style: none; margin-top: 0.85rem; max-height: 240px; overflow-y: auto; }
+  .prompt-list li { background: rgba(0,137,123,0.12); border-left: 3px solid var(--teal); border-radius: 6px; padding: 0.5rem 0.7rem; margin-bottom: 0.35rem; font-size: 0.85rem; line-height: 1.35; color: var(--text); }
+  .prompt-list li.mine { background: rgba(77,182,172,0.18); }
+  .prompt-list .empty { color: var(--text-secondary); font-style: italic; font-size: 0.82rem; padding: 0.5rem; text-align: center; }
+  .prompt-status { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.4rem; min-height: 1em; }
+  .prompt-status.error { color: #EF5350; }
+
+  .suggest-collapse { margin-top: 1rem; max-width: 520px; width: 100%; }
+  .suggest-toggle { background: rgba(255,255,255,0.05); border: 1px dashed var(--border); color: var(--teal-light); padding: 0.55rem 0.9rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; width: 100%; }
+  .suggest-toggle:hover { background: rgba(0,137,123,0.1); border-color: var(--teal); }
+  .suggest-panel { display: none; margin-top: 0.5rem; }
+  .suggest-panel.active { display: block; }
 
   .complete-msg { display: none; flex: 1; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
   .complete-msg.active { display: flex; flex-direction: column; }
@@ -191,8 +211,19 @@
 <!-- Waiting for exercise to start -->
 <div class="waiting-screen" id="waitingScreen">
   <h2>You're in!</h2>
-  <p>Waiting for the facilitator to start the exercise...</p>
-  <p style="margin-top:1rem;font-size:0.85rem;color:var(--text-secondary)" id="sessionTitle"></p>
+  <p>Waiting for the facilitator to start the exercise.</p>
+  <p style="margin-top:0.5rem;font-size:0.85rem;color:var(--text-secondary)" id="sessionTitle"></p>
+
+  <div class="prompt-card">
+    <h3>Suggest perspectives</h3>
+    <div class="hint">Add anything you think the team should evaluate. Submissions appear in the list below for everyone.</div>
+    <div class="prompt-add-row">
+      <input type="text" id="waitingPromptInput" placeholder="A perspective, claim, or statement..." maxlength="500">
+      <button id="waitingPromptBtn" onclick="submitPrompt('waitingPromptInput', 'waitingPromptStatus')">Add</button>
+    </div>
+    <div class="prompt-status" id="waitingPromptStatus"></div>
+    <ul class="prompt-list" id="waitingPromptList"></ul>
+  </div>
 </div>
 
 <!-- Voting screen -->
@@ -243,6 +274,20 @@
       Your vote has been submitted.
       <br><button class="change-vote-btn" onclick="changeVote()">Change my vote</button>
     </div>
+
+    <div class="suggest-collapse">
+      <button class="suggest-toggle" onclick="toggleSuggestPanel()">＋ Suggest another perspective</button>
+      <div class="suggest-panel" id="suggestPanel">
+        <div class="prompt-card" style="margin-top:0.5rem">
+          <div class="hint">Your suggestion is added to the end of the queue.</div>
+          <div class="prompt-add-row">
+            <input type="text" id="livePromptInput" placeholder="A perspective, claim, or statement..." maxlength="500">
+            <button id="livePromptBtn" onclick="submitPrompt('livePromptInput', 'livePromptStatus')">Add</button>
+          </div>
+          <div class="prompt-status" id="livePromptStatus"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -267,6 +312,8 @@ let currentPerspectiveIndex = 0;
 let myCertainty = null;
 let myImportance = null;
 let hasSubmitted = false;
+let myPromptSet = new Set();   // perspectives this participant submitted (for highlighting)
+let roomChannel = null;         // postgres_changes subscription on the room row
 
 async function joinRoom() {
   const code = document.getElementById('codeInput').value.trim().toUpperCase();
@@ -327,6 +374,23 @@ async function joinRoom() {
   });
 
   channel.subscribe();
+
+  // Subscribe to perspectives changes on the room row so submissions sync live
+  roomChannel = supabaseClient
+    .channel(`room-row-${roomId}`)
+    .on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
+      (msg) => {
+        const newRow = msg.new || {};
+        if (Array.isArray(newRow.perspectives)) {
+          perspectives = newRow.perspectives;
+          totalPerspectives = perspectives.length;
+          renderWaitingPromptList();
+        }
+      })
+    .subscribe();
+
+  renderWaitingPromptList();
 
   // Notify host that we joined
   channel.send({ type: 'broadcast', event: 'participant_joined', payload: { name } });
@@ -436,12 +500,81 @@ function changeVote() {
   document.getElementById('voteConfirmed').classList.remove('active');
 }
 
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function renderWaitingPromptList() {
+  const ul = document.getElementById('waitingPromptList');
+  if (!ul) return;
+  if (!perspectives.length) {
+    ul.innerHTML = '<li class="empty">No perspectives yet — be the first to add one.</li>';
+    return;
+  }
+  ul.innerHTML = perspectives.map(p =>
+    `<li class="${myPromptSet.has(p) ? 'mine' : ''}">${escHtml(p)}</li>`
+  ).join('');
+}
+
+async function submitPrompt(inputId, statusId) {
+  const input = document.getElementById(inputId);
+  const status = document.getElementById(statusId);
+  const text = input.value.trim();
+  status.classList.remove('error');
+  if (!text) {
+    status.textContent = 'Type something first.';
+    status.classList.add('error');
+    return;
+  }
+  if (!roomId) {
+    status.textContent = 'Join a room first.';
+    status.classList.add('error');
+    return;
+  }
+  input.disabled = true;
+  status.textContent = 'Adding...';
+  const { data, error } = await supabaseClient.rpc('append_room_perspective', {
+    p_room_id: roomId,
+    p_text: text
+  });
+  input.disabled = false;
+  if (error) {
+    status.textContent = 'Failed: ' + error.message;
+    status.classList.add('error');
+    return;
+  }
+  myPromptSet.add(text);
+  if (Array.isArray(data)) {
+    perspectives = data;
+    totalPerspectives = perspectives.length;
+  }
+  input.value = '';
+  status.textContent = 'Added. Thanks!';
+  renderWaitingPromptList();
+  setTimeout(() => { if (status.textContent === 'Added. Thanks!') status.textContent = ''; }, 2500);
+}
+
+function toggleSuggestPanel() {
+  const panel = document.getElementById('suggestPanel');
+  panel.classList.toggle('active');
+  if (panel.classList.contains('active')) {
+    document.getElementById('livePromptInput').focus();
+  }
+}
+
 // Expose functions for onclick handlers
 window.joinRoom = joinRoom;
 window.pickCertainty = pickCertainty;
 window.pickImportance = pickImportance;
 window.submitVote = submitVote;
 window.changeVote = changeVote;
+window.submitPrompt = submitPrompt;
+window.toggleSuggestPanel = toggleSuggestPanel;
+
+// Enter to submit prompts
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  if (e.target.id === 'waitingPromptInput') { e.preventDefault(); submitPrompt('waitingPromptInput', 'waitingPromptStatus'); }
+  if (e.target.id === 'livePromptInput')    { e.preventDefault(); submitPrompt('livePromptInput', 'livePromptStatus'); }
+});
 
 // Pre-fill code from URL query param
 const urlCode = new URLSearchParams(window.location.search).get('code');
