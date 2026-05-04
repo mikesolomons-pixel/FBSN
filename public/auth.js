@@ -1,6 +1,9 @@
 (function() {
-  // Skip auth on login page
-  if (window.location.pathname.endsWith('login.html')) return;
+  // Skip auth on public pages (login, email confirmation, and the
+  // QR-code participant join flow — participants don't need accounts).
+  // Match with or without the .html extension (clean URLs).
+  var page = window.location.pathname.split('/').pop().replace(/\.html$/, '');
+  if (page === 'login' || page === 'join' || page === 'confirm') return;
 
   // Hide page until auth check completes
   document.documentElement.style.visibility = 'hidden';
