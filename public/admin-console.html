@@ -1264,7 +1264,7 @@
   async function loadUsers() {
     const sb = await getClient();
     if (!sb) return;
-    const { data, error } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+    const { data, error } = await sb.from('fbsn_profiles').select('*').order('created_at', { ascending: false });
     if (error) { console.warn('users fetch error', error); users = []; }
     else { users = data || []; }
     renderUsers();
@@ -1298,7 +1298,7 @@
         const id = sel.getAttribute('data-id');
         const newRole = sel.value;
         const sb = await getClient();
-        const { error } = await sb.from('profiles').update({ role: newRole }).eq('id', id);
+        const { error } = await sb.from('fbsn_profiles').update({ role: newRole }).eq('id', id);
         if (error) {
           alert('Failed to update role: ' + error.message);
           await loadUsers();

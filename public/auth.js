@@ -33,7 +33,7 @@
     };
 
     // Fetch profile to get role
-    var profileResult = await sb.from('profiles').select('role, full_name').eq('id', session.user.id).single();
+    var profileResult = await sb.from('fbsn_profiles').select('role, full_name').eq('id', session.user.id).single();
     if (profileResult.data) {
       user.role = profileResult.data.role;
       user.fullName = profileResult.data.full_name || user.fullName;
