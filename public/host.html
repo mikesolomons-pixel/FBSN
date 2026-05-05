@@ -62,6 +62,21 @@
   .persp-item .rm { margin-left: auto; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1rem; }
   .persp-count { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
 
+  .qr-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+  .qr-overlay.active { display: flex; }
+  .qr-modal { background: var(--card); border-radius: 16px; padding: 2rem; max-width: 440px; width: 100%; text-align: center; }
+  .qr-modal h3 { color: var(--teal-light); margin-bottom: 0.4rem; font-size: 1.05rem; }
+  .qr-modal p { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem; }
+  .qr-modal .qr-code-box { display: inline-block; padding: 14px; background: white; border-radius: 12px; }
+  .qr-modal .qr-room-code { font-size: 3rem; font-weight: 800; letter-spacing: 8px; color: var(--teal-light); margin: 0.75rem 0; }
+  .qr-modal .qr-url { font-size: 0.85rem; color: var(--text-secondary); word-break: break-all; margin-top: 0.75rem; }
+  .qr-modal .qr-close { margin-top: 1.25rem; padding: 0.55rem 1.5rem; background: var(--teal); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+  .qr-modal .qr-copy { margin-top: 0.5rem; padding: 0.4rem 1rem; background: transparent; color: var(--teal-light); border: 1px solid var(--teal); border-radius: 6px; font-size: 0.78rem; cursor: pointer; }
+  .qr-modal .qr-copy:hover { background: rgba(0,137,123,0.1); }
+
+  .show-qr-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25); color: var(--text); padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; }
+  .show-qr-btn:hover { background: rgba(255,255,255,0.2); }
+
   .resume-banner { background: rgba(0,137,123,0.15); border: 1px solid var(--teal); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: none; }
   .resume-banner.active { display: block; }
   .resume-banner h3 { color: var(--teal-light); font-size: 0.95rem; margin-bottom: 0.25rem; }
@@ -284,7 +299,10 @@
 <div class="presentation" id="presentationView">
   <div class="top-bar">
     <div class="participants-bar" id="participantsBar"></div>
-    <div class="vote-status" id="voteStatus">Waiting for participants...</div>
+    <div style="display:flex;align-items:center;gap:0.75rem">
+      <button class="show-qr-btn" type="button" onclick="openQrModal()" title="Show QR code and join link">📱 Show join code</button>
+      <div class="vote-status" id="voteStatus">Waiting for participants...</div>
+    </div>
   </div>
 
   <div class="perspective-area" id="perspArea">
@@ -1048,6 +1066,39 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape' && document.getElementById('editOverlay').classList.contains('active')) { cancelEditPersp(); }
 });
 
+// ========== QR MODAL (re-share join link mid-session) ==========
+function openQrModal() {
+  if (!roomCode) { alert('Session not started yet.'); return; }
+  const overlay = document.getElementById('qrOverlay');
+  const codeEl = document.getElementById('qrModalCode');
+  const roomCodeEl = document.getElementById('qrModalRoomCode');
+  const urlEl = document.getElementById('qrModalUrl');
+  const joinUrl = `${location.origin}/join.html?code=${roomCode}`;
+  // Re-render the QR each open in case roomCode changed.
+  codeEl.innerHTML = '';
+  new QRCode(codeEl, { text: joinUrl, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
+  roomCodeEl.textContent = roomCode;
+  urlEl.textContent = joinUrl;
+  overlay.classList.add('active');
+}
+function closeQrModal() {
+  document.getElementById('qrOverlay').classList.remove('active');
+}
+async function copyJoinUrl(btn) {
+  const url = `${location.origin}/join.html?code=${roomCode}`;
+  try {
+    await navigator.clipboard.writeText(url);
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  } catch (e) {
+    alert('Copy failed. URL: ' + url);
+  }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('qrOverlay').classList.contains('active')) closeQrModal();
+});
+
 // ========== UTILS ==========
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -1076,6 +1127,9 @@ window.toggleAddPersp = toggleAddPersp;
 window.addLivePersp = addLivePersp;
 window.addHostWaitingPersp = addHostWaitingPersp;
 window.removeWaitingPersp = removeWaitingPersp;
+window.openQrModal = openQrModal;
+window.closeQrModal = closeQrModal;
+window.copyJoinUrl = copyJoinUrl;
 
 // ========== TEMPLATES ==========
 const TEMPLATES = {
@@ -1257,6 +1311,20 @@ renderPerspList();
       <button class="btn btn-ghost" onclick="cancelEditPersp()">Cancel</button>
       <button class="btn btn-primary" onclick="saveEditPersp()">Save</button>
     </div>
+  </div>
+</div>
+
+<div class="qr-overlay" id="qrOverlay" onclick="if(event.target===this)closeQrModal()">
+  <div class="qr-modal">
+    <h3>Join this session</h3>
+    <p>Scan the QR or share the URL with anyone who got knocked off.</p>
+    <div class="qr-code-box" id="qrModalCode"></div>
+    <div class="qr-room-code" id="qrModalRoomCode"></div>
+    <div class="qr-url" id="qrModalUrl"></div>
+    <div>
+      <button class="qr-copy" type="button" onclick="copyJoinUrl(this)">Copy link</button>
+    </div>
+    <button class="qr-close" type="button" onclick="closeQrModal()">Close</button>
   </div>
 </div>
 
