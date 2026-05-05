@@ -325,6 +325,7 @@ let myImportance = null;
 let hasSubmitted = false;
 let roomChannel = null;        // postgres_changes subscription on the room row
 let editingIndex = -1;          // index in `perspectives` currently being edited
+let allowParticipantPrompts = true;  // false = participants can't add
 
 // Helpers for perspective shape (string for legacy entries, object for new)
 function pText(p) { return (p && typeof p === 'object') ? (p.text || '') : (p || ''); }
@@ -348,6 +349,8 @@ async function joinRoom() {
   participantName = name;
   perspectives = room.perspectives || [];
   totalPerspectives = perspectives.length;
+  allowParticipantPrompts = room.allow_participant_prompts !== false;
+  applyLockUI();
 
   // Add participant
   const { data: participant, error: pErr } = await supabaseClient.from('participants').insert({
@@ -401,6 +404,10 @@ async function joinRoom() {
           perspectives = newRow.perspectives;
           totalPerspectives = perspectives.length;
           renderWaitingPromptList();
+        }
+        if (typeof newRow.allow_participant_prompts === 'boolean') {
+          allowParticipantPrompts = newRow.allow_participant_prompts;
+          applyLockUI();
         }
       })
     .subscribe();
@@ -516,6 +523,14 @@ function changeVote() {
 }
 
 function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function applyLockUI() {
+  // Hide the prompt-card on the waiting screen and the suggest-collapse on
+  // the voting screen if the host has locked the perspective list.
+  document.querySelectorAll('.prompt-card, .suggest-collapse').forEach(el => {
+    el.style.display = allowParticipantPrompts ? '' : 'none';
+  });
+}
 
 // Build [{ index, text }] of perspectives this participant submitted that
 // haven't been evaluated yet (only show the participant's own queue —

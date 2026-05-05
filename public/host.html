@@ -250,6 +250,13 @@
     <ul class="persp-list" id="perspList"></ul>
 
     <p class="desc" style="margin-top:0.5rem;font-size:0.78rem">You can start with zero prompts and let participants submit them once they join.</p>
+
+    <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;font-weight:500;color:var(--text-secondary);margin-top:0.6rem;cursor:pointer">
+      <input type="checkbox" id="allowPromptsToggle" checked style="width:auto">
+      <span>Let participants add their own perspectives</span>
+    </label>
+    <div class="desc" id="lockedHint" style="font-size:0.75rem;margin-top:0.3rem;display:none;color:#F9A825">Locked: participants can only vote on the perspectives you've set.</div>
+
     <div class="btn-row">
       <button class="btn btn-primary" id="startBtn" onclick="startSession()">Start Session</button>
     </div>
@@ -274,8 +281,8 @@
       <div id="waitingCount" style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.5rem"></div>
 
       <div class="live-prompt-card">
-        <h4>Perspectives <span id="livePromptCount" style="font-weight:600;letter-spacing:0">(0)</span></h4>
-        <div class="lpc-hint">Add one yourself or wait for participants to submit. Click × to remove anything you don't want.</div>
+        <h4>Perspectives <span id="livePromptCount" style="font-weight:600;letter-spacing:0">(0)</span> <span id="lockBadge" style="display:none;background:rgba(249,168,37,0.2);color:#F9A825;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.65rem;font-weight:600;letter-spacing:0.5px;margin-left:0.4rem">LOCKED</span></h4>
+        <div class="lpc-hint" id="lpcHint">Add one yourself or wait for participants to submit. Click × to remove anything you don't want.</div>
         <div class="add-row">
           <textarea id="hostWaitingInput" placeholder="Add a perspective. Enter to add, Shift+Enter for newline." maxlength="500" rows="3"></textarea>
           <button class="btn btn-primary" onclick="addHostWaitingPersp()">Add</button>
@@ -417,6 +424,7 @@ let participantsList = [];
 let pollInterval = null;
 let votesRevealed = false;
 let exerciseStarted = false;
+let allowParticipantPrompts = true;
 
 // Helpers for perspective shape (string for legacy entries, object for new)
 function pText(p) { return (p && typeof p === 'object') ? (p.text || '') : (p || ''); }
@@ -503,6 +511,7 @@ async function extractPerspectives() {
 async function startSession() {
   const title = document.getElementById('titleInput').value.trim() || 'Untitled';
   const context = document.getElementById('contextInput').value.trim();
+  const allowPrompts = document.getElementById('allowPromptsToggle').checked;
   roomCode = generateRoomCode();
 
   // Insert room into Supabase
@@ -514,7 +523,8 @@ async function startSession() {
     current_index: 0,
     revealed: false,
     final_decisions: {},
-    status: 'waiting'
+    status: 'waiting',
+    allow_participant_prompts: allowPrompts
   }).select().single();
 
   if (error) {
@@ -523,6 +533,8 @@ async function startSession() {
   }
 
   roomId = data.id;
+  allowParticipantPrompts = allowPrompts;
+  applyLockUI();
 
   // Show presentation view
   document.getElementById('roomCodeDisplay').style.display = '';
@@ -574,6 +586,15 @@ async function startSession() {
   // Poll for new participants
   pollInterval = setInterval(refreshParticipants, 3000);
   refreshParticipants();
+}
+
+function applyLockUI() {
+  const badge = document.getElementById('lockBadge');
+  const hint = document.getElementById('lpcHint');
+  if (badge) badge.style.display = allowParticipantPrompts ? 'none' : '';
+  if (hint) hint.textContent = allowParticipantPrompts
+    ? "Add one yourself or wait for participants to submit. Click × to remove anything you don't want."
+    : "Locked: only you can add or remove perspectives. Participants will only vote on this list.";
 }
 
 function renderLivePromptList() {
@@ -1051,8 +1072,22 @@ const TEMPLATES = {
     document.getElementById('titleInput').value = t.title;
     document.getElementById('contextInput').value = t.context;
     t.perspectives.forEach(p => perspectives.push({ text: p, submitter: null }));
+    // Curated templates run as locked sessions by default — facilitator
+    // can re-enable participant prompts via the checkbox if they want.
+    const toggle = document.getElementById('allowPromptsToggle');
+    if (toggle) toggle.checked = false;
+    syncLockedHint();
   }
 })();
+
+function syncLockedHint() {
+  const toggle = document.getElementById('allowPromptsToggle');
+  const hint = document.getElementById('lockedHint');
+  if (!toggle || !hint) return;
+  hint.style.display = toggle.checked ? 'none' : '';
+}
+document.getElementById('allowPromptsToggle').addEventListener('change', syncLockedHint);
+syncLockedHint();
 
 // ATTACH MODE: ?attach=ROOM_CODE — used by the test harness to embed
 // the host view of an already-created room. Skips the setup screen.
@@ -1081,6 +1116,8 @@ const TEMPLATES = {
   perspectives = room.perspectives || [];
   currentIndex = room.current_index || 0;
   finalDecisions = room.final_decisions || {};
+  allowParticipantPrompts = room.allow_participant_prompts !== false;
+  applyLockUI();
 
   document.getElementById('roomCodeDisplay').style.display = '';
   document.getElementById('roomCodeDisplay').textContent = roomCode;
