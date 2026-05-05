@@ -166,7 +166,7 @@
     document.getElementById('hostCode').textContent = data.code;
 
     // Load iframes
-    document.getElementById('hostFrame').src = `host.html?attach=${data.code}`;
+    document.getElementById('hostFrame').src = `host.html?attach=${data.code}&fromHarness=1`;
     NAMES.forEach((name, i) => {
       const f = document.getElementById(`p${i+1}Frame`);
       // Stagger joins so the realtime subscriptions don't all fire at once
