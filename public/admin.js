@@ -131,13 +131,16 @@
     const name = user ? user.fullName || user.email : 'Admin';
     const badge = document.createElement('div');
     badge.className = 'admin-badge';
-    badge.innerHTML = `${esc(name)} <button id="admin-console-link">Console</button> <button id="admin-clients-link">Clients</button> <button id="admin-logout">Logout</button>`;
+    badge.innerHTML = `${esc(name)} <button id="admin-console-link">Console</button> <button id="admin-clients-link">Clients</button> <button id="admin-harness-link">Test Harness</button> <button id="admin-logout">Logout</button>`;
     document.body.appendChild(badge);
     document.getElementById('admin-console-link').onclick = function () {
       window.location.href = 'admin-console.html';
     };
     document.getElementById('admin-clients-link').onclick = function () {
       window.location.href = 'clients.html';
+    };
+    document.getElementById('admin-harness-link').onclick = function () {
+      window.location.href = 'test-harness.html';
     };
     document.getElementById('admin-logout').onclick = function () {
       if (window.VCTAuth) window.VCTAuth.logout();
