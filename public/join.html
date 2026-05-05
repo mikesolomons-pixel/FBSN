@@ -32,7 +32,9 @@
   .header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 1px; }
   .header .back-link { display:inline-flex;align-items:center;gap:0.3rem;color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.7rem;transition:color 0.15s; }
   .header .back-link:hover { color:white; }
-  .header .info { font-size: 0.8rem; opacity: 0.8; text-align: right; }
+  .header .info { font-size: 0.8rem; opacity: 0.85; text-align: right; }
+  .header .info button { background: none; border: 1px solid rgba(255,255,255,0.4); color: white; padding: 0.2rem 0.55rem; border-radius: 4px; font-size: 0.7rem; cursor: pointer; margin-left: 0.4rem; }
+  .header .info button:hover { background: rgba(255,255,255,0.15); }
 
   .main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
 
@@ -331,9 +333,27 @@ let allowParticipantPrompts = true;  // false = participants can't add
 function pText(p) { return (p && typeof p === 'object') ? (p.text || '') : (p || ''); }
 function pSubmitter(p) { return (p && typeof p === 'object') ? (p.submitter || null) : null; }
 
-async function joinRoom() {
-  const code = document.getElementById('codeInput').value.trim().toUpperCase();
-  const name = document.getElementById('nameInput').value.trim();
+// LocalStorage helpers — let participants resume after closing their browser.
+function sessionKey(code) { return 'fbsn:session:' + code.toUpperCase(); }
+function saveSession(code, pid, name) {
+  try { localStorage.setItem(sessionKey(code), JSON.stringify({ pid, name, at: Date.now() })); } catch (e) {}
+}
+function loadSession(code) {
+  try {
+    const raw = localStorage.getItem(sessionKey(code));
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
+function clearSession(code) {
+  try { localStorage.removeItem(sessionKey(code)); } catch (e) {}
+}
+
+async function joinRoom(opts) {
+  opts = opts || {};
+  const code = (opts.code || document.getElementById('codeInput').value).trim().toUpperCase();
+  const name = (opts.name || document.getElementById('nameInput').value).trim();
+  const resumePid = opts.resumePid || null;
   if (!code || code.length !== 4) { showError('Enter a 4-character room code.'); return; }
   if (!name) { showError('Enter your name.'); return; }
 
@@ -341,6 +361,7 @@ async function joinRoom() {
   const { data: room, error } = await supabaseClient.from('rooms').select('*').eq('code', code).single();
   if (error || !room) {
     showError('Room not found. Check the code and try again.');
+    if (resumePid) clearSession(code);  // stored session points at a dead room
     return;
   }
 
@@ -352,22 +373,37 @@ async function joinRoom() {
   allowParticipantPrompts = room.allow_participant_prompts !== false;
   applyLockUI();
 
-  // Add participant
-  const { data: participant, error: pErr } = await supabaseClient.from('participants').insert({
-    room_id: roomId,
-    name
-  }).select().single();
+  // Resume existing participant if we have a stored id, otherwise insert.
+  let participant = null;
+  if (resumePid) {
+    const { data: existing } = await supabaseClient.from('participants')
+      .select('*').eq('id', resumePid).eq('room_id', roomId).maybeSingle();
+    if (existing) {
+      participant = existing;
+    } else {
+      // The stored participant is gone (room recreated, or row deleted).
+      clearSession(code);
+    }
+  }
 
-  if (pErr) {
-    showError('Failed to join: ' + pErr.message);
-    return;
+  if (!participant) {
+    const { data: created, error: pErr } = await supabaseClient.from('participants').insert({
+      room_id: roomId,
+      name
+    }).select().single();
+    if (pErr) {
+      showError('Failed to join: ' + pErr.message);
+      return;
+    }
+    participant = created;
   }
 
   participantId = participant.id;
+  saveSession(code, participantId, name);
 
   // Update header
   document.getElementById('joinScreen').style.display = 'none';
-  document.getElementById('headerInfo').textContent = `${name} | ${code}`;
+  document.getElementById('headerInfo').innerHTML = `${escHtml(name)} | ${escHtml(code)} <button onclick="switchUser()" title="Sign in as someone else">Switch</button>`;
 
   // Subscribe to broadcast channel
   channel = supabaseClient.channel(`room-${roomCode}`);
@@ -672,6 +708,13 @@ function toggleSuggestPanel() {
   }
 }
 
+function switchUser() {
+  if (!confirm('Sign in as someone else? Your votes stay on this device but the next person will start fresh.')) return;
+  if (roomCode) clearSession(roomCode);
+  // Reload without auto-resume
+  window.location.href = '/join.html?code=' + (roomCode || '') + '&switch=1';
+}
+
 // Expose functions for onclick handlers
 window.joinRoom = joinRoom;
 window.pickCertainty = pickCertainty;
@@ -684,6 +727,7 @@ window.startEditPrompt = startEditPrompt;
 window.cancelEditPrompt = cancelEditPrompt;
 window.saveEditPrompt = saveEditPrompt;
 window.removeMyPrompt = removeMyPrompt;
+window.switchUser = switchUser;
 
 // Enter to submit prompts (Shift+Enter for newline)
 document.addEventListener('keydown', (e) => {
@@ -697,20 +741,36 @@ const urlParams = new URLSearchParams(window.location.search);
 const urlCode = urlParams.get('code');
 const urlName = urlParams.get('name');
 const urlAutoJoin = urlParams.get('autojoin') === '1';
+const urlSwitchUser = urlParams.get('switch') === '1';
 if (urlCode) document.getElementById('codeInput').value = urlCode.toUpperCase();
-if (urlName) document.getElementById('nameInput').value = urlName;
-if (urlAutoJoin && urlCode && urlName) {
-  // Wait for the supabase client to be ready before auto-joining.
-  (async () => {
-    for (let i = 0; i < 30; i++) {
-      if (window.supabaseClient) break;
-      await new Promise(r => setTimeout(r, 100));
+
+(async () => {
+  // Wait for the supabase client.
+  for (let i = 0; i < 30; i++) {
+    if (window.supabaseClient) break;
+    await new Promise(r => setTimeout(r, 100));
+  }
+  if (urlCode && urlSwitchUser) {
+    clearSession(urlCode);  // explicit "join as someone else"
+  }
+  // Saved session for this room? Auto-resume.
+  if (urlCode && !urlSwitchUser) {
+    const saved = loadSession(urlCode);
+    if (saved && saved.pid && saved.name) {
+      document.getElementById('nameInput').value = saved.name;
+      joinRoom({ code: urlCode, name: saved.name, resumePid: saved.pid });
+      return;
     }
-    joinRoom();
-  })();
-} else if (urlCode) {
-  document.getElementById('nameInput').focus();
-}
+  }
+  // Test-harness style auto-join (always treat as fresh, ignore any stored).
+  if (urlAutoJoin && urlCode && urlName) {
+    if (urlName) document.getElementById('nameInput').value = urlName;
+    joinRoom({ code: urlCode, name: urlName });
+    return;
+  }
+  if (urlName) document.getElementById('nameInput').value = urlName;
+  if (urlCode) document.getElementById('nameInput').focus();
+})();
 
 // Enter key to join
 document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom(); });
