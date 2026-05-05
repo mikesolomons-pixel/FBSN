@@ -158,10 +158,20 @@
   .prompt-add-row textarea:focus { outline: none; border-color: var(--teal); }
   .prompt-add-row button { padding: 0.6rem 1rem; background: var(--teal); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; align-self: stretch; min-width: 72px; }
   .prompt-add-row button:disabled { background: #37474F; color: #78909C; cursor: not-allowed; }
-  .prompt-list { list-style: none; margin-top: 0.85rem; max-height: 240px; overflow-y: auto; }
-  .prompt-list li { background: rgba(0,137,123,0.12); border-left: 3px solid var(--teal); border-radius: 6px; padding: 0.5rem 0.7rem; margin-bottom: 0.35rem; font-size: 0.85rem; line-height: 1.35; color: var(--text); }
-  .prompt-list li.mine { background: rgba(77,182,172,0.18); }
-  .prompt-list .empty { color: var(--text-secondary); font-style: italic; font-size: 0.82rem; padding: 0.5rem; text-align: center; }
+  .prompt-list { list-style: none; margin-top: 0.85rem; max-height: 320px; overflow-y: auto; }
+  .prompt-list li { background: rgba(77,182,172,0.18); border-left: 3px solid var(--teal); border-radius: 6px; padding: 0.5rem 0.7rem; margin-bottom: 0.35rem; font-size: 0.88rem; line-height: 1.4; color: var(--text); display: flex; gap: 0.4rem; align-items: flex-start; }
+  .prompt-list .pl-text { flex: 1; word-break: break-word; }
+  .prompt-list .pl-actions { display: flex; gap: 0.25rem; flex-shrink: 0; }
+  .prompt-list .pl-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.95rem; padding: 0 0.25rem; line-height: 1; }
+  .prompt-list .pl-btn:hover { color: var(--teal-light); }
+  .prompt-list .pl-btn.pl-rm:hover { color: #EF5350; }
+  .prompt-list .empty { color: var(--text-secondary); font-style: italic; font-size: 0.82rem; padding: 0.5rem; text-align: center; background: none; border-left: none; display: block; }
+  .prompt-list .editing { background: var(--bg); }
+  .prompt-list .editing textarea { width: 100%; min-height: 64px; padding: 0.5rem; background: var(--bg); border: 1px solid var(--teal); border-radius: 6px; color: var(--text); font-family: inherit; font-size: 0.88rem; line-height: 1.4; resize: vertical; }
+  .prompt-list .editing .edit-actions { display: flex; gap: 0.4rem; justify-content: flex-end; margin-top: 0.4rem; }
+  .prompt-list .editing .edit-actions button { padding: 0.3rem 0.7rem; font-size: 0.78rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
+  .prompt-list .editing .save-btn { background: var(--teal); color: white; }
+  .prompt-list .editing .cancel-btn { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
   .prompt-status { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.4rem; min-height: 1em; }
   .prompt-status.error { color: #EF5350; }
 
@@ -313,8 +323,12 @@ let currentPerspectiveIndex = 0;
 let myCertainty = null;
 let myImportance = null;
 let hasSubmitted = false;
-let myPromptSet = new Set();   // perspectives this participant submitted (for highlighting)
-let roomChannel = null;         // postgres_changes subscription on the room row
+let roomChannel = null;        // postgres_changes subscription on the room row
+let editingIndex = -1;          // index in `perspectives` currently being edited
+
+// Helpers for perspective shape (string for legacy entries, object for new)
+function pText(p) { return (p && typeof p === 'object') ? (p.text || '') : (p || ''); }
+function pSubmitter(p) { return (p && typeof p === 'object') ? (p.submitter || null) : null; }
 
 async function joinRoom() {
   const code = document.getElementById('codeInput').value.trim().toUpperCase();
@@ -425,7 +439,7 @@ async function showVoteScreen(text, idx, total, existingVote) {
 
   document.getElementById('waitingScreen').classList.remove('active');
   document.getElementById('voteScreen').classList.add('active');
-  document.getElementById('perspectiveText').textContent = text;
+  document.getElementById('perspectiveText').textContent = pText(text);
   document.getElementById('voteCounter').textContent = `Perspective ${idx + 1} of ${total}`;
   document.getElementById('voteProgressFill').style.width = `${(idx / total) * 100}%`;
 
@@ -503,16 +517,43 @@ function changeVote() {
 
 function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
+// Build [{ index, text }] of perspectives this participant submitted that
+// haven't been evaluated yet (only show the participant's own queue —
+// other people's submissions stay private until they come up in voting).
+function myUnevaluatedQueue() {
+  const out = [];
+  perspectives.forEach((p, i) => {
+    if (pSubmitter(p) === participantId) out.push({ index: i, text: pText(p) });
+  });
+  return out;
+}
+
 function renderWaitingPromptList() {
   const ul = document.getElementById('waitingPromptList');
   if (!ul) return;
-  if (!perspectives.length) {
-    ul.innerHTML = '<li class="empty">No perspectives yet — be the first to add one.</li>';
+  const mine = myUnevaluatedQueue();
+  if (!mine.length) {
+    ul.innerHTML = '<li class="empty">Your perspectives appear here. Other participants can\'t see them until they come up in voting.</li>';
     return;
   }
-  ul.innerHTML = perspectives.map(p =>
-    `<li class="${myPromptSet.has(p) ? 'mine' : ''}">${escHtml(p)}</li>`
-  ).join('');
+  ul.innerHTML = mine.map(({ index, text }) => {
+    if (editingIndex === index) {
+      return `<li class="editing"><div style="flex:1">
+        <textarea id="editArea-${index}">${escHtml(text)}</textarea>
+        <div class="edit-actions">
+          <button class="cancel-btn" onclick="cancelEditPrompt()">Cancel</button>
+          <button class="save-btn" onclick="saveEditPrompt(${index})">Save</button>
+        </div>
+      </div></li>`;
+    }
+    return `<li>
+      <span class="pl-text">${escHtml(text)}</span>
+      <span class="pl-actions">
+        <button class="pl-btn" title="Edit" onclick="startEditPrompt(${index})">✎</button>
+        <button class="pl-btn pl-rm" title="Remove" onclick="removeMyPrompt(${index})">×</button>
+      </span>
+    </li>`;
+  }).join('');
 }
 
 async function submitPrompt(inputId, statusId) {
@@ -525,7 +566,7 @@ async function submitPrompt(inputId, statusId) {
     status.classList.add('error');
     return;
   }
-  if (!roomId) {
+  if (!roomId || !participantId) {
     status.textContent = 'Join a room first.';
     status.classList.add('error');
     return;
@@ -534,7 +575,8 @@ async function submitPrompt(inputId, statusId) {
   status.textContent = 'Adding...';
   const { data, error } = await supabaseClient.rpc('append_room_perspective', {
     p_room_id: roomId,
-    p_text: text
+    p_text: text,
+    p_submitter: participantId
   });
   input.disabled = false;
   if (error) {
@@ -542,15 +584,69 @@ async function submitPrompt(inputId, statusId) {
     status.classList.add('error');
     return;
   }
-  myPromptSet.add(text);
   if (Array.isArray(data)) {
     perspectives = data;
     totalPerspectives = perspectives.length;
   }
   input.value = '';
-  status.textContent = 'Added. Thanks!';
+  status.textContent = 'Added.';
   renderWaitingPromptList();
-  setTimeout(() => { if (status.textContent === 'Added. Thanks!') status.textContent = ''; }, 2500);
+  setTimeout(() => { if (status.textContent === 'Added.') status.textContent = ''; }, 2000);
+}
+
+function startEditPrompt(idx) {
+  editingIndex = idx;
+  renderWaitingPromptList();
+  setTimeout(() => {
+    const ta = document.getElementById('editArea-' + idx);
+    if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  }, 0);
+}
+
+function cancelEditPrompt() {
+  editingIndex = -1;
+  renderWaitingPromptList();
+}
+
+async function saveEditPrompt(idx) {
+  const ta = document.getElementById('editArea-' + idx);
+  if (!ta) return;
+  const text = ta.value.trim();
+  if (!text) return;
+  ta.disabled = true;
+  const { data, error } = await supabaseClient.rpc('update_room_perspective', {
+    p_room_id: roomId,
+    p_index: idx,
+    p_text: text,
+    p_submitter: participantId
+  });
+  ta.disabled = false;
+  if (error) {
+    alert('Could not update: ' + error.message);
+    return;
+  }
+  if (Array.isArray(data)) perspectives = data;
+  editingIndex = -1;
+  renderWaitingPromptList();
+}
+
+async function removeMyPrompt(idx) {
+  if (!confirm('Remove this perspective?')) return;
+  const { data, error } = await supabaseClient.rpc('delete_room_perspective', {
+    p_room_id: roomId,
+    p_index: idx,
+    p_submitter: participantId
+  });
+  if (error) {
+    alert('Could not delete: ' + error.message);
+    return;
+  }
+  if (Array.isArray(data)) {
+    perspectives = data;
+    totalPerspectives = perspectives.length;
+  }
+  if (editingIndex === idx) editingIndex = -1;
+  renderWaitingPromptList();
 }
 
 function toggleSuggestPanel() {
@@ -569,6 +665,10 @@ window.submitVote = submitVote;
 window.changeVote = changeVote;
 window.submitPrompt = submitPrompt;
 window.toggleSuggestPanel = toggleSuggestPanel;
+window.startEditPrompt = startEditPrompt;
+window.cancelEditPrompt = cancelEditPrompt;
+window.saveEditPrompt = saveEditPrompt;
+window.removeMyPrompt = removeMyPrompt;
 
 // Enter to submit prompts (Shift+Enter for newline)
 document.addEventListener('keydown', (e) => {
@@ -577,10 +677,23 @@ document.addEventListener('keydown', (e) => {
   if (e.target.id === 'livePromptInput')    { e.preventDefault(); submitPrompt('livePromptInput', 'livePromptStatus'); }
 });
 
-// Pre-fill code from URL query param
-const urlCode = new URLSearchParams(window.location.search).get('code');
-if (urlCode) {
-  document.getElementById('codeInput').value = urlCode.toUpperCase();
+// Pre-fill from URL query params (?code=ABCD&name=Alice&autojoin=1)
+const urlParams = new URLSearchParams(window.location.search);
+const urlCode = urlParams.get('code');
+const urlName = urlParams.get('name');
+const urlAutoJoin = urlParams.get('autojoin') === '1';
+if (urlCode) document.getElementById('codeInput').value = urlCode.toUpperCase();
+if (urlName) document.getElementById('nameInput').value = urlName;
+if (urlAutoJoin && urlCode && urlName) {
+  // Wait for the supabase client to be ready before auto-joining.
+  (async () => {
+    for (let i = 0; i < 30; i++) {
+      if (window.supabaseClient) break;
+      await new Promise(r => setTimeout(r, 100));
+    }
+    joinRoom();
+  })();
+} else if (urlCode) {
   document.getElementById('nameInput').focus();
 }
 

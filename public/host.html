@@ -409,7 +409,7 @@ let channel;
 let roomChannel;     // postgres_changes subscription on the room row
 let roomId = '';
 let roomCode = '';
-let perspectives = [];
+let perspectives = [];   // array of { text, submitter } (or legacy strings)
 let currentIndex = 0;
 let finalDecisions = {};
 let currentMajority = null;
@@ -418,12 +418,16 @@ let pollInterval = null;
 let votesRevealed = false;
 let exerciseStarted = false;
 
+// Helpers for perspective shape (string for legacy entries, object for new)
+function pText(p) { return (p && typeof p === 'object') ? (p.text || '') : (p || ''); }
+function pSubmitter(p) { return (p && typeof p === 'object') ? (p.submitter || null) : null; }
+
 // ========== SETUP ==========
 function addPersp() {
   const input = document.getElementById('manualInput');
   const t = input.value.trim();
   if (!t) return;
-  perspectives.push(t);
+  perspectives.push({ text: t, submitter: null });
   input.value = '';
   renderPerspList();
 }
@@ -432,7 +436,7 @@ document.getElementById('manualInput').addEventListener('keydown', e => { if (e.
 function renderPerspList() {
   const list = document.getElementById('perspList');
   document.getElementById('perspCount').textContent = `${perspectives.length} perspectives`;
-  list.innerHTML = perspectives.map((p, i) => `<li class="persp-item"><span class="num">${i+1}</span><span>${esc(p)}</span><button class="rm" onclick="window.perspectives.splice(${i},1);window.renderPerspList()">&times;</button></li>`).join('');
+  list.innerHTML = perspectives.map((p, i) => `<li class="persp-item"><span class="num">${i+1}</span><span>${esc(pText(p))}</span><button class="rm" onclick="window.perspectives.splice(${i},1);window.renderPerspList()">&times;</button></li>`).join('');
 }
 
 // File upload
@@ -489,7 +493,7 @@ async function extractPerspectives() {
     if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
     const data = await res.json();
     const match = data.content[0].text.match(/\[[\s\S]*\]/);
-    if (match) JSON.parse(match[0]).forEach(p => { if (typeof p === 'string' && p.trim()) perspectives.push(p.trim()); });
+    if (match) JSON.parse(match[0]).forEach(p => { if (typeof p === 'string' && p.trim()) perspectives.push({ text: p.trim(), submitter: null }); });
     renderPerspList();
   } catch (e) { alert('Extraction failed: ' + e.message); }
   finally { document.getElementById('extractBtn').style.display = ''; document.getElementById('extractLoading').style.display = 'none'; }
@@ -579,9 +583,15 @@ function renderLivePromptList() {
     ul.innerHTML = '<li class="empty">No perspectives yet.</li>';
     return;
   }
-  ul.innerHTML = perspectives.map((p, i) =>
-    `<li><span class="lp-num">${i+1}</span><span class="lp-text">${esc(p)}</span><button class="lp-rm" title="Remove" onclick="removeWaitingPersp(${i})">&times;</button></li>`
-  ).join('');
+  ul.innerHTML = perspectives.map((p, i) => {
+    const sub = pSubmitter(p);
+    let by = 'host';
+    if (sub) {
+      const part = participantsList.find(pp => pp.id === sub);
+      by = part ? part.name : 'participant';
+    }
+    return `<li><span class="lp-num">${i+1}</span><span class="lp-text">${esc(pText(p))}<div style="font-size:0.7rem;color:var(--text-secondary);margin-top:0.2rem">by ${esc(by)}</div></span><button class="lp-rm" title="Remove" onclick="removeWaitingPersp(${i})">&times;</button></li>`;
+  }).join('');
 }
 
 function updateBeginGate() {
@@ -603,7 +613,8 @@ async function addHostWaitingPersp() {
   input.disabled = true;
   const { data, error } = await supabaseClient.rpc('append_room_perspective', {
     p_room_id: roomId,
-    p_text: text
+    p_text: text,
+    p_submitter: null
   });
   input.disabled = false;
   if (error) { alert('Failed to add: ' + error.message); return; }
@@ -681,7 +692,7 @@ async function beginExercise() {
 
 function showPerspective(text, idx, total) {
   document.getElementById('perspCounter').textContent = `Perspective ${idx + 1} of ${total}`;
-  document.getElementById('perspText').textContent = text;
+  document.getElementById('perspText').textContent = pText(text);
   document.getElementById('perspProgressFill').style.width = `${(idx / total) * 100}%`;
   document.getElementById('voteReveal').classList.remove('active');
   document.getElementById('factCheckResult').style.display = 'none';
@@ -787,7 +798,7 @@ function toggleMatrix() {
 function renderMiniMatrix() {
   const cells = { 'fact-signal': [], 'fact-noise': [], 'belief-signal': [], 'belief-noise': [] };
   Object.entries(finalDecisions).forEach(([idx, d]) => {
-    cells[`${d.certainty}-${d.importance}`].push(perspectives[idx]);
+    cells[`${d.certainty}-${d.importance}`].push(pText(perspectives[idx]));
   });
   Object.entries(cells).forEach(([key, items]) => {
     const cell = document.getElementById(`mm-${key}`);
@@ -803,7 +814,7 @@ function showComplete(persps, decisions) {
 
   const cells = { 'fact-signal': [], 'fact-noise': [], 'belief-signal': [], 'belief-noise': [] };
   Object.entries(decisions).forEach(([idx, d]) => {
-    cells[`${d.certainty}-${d.importance}`].push(persps[idx]);
+    cells[`${d.certainty}-${d.importance}`].push(pText(persps[idx]));
   });
   Object.entries(cells).forEach(([key, items]) => {
     const cell = document.getElementById(`fm-${key}`);
@@ -814,7 +825,7 @@ function showComplete(persps, decisions) {
   // Show perspectives as context under each action column
   const mustPersp = [], mightPersp = [], wontPersp = [];
   Object.entries(decisions).forEach(([idx, d]) => {
-    const text = persps[idx];
+    const text = pText(persps[idx]);
     if (d.certainty === 'fact' && d.importance === 'signal') mustPersp.push(text);
     else if (d.certainty === 'belief' && d.importance === 'signal') mightPersp.push(text);
     else wontPersp.push(text);
@@ -880,7 +891,7 @@ function updateMajorityButtons() {
 
 // ========== FACT CHECK ==========
 async function factCheckCurrent() {
-  const text = perspectives[currentIndex];
+  const text = pText(perspectives[currentIndex]);
   if (!text) return;
   const resultEl = document.getElementById('factCheckResult');
   resultEl.style.display = 'block';
@@ -903,7 +914,7 @@ async function factCheckCurrent() {
 function editCurrentPersp() {
   const overlay = document.getElementById('editOverlay');
   const textarea = document.getElementById('editPerspText');
-  textarea.value = perspectives[currentIndex];
+  textarea.value = pText(perspectives[currentIndex]);
   overlay.classList.add('active');
   textarea.focus();
 }
@@ -915,13 +926,18 @@ function cancelEditPersp() {
 async function saveEditPersp() {
   const newText = document.getElementById('editPerspText').value.trim();
   if (!newText) return;
-  perspectives[currentIndex] = newText;
+  const existing = perspectives[currentIndex];
+  // preserve original submitter
+  const updated = (existing && typeof existing === 'object')
+    ? { ...existing, text: newText }
+    : { text: newText, submitter: null };
+  perspectives[currentIndex] = updated;
   document.getElementById('perspText').textContent = newText;
   document.getElementById('editOverlay').classList.remove('active');
 
   // Sync to Supabase
   await supabaseClient.from('rooms').update({ perspectives }).eq('id', roomId);
-  channel.send({ type: 'broadcast', event: 'perspective_changed', payload: { perspectiveIndex: currentIndex, perspective: newText, totalPerspectives: perspectives.length } });
+  channel.send({ type: 'broadcast', event: 'perspective_changed', payload: { perspectiveIndex: currentIndex, perspective: updated, totalPerspectives: perspectives.length } });
 }
 
 async function deleteCurrentPersp() {
@@ -958,7 +974,7 @@ async function addLivePersp() {
   const input = document.getElementById('liveAddInput');
   const text = input.value.trim();
   if (!text) return;
-  perspectives.push(text);
+  perspectives.push({ text, submitter: null });
   input.value = '';
   document.getElementById('perspAddRow').style.display = 'none';
 
@@ -1034,8 +1050,86 @@ const TEMPLATES = {
     const t = TEMPLATES[tmpl];
     document.getElementById('titleInput').value = t.title;
     document.getElementById('contextInput').value = t.context;
-    perspectives.push(...t.perspectives);
+    t.perspectives.forEach(p => perspectives.push({ text: p, submitter: null }));
   }
+})();
+
+// ATTACH MODE: ?attach=ROOM_CODE — used by the test harness to embed
+// the host view of an already-created room. Skips the setup screen.
+(async function() {
+  const params = new URLSearchParams(window.location.search);
+  const attachCode = params.get('attach');
+  if (!attachCode) return;
+
+  // Wait for the supabase client.
+  for (let i = 0; i < 30; i++) {
+    if (window.supabaseClient) break;
+    await new Promise(r => setTimeout(r, 100));
+  }
+  const sb = window.supabaseClient;
+  if (!sb) return;
+
+  const { data: room, error } = await sb.from('rooms').select('*').eq('code', attachCode.toUpperCase()).single();
+  if (error || !room) {
+    alert('Could not attach: room ' + attachCode + ' not found');
+    return;
+  }
+
+  // Mirror the post-startSession setup
+  roomId = room.id;
+  roomCode = room.code;
+  perspectives = room.perspectives || [];
+  currentIndex = room.current_index || 0;
+  finalDecisions = room.final_decisions || {};
+
+  document.getElementById('roomCodeDisplay').style.display = '';
+  document.getElementById('roomCodeDisplay').textContent = roomCode;
+  document.getElementById('headerMeta').textContent = room.title || '';
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('presentationView').classList.add('active');
+  document.getElementById('bigCode').textContent = roomCode;
+  const joinLink = `${location.origin}/join.html?code=${roomCode}`;
+  document.getElementById('joinUrl').textContent = joinLink;
+  new QRCode(document.getElementById('qrCode'), { text: joinLink, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
+
+  channel = sb.channel(`room-${roomCode}`);
+  channel.on('broadcast', { event: 'vote' }, () => {
+    refreshVoteStatus();
+    if (votesRevealed) refreshReveal();
+  });
+  channel.on('broadcast', { event: 'participant_joined' }, () => refreshParticipants());
+  channel.subscribe();
+
+  roomChannel = sb
+    .channel(`room-row-${roomId}`)
+    .on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
+      (msg) => {
+        const newRow = msg.new || {};
+        if (Array.isArray(newRow.perspectives)) {
+          perspectives = newRow.perspectives;
+          renderLivePromptList();
+          updateBeginGate();
+          if (exerciseStarted) {
+            document.getElementById('perspCounter').textContent = `Perspective ${currentIndex + 1} of ${perspectives.length}`;
+          }
+        }
+      })
+    .subscribe();
+
+  if (room.status === 'active') {
+    document.getElementById('waitingView').style.display = 'none';
+    document.getElementById('activeView').style.display = '';
+    document.getElementById('controls').style.display = '';
+    exerciseStarted = true;
+    showPerspective(perspectives[currentIndex], currentIndex, perspectives.length);
+  } else {
+    renderLivePromptList();
+    updateBeginGate();
+  }
+
+  pollInterval = setInterval(refreshParticipants, 3000);
+  refreshParticipants();
 })();
 
 renderPerspList();

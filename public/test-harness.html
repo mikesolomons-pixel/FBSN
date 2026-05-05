@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBSN — Multiplayer Test Harness</title>
+<script src="auth.js"></script>
+<script type="module" src="supabase-config.js"></script>
+<style>
+  :root {
+    --teal-dark: #006B5E;
+    --teal: #00897B;
+    --teal-light: #4DB6AC;
+    --bg: #1a1a2e;
+    --card: #16213e;
+    --text: #FAFAFA;
+    --text-secondary: #B0BEC5;
+    --border: #2a2a4a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  .topbar { background: linear-gradient(135deg, var(--teal-dark), var(--teal)); padding: 0.5rem 1rem; display: flex; align-items: center; gap: 1rem; flex-shrink: 0; }
+  .topbar h1 { font-size: 1rem; font-weight: 700; letter-spacing: 1px; }
+  .topbar a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.8rem; }
+  .topbar a:hover { color: white; text-decoration: underline; }
+  .topbar .spacer { flex: 1; }
+  .topbar input { padding: 0.35rem 0.6rem; border: none; border-radius: 5px; font-size: 0.85rem; background: rgba(255,255,255,0.18); color: white; min-width: 70px; }
+  .topbar input::placeholder { color: rgba(255,255,255,0.6); }
+  .topbar input:focus { outline: 2px solid white; }
+  .topbar button { padding: 0.4rem 0.9rem; background: white; color: var(--teal-dark); border: none; border-radius: 5px; font-weight: 600; cursor: pointer; font-size: 0.82rem; }
+  .topbar button:hover { background: rgba(255,255,255,0.85); }
+  .topbar button.ghost { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); }
+  .topbar .meta { font-size: 0.78rem; opacity: 0.85; }
+  .topbar code { background: rgba(0,0,0,0.25); padding: 0.15rem 0.4rem; border-radius: 4px; font-family: ui-monospace, monospace; }
+
+  .empty { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+  .empty .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; max-width: 560px; }
+  .empty h2 { color: var(--teal-light); margin-bottom: 0.5rem; }
+  .empty p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.8rem; line-height: 1.5; }
+  .empty ul { color: var(--text-secondary); font-size: 0.85rem; margin: 0.4rem 0 0.8rem 1.2rem; }
+  .empty .form { display: flex; gap: 0.5rem; margin-top: 0.8rem; align-items: center; flex-wrap: wrap; }
+  .empty input { padding: 0.5rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.9rem; min-width: 200px; }
+  .empty input:focus { outline: none; border-color: var(--teal); }
+  .empty button { padding: 0.55rem 1rem; background: var(--teal); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+
+  .grid { flex: 1; display: grid; grid-template-rows: 1.4fr 1fr; gap: 6px; padding: 6px; min-height: 0; }
+  .grid .row-bottom { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; min-height: 0; }
+  .pane { background: var(--card); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .pane-header { background: rgba(0,0,0,0.3); padding: 0.4rem 0.7rem; font-size: 0.78rem; font-weight: 600; color: var(--teal-light); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .pane-header .role { color: var(--text-secondary); font-weight: 400; font-size: 0.7rem; }
+  .pane iframe { flex: 1; border: none; width: 100%; background: var(--bg); }
+
+  .denied { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+  .denied .card { background: var(--card); border: 1px solid #EF5350; border-radius: 12px; padding: 2rem; max-width: 460px; }
+  .denied h2 { color: #EF5350; margin-bottom: 0.5rem; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>FBSN Test Harness</h1>
+  <span class="meta" id="meta">No room</span>
+  <span class="spacer"></span>
+  <span id="actions">
+    <input id="titleInput" type="text" placeholder="Test session title" value="Test Session">
+    <button id="createBtn" type="button">Create test room</button>
+    <button id="resetBtn" class="ghost" type="button" style="display:none">Reset</button>
+  </span>
+</div>
+
+<div id="emptyState" class="empty">
+  <div class="card">
+    <h2>Multiplayer test harness</h2>
+    <p>This page spawns one host view and three auto-joined participants in iframes so you can see the full FBSN flow without a phone.</p>
+    <p>Click <strong>Create test room</strong> to start. You'll get:</p>
+    <ul>
+      <li><strong>Top pane:</strong> facilitator view (you, hosting)</li>
+      <li><strong>Bottom 3 panes:</strong> auto-joined participants (Alice, Bob, Carol)</li>
+    </ul>
+    <p>Each participant can submit perspectives independently. Their queue is private to them; the host sees everyone's submissions. Click Reset to tear down and start fresh.</p>
+  </div>
+</div>
+
+<div id="denied" class="denied" style="display:none">
+  <div class="card">
+    <h2>Admin access required</h2>
+    <p>The test harness is admin-only.</p>
+  </div>
+</div>
+
+<div id="grid" class="grid" style="display:none">
+  <div class="pane">
+    <div class="pane-header"><span>Facilitator (host)</span><span class="role">/host.html?attach=<span id="hostCode"></span></span></div>
+    <iframe id="hostFrame" title="Host"></iframe>
+  </div>
+  <div class="row-bottom">
+    <div class="pane">
+      <div class="pane-header"><span>Alice</span><span class="role">participant 1</span></div>
+      <iframe id="p1Frame" title="Alice"></iframe>
+    </div>
+    <div class="pane">
+      <div class="pane-header"><span>Bob</span><span class="role">participant 2</span></div>
+      <iframe id="p2Frame" title="Bob"></iframe>
+    </div>
+    <div class="pane">
+      <div class="pane-header"><span>Carol</span><span class="role">participant 3</span></div>
+      <iframe id="p3Frame" title="Carol"></iframe>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // Wait for supabase + auth, then either show admin UI or deny.
+  (async function init() {
+    for (let i = 0; i < 50; i++) {
+      if (window.supabaseClient && window.VCTUser) break;
+      await new Promise(r => setTimeout(r, 100));
+    }
+    if (!window.VCTUser || window.VCTUser.role !== 'admin') {
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('actions').style.display = 'none';
+      document.getElementById('denied').style.display = 'flex';
+      return;
+    }
+    document.getElementById('createBtn').addEventListener('click', createRoom);
+    document.getElementById('resetBtn').addEventListener('click', resetHarness);
+  })();
+
+  const NAMES = ['Alice', 'Bob', 'Carol'];
+
+  function genCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s = '';
+    for (let i = 0; i < 4; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    return s;
+  }
+
+  async function createRoom() {
+    const sb = window.supabaseClient;
+    const title = document.getElementById('titleInput').value.trim() || 'Test Session';
+    const code = genCode();
+
+    const { data, error } = await sb.from('rooms').insert({
+      code, title,
+      context: 'Auto-created by the test harness.',
+      perspectives: [],
+      current_index: 0,
+      revealed: false,
+      final_decisions: {},
+      status: 'waiting'
+    }).select().single();
+
+    if (error) {
+      alert('Could not create room: ' + error.message);
+      return;
+    }
+
+    // Show grid, hide empty state
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('grid').style.display = 'grid';
+    document.getElementById('createBtn').style.display = 'none';
+    document.getElementById('resetBtn').style.display = '';
+    document.getElementById('titleInput').disabled = true;
+    document.getElementById('meta').innerHTML = 'Room <code>' + data.code + '</code> · ' + title;
+    document.getElementById('hostCode').textContent = data.code;
+
+    // Load iframes
+    document.getElementById('hostFrame').src = `host.html?attach=${data.code}`;
+    NAMES.forEach((name, i) => {
+      const f = document.getElementById(`p${i+1}Frame`);
+      // Stagger joins so the realtime subscriptions don't all fire at once
+      setTimeout(() => {
+        f.src = `join.html?code=${data.code}&name=${encodeURIComponent(name)}&autojoin=1`;
+      }, 600 + i * 400);
+    });
+  }
+
+  function resetHarness() {
+    document.getElementById('hostFrame').src = 'about:blank';
+    document.getElementById('p1Frame').src = 'about:blank';
+    document.getElementById('p2Frame').src = 'about:blank';
+    document.getElementById('p3Frame').src = 'about:blank';
+    document.getElementById('grid').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('createBtn').style.display = '';
+    document.getElementById('resetBtn').style.display = 'none';
+    document.getElementById('titleInput').disabled = false;
+    document.getElementById('meta').textContent = 'No room';
+    document.getElementById('hostCode').textContent = '';
+  }
+</script>
+
+</body>
+</html>
