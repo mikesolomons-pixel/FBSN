@@ -52,8 +52,10 @@
   .btn-ghost:hover { background: rgba(255,255,255,0.05); }
   .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
 
-  .add-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
-  .add-row input { flex: 1; }
+  .add-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: stretch; }
+  .add-row input, .add-row textarea { flex: 1; }
+  .add-row textarea { min-height: 72px; max-height: 220px; resize: vertical; line-height: 1.4; font-family: inherit; }
+  .add-row .btn { align-self: stretch; }
   .persp-list { list-style: none; max-height: 200px; overflow-y: auto; margin-bottom: 1rem; }
   .persp-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 0.3rem; font-size: 0.85rem; }
   .persp-item .num { width: 20px; height: 20px; border-radius: 50%; background: var(--teal); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; }
@@ -168,10 +170,11 @@
   .persp-edit-modal textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 8px; font-size: 1rem; font-family: inherit; min-height: 80px; resize: vertical; }
   .persp-edit-modal textarea:focus { outline: none; border-color: var(--teal); }
   .persp-edit-modal .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.75rem; }
-  .persp-add-row { display: flex; gap: 0.4rem; margin-top: 0.5rem; max-width: 600px; margin-left: auto; margin-right: auto; }
-  .persp-add-row input { flex: 1; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.85rem; font-family: inherit; }
-  .persp-add-row input:focus { outline: none; border-color: var(--teal); }
-  .persp-add-row button { padding: 0.5rem 1rem; background: var(--teal); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; }
+  .persp-add-row { display: flex; gap: 0.4rem; margin-top: 0.5rem; max-width: 600px; margin-left: auto; margin-right: auto; align-items: stretch; }
+  .persp-add-row input, .persp-add-row textarea { flex: 1; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.9rem; font-family: inherit; line-height: 1.4; }
+  .persp-add-row textarea { min-height: 56px; max-height: 180px; resize: vertical; }
+  .persp-add-row input:focus, .persp-add-row textarea:focus { outline: none; border-color: var(--teal); }
+  .persp-add-row button { padding: 0.5rem 1rem; background: var(--teal); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; align-self: stretch; }
 
   .action-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
   .a-col { border-radius: 12px; padding: 1.25rem; }
@@ -226,7 +229,7 @@
 
     <label>Add perspectives manually</label>
     <div class="add-row">
-      <input type="text" id="manualInput" placeholder="Type a perspective and press Enter">
+      <textarea id="manualInput" placeholder="Type a perspective. Enter to add, Shift+Enter for newline." rows="3"></textarea>
       <button class="btn btn-primary" onclick="addPersp()">Add</button>
     </div>
 
@@ -274,7 +277,7 @@
         <h4>Perspectives <span id="livePromptCount" style="font-weight:600;letter-spacing:0">(0)</span></h4>
         <div class="lpc-hint">Add one yourself or wait for participants to submit. Click × to remove anything you don't want.</div>
         <div class="add-row">
-          <input type="text" id="hostWaitingInput" placeholder="Add a perspective..." maxlength="500">
+          <textarea id="hostWaitingInput" placeholder="Add a perspective. Enter to add, Shift+Enter for newline." maxlength="500" rows="3"></textarea>
           <button class="btn btn-primary" onclick="addHostWaitingPersp()">Add</button>
         </div>
         <ul class="live-prompt-list" id="livePromptList"></ul>
@@ -296,7 +299,7 @@
         <button class="persp-ctrl-btn" onclick="toggleAddPersp()">&#43; Add New</button>
       </div>
       <div class="persp-add-row" id="perspAddRow" style="display:none">
-        <input type="text" id="liveAddInput" placeholder="New perspective...">
+        <textarea id="liveAddInput" placeholder="New perspective. Enter to add, Shift+Enter for newline." rows="2"></textarea>
         <button onclick="addLivePersp()">Add</button>
       </div>
       <div style="margin-bottom:1.5rem">
@@ -424,7 +427,7 @@ function addPersp() {
   input.value = '';
   renderPerspList();
 }
-document.getElementById('manualInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addPersp(); } });
+document.getElementById('manualInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addPersp(); } });
 
 function renderPerspList() {
   const list = document.getElementById('perspList');
@@ -567,11 +570,6 @@ async function startSession() {
   // Poll for new participants
   pollInterval = setInterval(refreshParticipants, 3000);
   refreshParticipants();
-
-  // Enter to add prompt from host waiting screen
-  document.getElementById('hostWaitingInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); addHostWaitingPersp(); }
-  });
 }
 
 function renderLivePromptList() {
@@ -971,9 +969,10 @@ async function addLivePersp() {
   showPerspective(perspectives[currentIndex], currentIndex, perspectives.length);
 }
 
-// Enter key for live add input
+// Enter key for live add input (Shift+Enter for newline)
 document.addEventListener('keydown', function(e) {
-  if (e.target.id === 'liveAddInput' && e.key === 'Enter') { e.preventDefault(); addLivePersp(); }
+  if (e.target.id === 'liveAddInput' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addLivePersp(); }
+  if (e.target.id === 'hostWaitingInput' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addHostWaitingPersp(); }
   if (e.target.id === 'editPerspText' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveEditPersp(); }
   if (e.key === 'Escape' && document.getElementById('editOverlay').classList.contains('active')) { cancelEditPersp(); }
 });

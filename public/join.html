@@ -153,9 +153,10 @@
   .prompt-card { background: var(--card); border-radius: 12px; padding: 1.25rem; margin-top: 1.5rem; max-width: 520px; width: 100%; box-shadow: var(--shadow); text-align: left; }
   .prompt-card h3 { color: var(--teal-light); font-size: 0.95rem; margin-bottom: 0.35rem; }
   .prompt-card .hint { color: var(--text-secondary); font-size: 0.78rem; margin-bottom: 0.75rem; }
-  .prompt-add-row { display: flex; gap: 0.4rem; }
-  .prompt-add-row input { flex: 1; padding: 0.6rem 0.8rem; font-size: 0.9rem; }
-  .prompt-add-row button { padding: 0.6rem 1rem; background: var(--teal); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+  .prompt-add-row { display: flex; gap: 0.4rem; align-items: stretch; }
+  .prompt-add-row textarea { flex: 1; padding: 0.6rem 0.8rem; font-size: 0.95rem; min-height: 72px; max-height: 220px; resize: vertical; line-height: 1.4; font-family: inherit; border: 1.5px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+  .prompt-add-row textarea:focus { outline: none; border-color: var(--teal); }
+  .prompt-add-row button { padding: 0.6rem 1rem; background: var(--teal); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; align-self: stretch; min-width: 72px; }
   .prompt-add-row button:disabled { background: #37474F; color: #78909C; cursor: not-allowed; }
   .prompt-list { list-style: none; margin-top: 0.85rem; max-height: 240px; overflow-y: auto; }
   .prompt-list li { background: rgba(0,137,123,0.12); border-left: 3px solid var(--teal); border-radius: 6px; padding: 0.5rem 0.7rem; margin-bottom: 0.35rem; font-size: 0.85rem; line-height: 1.35; color: var(--text); }
@@ -218,7 +219,7 @@
     <h3>Suggest perspectives</h3>
     <div class="hint">Add anything you think the team should evaluate. Submissions appear in the list below for everyone.</div>
     <div class="prompt-add-row">
-      <input type="text" id="waitingPromptInput" placeholder="A perspective, claim, or statement..." maxlength="500">
+      <textarea id="waitingPromptInput" placeholder="A perspective, claim, or statement... (Enter to submit, Shift+Enter for newline)" maxlength="500" rows="3"></textarea>
       <button id="waitingPromptBtn" onclick="submitPrompt('waitingPromptInput', 'waitingPromptStatus')">Add</button>
     </div>
     <div class="prompt-status" id="waitingPromptStatus"></div>
@@ -281,7 +282,7 @@
         <div class="prompt-card" style="margin-top:0.5rem">
           <div class="hint">Your suggestion is added to the end of the queue.</div>
           <div class="prompt-add-row">
-            <input type="text" id="livePromptInput" placeholder="A perspective, claim, or statement..." maxlength="500">
+            <textarea id="livePromptInput" placeholder="A perspective, claim, or statement... (Enter to submit, Shift+Enter for newline)" maxlength="500" rows="3"></textarea>
             <button id="livePromptBtn" onclick="submitPrompt('livePromptInput', 'livePromptStatus')">Add</button>
           </div>
           <div class="prompt-status" id="livePromptStatus"></div>
@@ -569,9 +570,9 @@ window.changeVote = changeVote;
 window.submitPrompt = submitPrompt;
 window.toggleSuggestPanel = toggleSuggestPanel;
 
-// Enter to submit prompts
+// Enter to submit prompts (Shift+Enter for newline)
 document.addEventListener('keydown', (e) => {
-  if (e.key !== 'Enter') return;
+  if (e.key !== 'Enter' || e.shiftKey) return;
   if (e.target.id === 'waitingPromptInput') { e.preventDefault(); submitPrompt('waitingPromptInput', 'waitingPromptStatus'); }
   if (e.target.id === 'livePromptInput')    { e.preventDefault(); submitPrompt('livePromptInput', 'livePromptStatus'); }
 });
