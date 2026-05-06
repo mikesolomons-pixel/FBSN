@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mika's Restaurant Quest</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #0a0a14;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  #wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 22px;
+    letter-spacing: 4px;
+    color: #ffeb3b;
+    text-shadow: 3px 3px 0 #d50000, 6px 6px 0 #311b92;
+  }
+  #stage {
+    position: relative;
+    width: 640px;
+    height: 480px;
+    border: 4px solid #fff;
+    box-shadow: 0 0 0 4px #000, 0 0 32px rgba(255, 235, 59, 0.3);
+    background: #000;
+  }
+  canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    image-rendering: -moz-crisp-edges;
+    display: block;
+    width: 640px;
+    height: 480px;
+  }
+  #overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 12px;
+  }
+  #dialog {
+    background: rgba(0, 0, 0, 0.85);
+    border: 3px solid #fff;
+    padding: 14px 18px;
+    min-height: 70px;
+    font-size: 15px;
+    line-height: 1.4;
+    pointer-events: auto;
+    box-shadow: inset 0 0 0 1px #000;
+  }
+  #choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+    pointer-events: auto;
+  }
+  .choice-btn {
+    background: #1a237e;
+    color: #fff;
+    border: 3px solid #fff;
+    padding: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: transform 0.08s, background 0.1s;
+    text-align: left;
+  }
+  .choice-btn:hover {
+    background: #ffeb3b;
+    color: #000;
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 #000;
+  }
+  .choice-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  #hud {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: #ffeb3b;
+  }
+  .hud-cell { padding: 4px 10px; border: 2px solid #ffeb3b; }
+  #footer { font-size: 11px; color: #888; }
+  .center-btn {
+    background: #d50000;
+    color: #fff;
+    border: 4px solid #fff;
+    padding: 14px 28px;
+    font-family: inherit;
+    font-size: 18px;
+    cursor: pointer;
+    letter-spacing: 2px;
+  }
+  .center-btn:hover { background: #ffeb3b; color: #000; }
+  #titleOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    background: rgba(0, 0, 0, 0.6);
+    pointer-events: auto;
+  }
+  #titleOverlay h2 {
+    color: #ffeb3b;
+    font-size: 28px;
+    margin: 0;
+    text-shadow: 3px 3px 0 #d50000;
+    text-align: center;
+    line-height: 1.2;
+  }
+  #titleOverlay p {
+    color: #fff;
+    font-size: 13px;
+    max-width: 500px;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .feedback-correct { color: #76ff03 !important; }
+  .feedback-wrong { color: #ff5252 !important; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1>MIKA'S RESTAURANT QUEST</h1>
+  <div id="hud">
+    <div class="hud-cell" id="hudLevel">LEVEL --/5</div>
+    <div class="hud-cell" id="hudLives">LIVES &lt;3 &lt;3 &lt;3</div>
+    <div class="hud-cell" id="hudArea">--</div>
+  </div>
+  <div id="stage">
+    <canvas id="game" width="160" height="120"></canvas>
+    <div id="overlay">
+      <div id="dialog">Press START to begin Mika's quest for the Perfect Restaurant.</div>
+      <div id="choices"></div>
+    </div>
+    <div id="titleOverlay">
+      <h2>MIKA'S<br>RESTAURANT QUEST</h2>
+      <p>The hour is late. The hunger is real. Mika sets out across five culinary kingdoms in search of the Perfect Restaurant. Stand-up ingredients block her path. Only trivia can defeat them.</p>
+      <button class="center-btn" id="startBtn">&gt; START</button>
+      <p style="font-size:11px;color:#bbb;">Audio plays after you click START.</p>
+    </div>
+  </div>
+  <div id="footer">arrow keys / mouse to choose &middot; M to mute</div>
+</div>
+
+<script>
+"use strict";
+
+/* =====================================================
+   CANVAS SETUP - 160x120 logical pixels, scaled 4x
+   ===================================================== */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+const W = 160, H = 120;
+
+/* =====================================================
+   AUDIO - Web Audio chiptune engine
+   ===================================================== */
+let audioCtx = null;
+let muted = false;
+let currentSong = null;
+let songTimer = null;
+
+const NOTES = {
+  rest: 0,
+  C3: 130.81, Cs3: 138.59, D3: 146.83, Ds3: 155.56, E3: 164.81, F3: 174.61,
+  Fs3: 185.00, G3: 196.00, Gs3: 207.65, A3: 220.00, As3: 233.08, B3: 246.94,
+  C4: 261.63, Cs4: 277.18, D4: 293.66, Ds4: 311.13, E4: 329.63, F4: 349.23,
+  Fs4: 369.99, G4: 392.00, Gs4: 415.30, A4: 440.00, As4: 466.16, B4: 493.88,
+  C5: 523.25, Cs5: 554.37, D5: 587.33, Ds5: 622.25, E5: 659.25, F5: 698.46,
+  Fs5: 739.99, G5: 783.99, Gs5: 830.61, A5: 880.00, As5: 932.33, B5: 987.77,
+  C6: 1046.50, D6: 1174.66, E6: 1318.51
+};
+
+function ensureAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playNote(freq, startTime, duration, type, vol) {
+  if (muted || !audioCtx) return;
+  if (freq <= 0) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type || 'square';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(vol, startTime + 0.005);
+  gain.gain.setValueAtTime(vol, startTime + duration * 0.7);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.05);
+}
+
+function playSongOnce(song, songId) {
+  if (!audioCtx || muted) return 0;
+  const t0 = audioCtx.currentTime + 0.02;
+  let totalDur = 0;
+  for (const track of song.tracks) {
+    let t = t0;
+    for (const [note, dur] of track.notes) {
+      const f = NOTES[note] || 0;
+      if (f > 0) playNote(f, t, dur * 0.95, track.type, track.vol);
+      t += dur;
+    }
+    totalDur = Math.max(totalDur, t - t0);
+  }
+  return totalDur;
+}
+
+function startSong(song, id) {
+  stopSong();
+  currentSong = id;
+  function loop() {
+    if (currentSong !== id) return;
+    const dur = playSongOnce(song, id);
+    songTimer = setTimeout(loop, dur * 1000);
+  }
+  loop();
+}
+
+function stopSong() {
+  currentSong = null;
+  if (songTimer) clearTimeout(songTimer);
+  songTimer = null;
+}
+
+function sfx(type) {
+  if (!audioCtx || muted) return;
+  const t0 = audioCtx.currentTime;
+  if (type === 'select') {
+    playNote(NOTES.A4, t0, 0.05, 'square', 0.12);
+    playNote(NOTES.E5, t0 + 0.05, 0.08, 'square', 0.12);
+  } else if (type === 'correct') {
+    playNote(NOTES.C5, t0, 0.08, 'square', 0.15);
+    playNote(NOTES.E5, t0 + 0.08, 0.08, 'square', 0.15);
+    playNote(NOTES.G5, t0 + 0.16, 0.08, 'square', 0.15);
+    playNote(NOTES.C6, t0 + 0.24, 0.16, 'square', 0.15);
+  } else if (type === 'wrong') {
+    playNote(NOTES.E4, t0, 0.1, 'sawtooth', 0.12);
+    playNote(NOTES.Ds4, t0 + 0.1, 0.1, 'sawtooth', 0.12);
+    playNote(NOTES.D4, t0 + 0.2, 0.2, 'sawtooth', 0.12);
+  } else if (type === 'victory') {
+    const seq = ['C5','E5','G5','C6','E6','G5','C6'];
+    seq.forEach((n,i) => playNote(NOTES[n], t0 + i*0.12, 0.12, 'square', 0.15));
+  }
+}
+
+/* =====================================================
+   CHIPTUNE SONGS - one per culture
+   tracks: lead (square), bass (triangle), accent (sawtooth)
+   ===================================================== */
+const SONGS = {
+  // ITALY - tarantella feel in A minor, 6/8 lilt
+  italy: {
+    tracks: [
+      { type: 'square', vol: 0.10, notes: [
+        ['A4', 0.15], ['C5', 0.15], ['E5', 0.15],
+        ['A5', 0.3], ['G5', 0.15], ['F5', 0.15],
+        ['E5', 0.3], ['D5', 0.15], ['C5', 0.15],
+        ['B4', 0.3], ['A4', 0.15], ['rest', 0.15],
+        ['E5', 0.15], ['F5', 0.15], ['E5', 0.15],
+        ['D5', 0.3], ['C5', 0.15], ['B4', 0.15],
+        ['A4', 0.45], ['rest', 0.15],
+        ['A4', 0.15], ['C5', 0.15], ['E5', 0.15],
+        ['A5', 0.45], ['rest', 0.15],
+      ]},
+      { type: 'triangle', vol: 0.15, notes: [
+        ['A2', 0.45], ['E3', 0.45],
+        ['A2', 0.45], ['E3', 0.45],
+        ['F3', 0.45], ['C3', 0.45],
+        ['G3', 0.45], ['E3', 0.45],
+        ['A2', 0.45], ['E3', 0.45],
+        ['A2', 0.45], ['rest', 0.45],
+      ]}
+    ]
+  },
+  // JAPAN - hirajoshi pentatonic, slow and meditative
+  japan: {
+    tracks: [
+      { type: 'square', vol: 0.09, notes: [
+        ['E4', 0.4], ['F4', 0.2], ['A4', 0.4], ['B4', 0.6],
+        ['A4', 0.2], ['F4', 0.2], ['E4', 0.6],
+        ['B4', 0.4], ['C5', 0.2], ['B4', 0.4], ['A4', 0.6],
+        ['F4', 0.2], ['E4', 0.2], ['D4', 0.6],
+        ['E4', 0.4], ['A4', 0.4], ['B4', 0.4], ['E5', 0.6],
+        ['rest', 0.2], ['E5', 0.2], ['B4', 0.2], ['A4', 0.2], ['F4', 0.4], ['E4', 0.8],
+      ]},
+      { type: 'triangle', vol: 0.12, notes: [
+        ['E2', 1.6], ['A2', 1.6],
+        ['E2', 1.6], ['B2', 0.8], ['E2', 0.8],
+        ['E2', 1.6], ['A2', 1.6],
+      ]}
+    ]
+  },
+  // MEXICO - mariachi-inspired in C major, lively
+  mexico: {
+    tracks: [
+      { type: 'square', vol: 0.10, notes: [
+        ['G4', 0.15], ['rest', 0.05], ['G4', 0.15], ['rest', 0.05],
+        ['C5', 0.2], ['E5', 0.2], ['G5', 0.4],
+        ['F5', 0.15], ['E5', 0.15], ['D5', 0.15], ['C5', 0.15],
+        ['D5', 0.4], ['G4', 0.4],
+        ['G4', 0.15], ['rest', 0.05], ['G4', 0.15], ['rest', 0.05],
+        ['C5', 0.2], ['E5', 0.2], ['G5', 0.4],
+        ['A5', 0.2], ['G5', 0.2], ['F5', 0.2], ['E5', 0.2],
+        ['D5', 0.2], ['C5', 0.6],
+      ]},
+      { type: 'triangle', vol: 0.14, notes: [
+        ['C3', 0.2], ['G3', 0.2], ['E3', 0.2], ['G3', 0.2],
+        ['C3', 0.2], ['G3', 0.2], ['E3', 0.2], ['G3', 0.2],
+        ['F3', 0.2], ['C4', 0.2], ['A3', 0.2], ['C4', 0.2],
+        ['G3', 0.2], ['D4', 0.2], ['B3', 0.2], ['D4', 0.2],
+        ['C3', 0.2], ['G3', 0.2], ['E3', 0.2], ['G3', 0.2],
+        ['C3', 0.2], ['G3', 0.2], ['E3', 0.2], ['G3', 0.2],
+        ['F3', 0.2], ['C4', 0.2], ['G3', 0.2], ['B3', 0.2],
+        ['C3', 0.4], ['G3', 0.4],
+      ]}
+    ]
+  },
+  // INDIA - raga-style with drone in D
+  india: {
+    tracks: [
+      { type: 'square', vol: 0.09, notes: [
+        ['D4', 0.3], ['F4', 0.2], ['G4', 0.2], ['A4', 0.3],
+        ['F4', 0.2], ['G4', 0.2], ['F4', 0.2], ['D4', 0.4],
+        ['A4', 0.3], ['As4', 0.2], ['A4', 0.2], ['G4', 0.3],
+        ['F4', 0.2], ['G4', 0.2], ['F4', 0.4], ['D4', 0.4],
+        ['D5', 0.2], ['C5', 0.2], ['As4', 0.2], ['A4', 0.4],
+        ['G4', 0.2], ['F4', 0.2], ['G4', 0.2], ['F4', 0.2], ['D4', 0.6],
+      ]},
+      { type: 'triangle', vol: 0.13, notes: [
+        ['D2', 0.6], ['A2', 0.6], ['D2', 0.6], ['A2', 0.6],
+        ['D2', 0.6], ['A2', 0.6], ['D2', 0.6], ['A2', 0.6],
+        ['D2', 0.6], ['A2', 0.6],
+      ]}
+    ]
+  },
+  // FRANCE - waltz / can-can feel in C
+  france: {
+    tracks: [
+      { type: 'square', vol: 0.10, notes: [
+        ['G4', 0.2], ['C5', 0.2], ['E5', 0.2],
+        ['G5', 0.4], ['F5', 0.2],
+        ['E5', 0.2], ['D5', 0.2], ['C5', 0.2],
+        ['D5', 0.6],
+        ['F5', 0.2], ['E5', 0.2], ['D5', 0.2],
+        ['E5', 0.4], ['C5', 0.2],
+        ['G4', 0.2], ['A4', 0.2], ['B4', 0.2],
+        ['C5', 0.6],
+        ['E5', 0.2], ['G5', 0.2], ['C6', 0.2],
+        ['B5', 0.4], ['A5', 0.2],
+        ['G5', 0.2], ['F5', 0.2], ['E5', 0.2],
+        ['D5', 0.6],
+      ]},
+      { type: 'triangle', vol: 0.14, notes: [
+        ['C3', 0.2], ['G3', 0.2], ['E3', 0.2],
+        ['C3', 0.2], ['G3', 0.2], ['E3', 0.2],
+        ['G2', 0.2], ['D3', 0.2], ['B3', 0.2],
+        ['G2', 0.2], ['D3', 0.2], ['B3', 0.2],
+        ['F3', 0.2], ['C4', 0.2], ['A3', 0.2],
+        ['F3', 0.2], ['C4', 0.2], ['A3', 0.2],
+        ['G2', 0.2], ['D3', 0.2], ['B3', 0.2],
+        ['C3', 0.6],
+      ]}
+    ]
+  },
+  // VICTORY fanfare
+  victory: {
+    tracks: [
+      { type: 'square', vol: 0.13, notes: [
+        ['C5',0.15],['E5',0.15],['G5',0.15],['C6',0.45],
+        ['G5',0.15],['C6',0.45],
+        ['E5',0.15],['G5',0.15],['C6',0.15],['E6',0.6]
+      ]}
+    ]
+  }
+};
+
+/* =====================================================
+   PIXEL SPRITES - color-key strings
+   . = transparent
+   ===================================================== */
+function drawSprite(sprite, palette, dx, dy, flip) {
+  const rows = sprite;
+  for (let y = 0; y < rows.length; y++) {
+    const row = rows[y];
+    for (let x = 0; x < row.length; x++) {
+      const c = row[x];
+      if (c === '.' || c === ' ') continue;
+      const color = palette[c];
+      if (!color) continue;
+      ctx.fillStyle = color;
+      const px = flip ? (dx + (row.length - 1 - x)) : (dx + x);
+      ctx.fillRect(px, dy + y, 1, 1);
+    }
+  }
+}
+
+// MIKA - 16w x 24h, our heroine: black hair, glasses, black blazer, white shirt
+const MIKA = [
+  '................',
+  '.....HHHHHH.....',
+  '....HHHHHHHH....',
+  '...HHHHHHHHHH...',
+  '...HSSSSSSSHH...',
+  '...HSSSSSSSHH...',
+  '...HSGGSSGGSH...',
+  '...HSGWSSGWSH...',
+  '...HSGGSSGGSH...',
+  '....SSSSSSSS....',
+  '....SSSMMSSS....',
+  '....SSSSSSSS....',
+  '....BBWWWWBB....',
+  '...BBBWWWWBBB...',
+  '..BBBBWWWWBBBB..',
+  '..BBBWWWWWWBBB..',
+  '..BBBWWWWWWBBB..',
+  '..BBBWWWWWWBBB..',
+  '..BBBPPPPPPBBB..',
+  '..BBPPPPPPPPBB..',
+  '...PPPPPPPPPP...',
+  '...PP......PP...',
+  '..NNN......NNN..',
+  '..NNN......NNN..'
+];
+const MIKA_PAL = {
+  H: '#1a1a1a',  // hair
+  S: '#f5d0a9',  // skin
+  G: '#000',     // glasses frame
+  W: '#fff',     // glasses lens / shirt
+  M: '#c4564a',  // mouth
+  B: '#1a1a1a',  // blazer
+  P: '#222',     // skirt
+  N: '#000'      // shoes
+};
+
+// Pizza Pete - 24x20
+const PIZZA = [
+  '............RRRR........',
+  '..........RRRRRRRR......',
+  '.........RYYYYYYYR......',
+  '........RYYYYYYYYRR.....',
+  '.......RYYWWYYWWYRRR....',
+  '......RYYWWYYWWYYYRRR...',
+  '.....RYYYYYYYYYYYYYRRR..',
+  '....RYYWWYYWWYYWWYYYRRR.',
+  '...RYYYYYYYYYYYYYYYYYRRR',
+  '..RYYWWYYBBBBYYWWYYYYYYR',
+  '..RYYYYYBBKKBBYYYYYYYYRR',
+  '..RYYWWYBBKKBBYWWYYYYYRR',
+  '..RYYYYYYBBBBYYYYYWWYYRR',
+  '..RYYWWYYYYYYYWWYYYYYYRR',
+  '..RRYYYYYYYYYYYYYYYYYRRR',
+  '...RRYYWWYYYYYYWWYYYYRRR',
+  '....RRRYYYYYYYYYYYYRRRR.',
+  '......RRRRRYYYYYRRRRR...',
+  '..........RRRRRRR.......',
+  '............RRR.........'
+];
+const PIZZA_PAL = {
+  R: '#b71c1c',  // crust/sauce edge
+  Y: '#ffd54f',  // cheese
+  W: '#fff',     // mozzarella
+  B: '#000',     // eyes
+  K: '#fff'      // eye highlight
+};
+
+// Sushi Samurai - 20x20
+const SUSHI = [
+  '....KKKKKKKKKKKK....',
+  '...KKKKKKKKKKKKKK...',
+  '..KKKWWWWWWWWWWKK...',
+  '..KKWWPPPPPPPPWWK...',
+  '.KKKWPPPPPPPPPPWKK..',
+  '.KKWPPRRRRRRRRPPWK..',
+  '.KKWPRRBBRRBBRRPWK..',
+  '.KKWPRRRRRRRRRRPWK..',
+  '.KKWPRRWMMMMWRRPWK..',
+  '.KKWPRRRRRRRRRRPWK..',
+  '.KKWPRRRRRRRRRRPWK..',
+  '.KKWPPRRRRRRRRPPWK..',
+  '.KKKWPPPPPPPPPPWKK..',
+  '..KKWWPPPPPPPPWWK...',
+  '..KKKWWWWWWWWWWKK...',
+  '...KKKKKKKKKKKKKK...',
+  '....KKKKKKKKKKKK....',
+  '......KKKKKKKK......',
+  '....................',
+  '....................'
+];
+const SUSHI_PAL = {
+  K: '#1b1b1b',  // nori (seaweed)
+  W: '#f5f5f5',  // rice
+  P: '#ff8a65',  // salmon outer
+  R: '#e64a19',  // salmon
+  B: '#000',     // eyes
+  M: '#fff'      // eye whites
+};
+
+// Taco Tornado - 24x20
+const TACO = [
+  '...YYYYYYYYYYYYYYYYY....',
+  '..YYYBBBBBBBBBBBBBYYY...',
+  '.YYBBGGGGGGGGGGGGGGBBY..',
+  '.YBGGGRRRRRRRRRRGGGBBY..',
+  '.YBGRRMMMMMMMMMMRRGBBY..',
+  '.YBGRMMOOOOOOOOMMRGBBY..',
+  '.YBGRMOOWWWWWWOOMRGBBY..',
+  '.YBGRMOWKKWWKKWOMRGBBY..',
+  '.YBGRMOWWWWWWWWOMRGBBY..',
+  '.YBGRMOWWWMMMWWWOMRGBY..',
+  '.YBGRMOOWWWWWWWOMRGBBY..',
+  '.YBGRMMOOOOOOOOMMRGBBY..',
+  '.YBGRRMMMMMMMMMMRRGBBY..',
+  '.YBGGGRRRRRRRRRRGGGBBY..',
+  '.YYBGGGGGGGGGGGGGGBBYY..',
+  '..YYBBBBBBBBBBBBBBBBYY..',
+  '...YYYYYYYYYYYYYYYYY....',
+  '....YYYYYYYYYYYYYYY.....',
+  '........................',
+  '........................'
+];
+const TACO_PAL = {
+  Y: '#fdd835',  // shell
+  B: '#fbc02d',  // shell shadow
+  G: '#7cb342',  // lettuce
+  R: '#c62828',  // tomato
+  M: '#fff',     // cheese
+  O: '#ffeb3b',  // cheese mid
+  W: '#5d4037',  // beef
+  K: '#fff'      // eyes
+};
+
+// Curry King - 24x20
+const CURRY = [
+  '..NNNNNNNNNNNNNNNNNN....',
+  '.NWWWWWWWWWWWWWWWWWWN...',
+  'NWWNNNNNNNNNNNNNNNNNWN..',
+  'NNYYYYYYYYYYYYYYYYYYNN..',
+  'NYYYYOOOOOOOOOOOOOYYYN..',
+  'NYYOOOORRRROOOORRRROYN..',
+  'NYOOORRBBROOROORBBROYN..',
+  'NYOOOOOOORRRROOOOOOYYN..',
+  'NYYOOOOOORRRROOOOOYYYN..',
+  'NYYYOOOOOOOOOOOOOYYYYN..',
+  'NYYYYYYYYYYYYYYYYYYYYN..',
+  'NNNNNNNNNNNNNNNNNNNNNN..',
+  'NNHHHHHHHHHHHHHHHHHHNN..',
+  '.NHHHHHHHHHHHHHHHHHHN...',
+  '..NNNNNNNNNNNNNNNNNN....',
+  '....HHH..........HHH....',
+  '...HHHHH........HHHHH...',
+  '...HHHHH........HHHHH...',
+  '....HHH..........HHH....',
+  '........................'
+];
+const CURRY_PAL = {
+  N: '#37474f',  // pot
+  W: '#90a4ae',  // rim
+  Y: '#ffa726',  // curry
+  O: '#ef6c00',  // curry darker
+  R: '#bf360c',  // chili pieces
+  B: '#000',     // eyes
+  H: '#263238'   // base shadow
+};
+
+// Croissant Comte - 24x18
+const CROISSANT = [
+  '........YYYYYYY.........',
+  '......YYYYYYYYYYY.......',
+  '....YYYYYTTTTTYYYYY.....',
+  '...YYYTTTTTTTTTTTYYY....',
+  '..YYTTTTBBTTTTBBTTTYY...',
+  '.YYTTTBBBBTTTTBBBBTTYY..',
+  '.YTTTTTTTTTTTTTTTTTTTY..',
+  'YTTTTTTTTTTMMTTTTTTTTTY.',
+  'YTTTTTTTTMMMMMMTTTTTTTY.',
+  'YTTTTTTTTTTTTTTTTTTTTTY.',
+  '.YTTTSSSTTTTTTTTSSSTTTY.',
+  '.YYTTTSSSSSSSSSSSSSTTYY.',
+  '..YYTTTTTTTTTTTTTTTTYY..',
+  '...YYYTTTTTTTTTTTTYYY...',
+  '....YYYYTTTTTTTYYYYY....',
+  '......YYYYYYYYYYY.......',
+  '........YYYYYYY.........',
+  '........................'
+];
+const CROISSANT_PAL = {
+  Y: '#5d4037',  // crust outline
+  T: '#d7a86e',  // body
+  B: '#000',     // eyes
+  M: '#a93232',  // mouth (smug pout)
+  S: '#ffe0b2'   // flaky highlights
+};
+
+/* =====================================================
+   SCENE BACKGROUNDS - one per culture
+   ===================================================== */
+function drawSky(top, bottom) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, top);
+  g.addColorStop(1, bottom);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawGround(color, y) {
+  ctx.fillStyle = color;
+  ctx.fillRect(0, y, W, H - y);
+}
+
+function drawTitleScene() {
+  drawSky('#1a237e', '#7e57c2');
+  // stars
+  ctx.fillStyle = '#fff';
+  const stars = [[15,12],[40,8],[68,18],[95,10],[125,15],[145,22],[28,28],[110,32]];
+  for (const [x,y] of stars) ctx.fillRect(x,y,1,1);
+  // moon
+  ctx.fillStyle = '#fff59d';
+  ctx.fillRect(120, 20, 14, 14);
+  ctx.fillStyle = '#1a237e';
+  ctx.fillRect(116, 18, 8, 8);
+  // ground
+  drawGround('#311b92', 90);
+  // distant restaurants silhouettes
+  const buildings = [
+    [5, 70, 18, 25, '#000'],
+    [25, 60, 22, 35, '#000'],
+    [55, 65, 20, 30, '#000'],
+    [85, 55, 25, 40, '#000'],
+    [120, 68, 18, 27, '#000']
+  ];
+  for (const [x,y,w,h,c] of buildings) { ctx.fillStyle = c; ctx.fillRect(x,y,w,h); }
+  // windows
+  ctx.fillStyle = '#ffeb3b';
+  for (let i=0; i<10; i++) {
+    const bx = 8 + (i*15) % 130;
+    const by = 70 + (i*7) % 22;
+    ctx.fillRect(bx, by, 2, 2);
+  }
+  // mika walking down a path
+  drawSprite(MIKA, MIKA_PAL, 72, 80);
+}
+
+function drawItalyScene() {
+  drawSky('#ffb74d', '#ff7043');
+  // distant hills
+  ctx.fillStyle = '#5d4037';
+  ctx.beginPath();
+  ctx.moveTo(0,80);
+  ctx.lineTo(30,60);
+  ctx.lineTo(60,75);
+  ctx.lineTo(95,55);
+  ctx.lineTo(130,72);
+  ctx.lineTo(160,65);
+  ctx.lineTo(160,90);
+  ctx.lineTo(0,90);
+  ctx.fill();
+  // ground - cobblestone-ish
+  drawGround('#8d6e63', 90);
+  ctx.fillStyle = '#6d4c41';
+  for (let x=0; x<W; x+=8) for (let y=92; y<H; y+=6) ctx.fillRect(x + (y%12===0?0:4), y, 3, 2);
+  // pizzeria building
+  ctx.fillStyle = '#ffe0b2'; ctx.fillRect(0,40,55,50);
+  ctx.fillStyle = '#c62828'; ctx.fillRect(0,38,55,4);
+  ctx.fillStyle = '#1b5e20'; ctx.fillRect(0,38,18,4);
+  ctx.fillStyle = '#fff'; ctx.fillRect(18,38,18,4);
+  ctx.fillStyle = '#c62828'; ctx.fillRect(36,38,19,4);
+  // window
+  ctx.fillStyle = '#4fc3f7'; ctx.fillRect(8,52,12,12);
+  ctx.fillStyle = '#fff'; ctx.fillRect(13,52,1,12); ctx.fillRect(8,57,12,1);
+  // door
+  ctx.fillStyle = '#5d4037'; ctx.fillRect(28,60,16,30);
+  ctx.fillStyle = '#ffeb3b'; ctx.fillRect(40,73,2,2);
+  // sign "PIZZA"
+  ctx.fillStyle = '#000'; ctx.fillRect(8,44,38,5);
+  ctx.fillStyle = '#ffeb3b'; ctx.font = '5px monospace'; ctx.fillText('PIZZA',13,49);
+  // tomato vines
+  ctx.fillStyle = '#388e3c';
+  for (let i=0; i<W; i+=3) ctx.fillRect(i, 88 + (i%6===0?-1:0), 1, 2);
+  // mika
+  drawSprite(MIKA, MIKA_PAL, 65, 72);
+  // pizza enemy
+  drawSprite(PIZZA, PIZZA_PAL, 105, 70);
+}
+
+function drawJapanScene() {
+  drawSky('#ef9a9a', '#ffccbc');
+  // sun (red disc)
+  ctx.fillStyle = '#d50000';
+  ctx.fillRect(110, 18, 24, 24);
+  ctx.fillStyle = '#ef9a9a';
+  ctx.fillRect(108, 28, 4, 4); ctx.fillRect(132, 22, 4, 4);
+  // mountain
+  ctx.fillStyle = '#5e4b8b';
+  ctx.beginPath();
+  ctx.moveTo(0,80); ctx.lineTo(40,50); ctx.lineTo(80,75); ctx.lineTo(160,60); ctx.lineTo(160,90); ctx.lineTo(0,90);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.moveTo(35,55); ctx.lineTo(40,50); ctx.lineTo(45,55); ctx.lineTo(43,58); ctx.lineTo(38,58); ctx.fill();
+  // ground - tatami-ish
+  drawGround('#a1887f', 90);
+  ctx.fillStyle = '#8d6e63';
+  for (let x=0; x<W; x+=10) ctx.fillRect(x, 90, 1, H-90);
+  // pagoda silhouette
+  ctx.fillStyle = '#3e2723';
+  ctx.fillRect(0, 60, 35, 30);
+  ctx.fillRect(2, 56, 31, 4);
+  ctx.fillRect(5, 50, 25, 6);
+  ctx.fillRect(8, 44, 19, 6);
+  ctx.fillRect(11, 38, 13, 6);
+  ctx.fillStyle = '#bf360c'; ctx.fillRect(15,40,5,8);
+  // paper lanterns
+  ctx.fillStyle = '#d50000';
+  ctx.fillRect(38, 50, 6, 8); ctx.fillRect(38,49,6,1); ctx.fillRect(38,58,6,1);
+  ctx.fillStyle = '#fff'; ctx.fillRect(40, 53, 2, 2);
+  // bamboo
+  ctx.fillStyle = '#558b2f';
+  for (let y=40; y<88; y+=10) { ctx.fillRect(140, y, 3, 8); ctx.fillRect(150, y+3, 3, 8); }
+  // mika
+  drawSprite(MIKA, MIKA_PAL, 60, 72);
+  // sushi enemy
+  drawSprite(SUSHI, SUSHI_PAL, 100, 75);
+}
+
+function drawMexicoScene() {
+  drawSky('#fff176', '#ffb300');
+  // sun
+  ctx.fillStyle = '#ff6f00';
+  ctx.fillRect(75,15,12,12);
+  ctx.fillRect(73,17,2,8); ctx.fillRect(87,17,2,8);
+  ctx.fillRect(77,13,8,2); ctx.fillRect(77,27,8,2);
+  // mesa
+  ctx.fillStyle = '#bf360c';
+  ctx.fillRect(0, 65, 30, 25);
+  ctx.fillRect(2, 63, 26, 2);
+  ctx.fillRect(110, 60, 50, 30);
+  ctx.fillRect(112, 58, 46, 2);
+  // ground
+  drawGround('#d84315', 88);
+  // adobe restaurant
+  ctx.fillStyle = '#ff8a65'; ctx.fillRect(35, 55, 50, 35);
+  ctx.fillStyle = '#bf360c'; ctx.fillRect(35, 53, 50, 3);
+  // window arches
+  ctx.fillStyle = '#5d4037'; ctx.fillRect(42,62,8,10);
+  ctx.fillStyle = '#5d4037'; ctx.fillRect(70,62,8,10);
+  // door
+  ctx.fillStyle = '#3e2723'; ctx.fillRect(54,72,12,18);
+  // cactus
+  ctx.fillStyle = '#33691e';
+  ctx.fillRect(95, 60, 6, 28);
+  ctx.fillRect(89, 65, 6, 8); ctx.fillRect(101, 70, 6, 8);
+  ctx.fillStyle = '#558b2f';
+  ctx.fillRect(96, 60, 1, 28);
+  // mika
+  drawSprite(MIKA, MIKA_PAL, 30, 72);
+  // taco enemy
+  drawSprite(TACO, TACO_PAL, 110, 73);
+}
+
+function drawIndiaScene() {
+  drawSky('#ffab91', '#ffcc80');
+  // temple silhouette
+  ctx.fillStyle = '#bf360c';
+  ctx.fillRect(50, 35, 60, 55);
+  // dome
+  ctx.beginPath();
+  ctx.moveTo(50,35); ctx.lineTo(60,15); ctx.lineTo(75,8); ctx.lineTo(85,8); ctx.lineTo(100,15); ctx.lineTo(110,35);
+  ctx.fill();
+  // smaller domes
+  ctx.fillRect(40, 50, 12, 40); ctx.beginPath();
+  ctx.moveTo(40,50); ctx.lineTo(46,38); ctx.lineTo(52,50); ctx.fill();
+  ctx.fillRect(108, 50, 12, 40); ctx.beginPath();
+  ctx.moveTo(108,50); ctx.lineTo(114,38); ctx.lineTo(120,50); ctx.fill();
+  // door
+  ctx.fillStyle = '#000'; ctx.fillRect(72,60,16,30);
+  // gold trim
+  ctx.fillStyle = '#ffeb3b'; ctx.fillRect(50,40,60,2);
+  ctx.fillRect(72,60,16,2);
+  // ground
+  drawGround('#8d6e63', 90);
+  // palms
+  ctx.fillStyle = '#5d4037';
+  ctx.fillRect(15, 50, 3, 40); ctx.fillRect(140, 55, 3, 35);
+  ctx.fillStyle = '#2e7d32';
+  ctx.fillRect(8,48,18,4); ctx.fillRect(10,44,14,4); ctx.fillRect(12,52,14,3);
+  ctx.fillRect(133,53,18,4); ctx.fillRect(135,49,14,4);
+  // mika
+  drawSprite(MIKA, MIKA_PAL, 25, 72);
+  // curry enemy
+  drawSprite(CURRY, CURRY_PAL, 110, 73);
+}
+
+function drawFranceScene() {
+  drawSky('#90caf9', '#bbdefb');
+  // clouds
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(20,20,18,5); ctx.fillRect(22,18,14,2);
+  ctx.fillRect(110,28,22,5); ctx.fillRect(113,26,16,2);
+  // Eiffel tower silhouette
+  ctx.fillStyle = '#37474f';
+  ctx.beginPath();
+  ctx.moveTo(75,15); ctx.lineTo(85,15); ctx.lineTo(86,30); ctx.lineTo(95,90); ctx.lineTo(65,90); ctx.lineTo(74,30); ctx.fill();
+  ctx.fillStyle = '#90caf9';
+  ctx.fillRect(72,40,16,2); ctx.fillRect(70,55,20,2);
+  // ground
+  drawGround('#cfd8dc', 90);
+  // cafe
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,55,55,35);
+  ctx.fillStyle = '#1976d2'; ctx.fillRect(0,53,55,4);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,53,18,4);
+  ctx.fillStyle = '#d50000'; ctx.fillRect(36,53,19,4);
+  // awning stripes
+  ctx.fillStyle = '#ef5350';
+  for (let x=0; x<55; x+=8) ctx.fillRect(x,57,4,3);
+  // window
+  ctx.fillStyle = '#bbdefb'; ctx.fillRect(6,65,18,15);
+  ctx.fillStyle = '#fff'; ctx.fillRect(15,65,1,15); ctx.fillRect(6,72,18,1);
+  // door
+  ctx.fillStyle = '#5d4037'; ctx.fillRect(30,65,16,25);
+  // chairs
+  ctx.fillStyle = '#37474f';
+  ctx.fillRect(60,82,4,8); ctx.fillRect(58,80,8,2);
+  // mika
+  drawSprite(MIKA, MIKA_PAL, 28, 72);
+  // croissant enemy
+  drawSprite(CROISSANT, CROISSANT_PAL, 110, 75);
+}
+
+function drawVictoryScene() {
+  drawSky('#fff176', '#fb8c00');
+  // confetti
+  const colors = ['#d50000','#1976d2','#43a047','#ffeb3b','#9c27b0','#fff'];
+  for (let i=0; i<60; i++) {
+    ctx.fillStyle = colors[i%colors.length];
+    const x = (i*17 + (Date.now()/40)|0) % W;
+    const y = (i*11 + (Date.now()/30)|0) % H;
+    ctx.fillRect(x, y, 2, 2);
+  }
+  // perfect restaurant
+  ctx.fillStyle = '#fff'; ctx.fillRect(40, 30, 80, 60);
+  ctx.fillStyle = '#d50000'; ctx.fillRect(38, 28, 84, 4);
+  // golden gate / arch
+  ctx.fillStyle = '#ffeb3b';
+  ctx.fillRect(70,55,20,35);
+  ctx.fillStyle = '#fff'; ctx.fillRect(78,72,4,4);
+  // sign
+  ctx.fillStyle = '#000'; ctx.fillRect(50, 38, 60, 8);
+  ctx.fillStyle = '#ffeb3b'; ctx.font = '6px monospace';
+  ctx.fillText('PERFECT', 60, 44);
+  // windows
+  ctx.fillStyle = '#4fc3f7';
+  ctx.fillRect(46,52,12,10); ctx.fillRect(102,52,12,10);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(51,52,1,10); ctx.fillRect(46,57,12,1);
+  ctx.fillRect(107,52,1,10); ctx.fillRect(102,57,12,1);
+  // ground
+  drawGround('#8bc34a', 90);
+  // mika happy
+  drawSprite(MIKA, MIKA_PAL, 72, 75);
+}
+
+function drawGameOverScene() {
+  drawSky('#212121', '#424242');
+  ctx.fillStyle = '#000';
+  drawGround('#000', 90);
+  // sad mika
+  drawSprite(MIKA, MIKA_PAL, 72, 75);
+  ctx.fillStyle = '#bdbdbd';
+  ctx.font = '8px monospace';
+  ctx.fillText('GAME OVER', 50, 50);
+}
+
+/* =====================================================
+   GAME STATE & PUZZLE DATA
+   ===================================================== */
+const PUZZLES = [
+  {
+    area: 'LITTLE ITALY',
+    song: 'italy',
+    scene: drawItalyScene,
+    enemyName: 'Pizza Pete',
+    intro: "A jaunty mandolin tune drifts down the cobblestones. Pizza Pete blocks the way to the Pizzeria, his cheese-eyes glaring. \"You shall not pass... unless your trivia is grande!\"",
+    questions: [
+      {
+        q: "Pete demands: which Italian city is widely credited as the birthplace of pizza?",
+        choices: ["Rome", "Naples", "Milan", "Florence"],
+        answer: 1,
+        win: "Pete sighs. \"Brava... Naples it is. Mamma mia.\" He folds himself in half and rolls aside.",
+        lose: "\"NO! Wrong-a!\" Pete pelts you with anchovies."
+      },
+      {
+        q: "Pete sneers: what does the cheese 'mozzarella' literally come from?",
+        choices: ["A type of cow", "The verb 'to cut'", "A village name", "An old goddess"],
+        answer: 1,
+        win: "\"From 'mozzare' - to cut! Si, you know your dairy.\" Pete steps aside.",
+        lose: "Pete laughs. \"It is from MOZZARE, to cut!\" Anchovies again."
+      }
+    ]
+  },
+  {
+    area: 'TOKYO ALLEY',
+    song: 'japan',
+    scene: drawJapanScene,
+    enemyName: 'Sushi Samurai',
+    intro: "Cherry petals drift past a paper lantern. The Sushi Samurai stands silent, nori glinting. \"To pass, you must answer with honor.\"",
+    questions: [
+      {
+        q: "Samurai-san asks: what does the word 'sushi' originally refer to?",
+        choices: ["Raw fish", "Rolled rice", "Sour, vinegared rice", "A small plate"],
+        answer: 2,
+        win: "He bows. \"Sour rice. The fish came later. You may pass.\"",
+        lose: "He shakes his head. \"It refers to the vinegared rice.\" A wasabi cloud stings your eyes."
+      },
+      {
+        q: "He continues: which is the correct name for the dark seaweed wrapper?",
+        choices: ["Wasabi", "Nori", "Miso", "Mirin"],
+        answer: 1,
+        win: "\"Nori. Hai. Pass.\" He steps aside soundlessly.",
+        lose: "\"Nori,\" he says, disappointed. Wasabi again."
+      }
+    ]
+  },
+  {
+    area: 'MERCADO PLAZA',
+    song: 'mexico',
+    scene: drawMexicoScene,
+    enemyName: 'Taco Tornado',
+    intro: "Mariachi horns blare. The Taco Tornado spins onto the dusty street, salsa flying. \"Hola amiga! Answer me, or get salsa-ed!\"",
+    questions: [
+      {
+        q: "Tornado yells: what is the main ingredient of guacamole?",
+        choices: ["Tomatillo", "Avocado", "Lime", "Jicama"],
+        answer: 1,
+        win: "\"Aguacate! Avocado! Si si!\" The Tornado spins politely out of the way.",
+        lose: "\"Ay no! Avocado!\" Salsa hits your shoes."
+      },
+      {
+        q: "Now: 'mole' is a famous Mexican sauce. What unusual ingredient is in many traditional moles?",
+        choices: ["Coffee", "Chocolate", "Maple", "Honey"],
+        answer: 1,
+        win: "\"Chocolate! Si, the bitter kind. Pasa, amiga.\"",
+        lose: "\"Chocolate, amiga!\" More salsa."
+      }
+    ]
+  },
+  {
+    area: 'MUMBAI MARKET',
+    song: 'india',
+    scene: drawIndiaScene,
+    enemyName: 'Curry King',
+    intro: "Tabla rhythms pulse from a nearby cart. Curry King steams angrily, his pot-lid crown gleaming. \"You dare seek dinner past me? Prove your spice-knowledge!\"",
+    questions: [
+      {
+        q: "Curry King demands: which spice gives most curries their bright yellow colour?",
+        choices: ["Saffron", "Cumin", "Turmeric", "Paprika"],
+        answer: 2,
+        win: "\"Turmeric! Haldi! Yes! You may pass through.\"",
+        lose: "\"Turmeric, foolish one!\" A cloud of cumin makes you sneeze."
+      },
+      {
+        q: "Now: 'naan' is which kind of bread?",
+        choices: ["Steamed dumpling", "Leavened flatbread", "Crispy wafer", "Fried noodle"],
+        answer: 1,
+        win: "\"A leavened flatbread, baked in tandoor! Move along.\"",
+        lose: "\"Leavened flatbread!\" he booms. Cumin again."
+      }
+    ]
+  },
+  {
+    area: 'BOULEVARD PARIS',
+    song: 'france',
+    scene: drawFranceScene,
+    enemyName: 'Croissant Comte',
+    intro: "Accordion notes spill from a cafe. The Croissant Comte twirls his butter-flake moustache. \"Bonjour, mademoiselle. One does not simply walk into the Perfect Restaurant. Une question, s'il vous plait.\"",
+    questions: [
+      {
+        q: "The Comte inquires: what does the word 'croissant' actually mean in French?",
+        choices: ["Buttery", "Crescent", "Crispy", "Morning"],
+        answer: 1,
+        win: "\"Croissant - the crescent moon. Tres bien. You may proceed.\"",
+        lose: "\"Crescent, of course!\" He flicks pastry flakes at you."
+      },
+      {
+        q: "Final test: which French sauce is one of the five 'mother sauces'?",
+        choices: ["Marinara", "Bechamel", "Tzatziki", "Chimichurri"],
+        answer: 1,
+        win: "\"Bechamel! Magnifique! The way is clear, mademoiselle.\"",
+        lose: "\"Bechamel!\" He twirls his moustache disapprovingly."
+      }
+    ]
+  }
+];
+
+const state = {
+  screen: 'title',     // title | intro | question | feedback | victory | gameover
+  level: 0,            // 0..4
+  questionIndex: 0,
+  lives: 3,
+  feedbackOK: false,
+  lastFeedback: null,
+  animTime: 0
+};
+
+/* =====================================================
+   RENDER LOOP
+   ===================================================== */
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  if (state.screen === 'title') drawTitleScene();
+  else if (state.screen === 'gameover') drawGameOverScene();
+  else if (state.screen === 'victory') drawVictoryScene();
+  else PUZZLES[state.level].scene();
+
+  // wobble enemy when feedback wrong
+  if (state.screen === 'feedback' && !state.feedbackOK) {
+    ctx.fillStyle = 'rgba(255,0,0,0.15)';
+    ctx.fillRect(0,0,W,H);
+  }
+}
+
+function loop() {
+  state.animTime++;
+  render();
+  requestAnimationFrame(loop);
+}
+
+/* =====================================================
+   UI / INTERACTION
+   ===================================================== */
+const dialog = document.getElementById('dialog');
+const choicesEl = document.getElementById('choices');
+const titleOverlay = document.getElementById('titleOverlay');
+const startBtn = document.getElementById('startBtn');
+const hudLevel = document.getElementById('hudLevel');
+const hudLives = document.getElementById('hudLives');
+const hudArea = document.getElementById('hudArea');
+
+function setDialog(text, klass) {
+  dialog.textContent = text;
+  dialog.className = klass || '';
+}
+
+function setChoices(items) {
+  choicesEl.innerHTML = '';
+  items.forEach((item, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = (i+1) + '. ' + item.label;
+    btn.onclick = () => { sfx('select'); item.action(); };
+    choicesEl.appendChild(btn);
+  });
+}
+
+function updateHUD() {
+  hudLevel.textContent = 'LEVEL ' + (state.level+1) + '/5';
+  hudLives.textContent = 'LIVES ' + '<3 '.repeat(state.lives).trim();
+  if (state.screen === 'title') hudArea.textContent = 'CITY NIGHT';
+  else if (state.screen === 'victory') hudArea.textContent = 'PERFECT';
+  else if (state.screen === 'gameover') hudArea.textContent = '---';
+  else hudArea.textContent = PUZZLES[state.level].area;
+}
+
+function startGame() {
+  ensureAudio();
+  titleOverlay.style.display = 'none';
+  state.level = 0;
+  state.questionIndex = 0;
+  state.lives = 3;
+  enterLevel();
+}
+
+function enterLevel() {
+  const p = PUZZLES[state.level];
+  state.screen = 'intro';
+  state.questionIndex = 0;
+  startSong(SONGS[p.song], 'lvl' + state.level);
+  setDialog(p.intro);
+  setChoices([
+    { label: 'Step forward and face ' + p.enemyName, action: askQuestion }
+  ]);
+  updateHUD();
+}
+
+function askQuestion() {
+  const p = PUZZLES[state.level];
+  const q = p.questions[state.questionIndex];
+  state.screen = 'question';
+  setDialog(q.q);
+  setChoices(q.choices.map((label, i) => ({
+    label,
+    action: () => answer(i)
+  })));
+  updateHUD();
+}
+
+function answer(idx) {
+  const p = PUZZLES[state.level];
+  const q = p.questions[state.questionIndex];
+  state.screen = 'feedback';
+  if (idx === q.answer) {
+    state.feedbackOK = true;
+    sfx('correct');
+    setDialog(q.win, 'feedback-correct');
+    setChoices([
+      { label: 'Continue --->', action: nextStep }
+    ]);
+  } else {
+    state.feedbackOK = false;
+    sfx('wrong');
+    state.lives--;
+    if (state.lives <= 0) {
+      gameOver();
+      return;
+    }
+    setDialog(q.lose + ' (Lives left: ' + state.lives + ')', 'feedback-wrong');
+    setChoices([
+      { label: 'Try again', action: askQuestion }
+    ]);
+  }
+  updateHUD();
+}
+
+function nextStep() {
+  const p = PUZZLES[state.level];
+  if (state.questionIndex + 1 < p.questions.length) {
+    state.questionIndex++;
+    askQuestion();
+  } else {
+    // level cleared
+    if (state.level + 1 < PUZZLES.length) {
+      state.level++;
+      enterLevel();
+    } else {
+      victory();
+    }
+  }
+}
+
+function victory() {
+  state.screen = 'victory';
+  startSong(SONGS.victory, 'victory');
+  sfx('victory');
+  setDialog("Mika rounds the corner and there it stands: THE PERFECT RESTAURANT. The host bows. \"Welcome, traveller. Your table is ready.\" Five cuisines bested. One perfect dinner ahead.", 'feedback-correct');
+  setChoices([
+    { label: 'Play again', action: () => { titleOverlay.style.display = 'flex'; stopSong(); state.screen='title'; updateHUD(); setDialog('Press START to begin Mika\'s quest for the Perfect Restaurant.'); choicesEl.innerHTML=''; } }
+  ]);
+  updateHUD();
+}
+
+function gameOver() {
+  state.screen = 'gameover';
+  stopSong();
+  sfx('wrong');
+  setDialog("Mika is too hungry to continue. The ingredients have won. The Perfect Restaurant remains a rumour.", 'feedback-wrong');
+  setChoices([
+    { label: 'Try the quest again', action: startGame }
+  ]);
+  updateHUD();
+}
+
+/* =====================================================
+   INPUT
+   ===================================================== */
+startBtn.addEventListener('click', startGame);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'm' || e.key === 'M') {
+    muted = !muted;
+    if (muted) stopSong();
+    else if (state.screen !== 'title' && state.screen !== 'gameover') {
+      if (state.screen === 'victory') startSong(SONGS.victory, 'victory');
+      else startSong(SONGS[PUZZLES[state.level].song], 'lvl' + state.level);
+    }
+  }
+  // number keys to pick choices
+  if (/^[1-4]$/.test(e.key)) {
+    const idx = parseInt(e.key, 10) - 1;
+    const btns = choicesEl.querySelectorAll('.choice-btn');
+    if (btns[idx]) btns[idx].click();
+  }
+});
+
+updateHUD();
+loop();
+</script>
+</body>
+</html>
