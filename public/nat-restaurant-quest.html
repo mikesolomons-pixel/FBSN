@@ -186,6 +186,7 @@ let audioCtx = null;
 let muted = false;
 let currentSong = null;
 let songTimer = null;
+let songGain = null;
 
 const NOTES = {
   rest: 0,
@@ -205,7 +206,7 @@ function ensureAudio() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-function playNote(freq, startTime, duration, type, vol) {
+function playNote(freq, startTime, duration, type, vol, dest) {
   if (muted || !audioCtx) return;
   if (freq <= 0) return;
   const osc = audioCtx.createOscillator();
@@ -217,12 +218,12 @@ function playNote(freq, startTime, duration, type, vol) {
   gain.gain.setValueAtTime(vol, startTime + duration * 0.7);
   gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
   osc.connect(gain);
-  gain.connect(audioCtx.destination);
+  gain.connect(dest || audioCtx.destination);
   osc.start(startTime);
   osc.stop(startTime + duration + 0.05);
 }
 
-function playSongOnce(song, songId) {
+function playSongOnce(song, songId, dest) {
   if (!audioCtx || muted) return 0;
   const t0 = audioCtx.currentTime + 0.02;
   let totalDur = 0;
@@ -230,7 +231,7 @@ function playSongOnce(song, songId) {
     let t = t0;
     for (const [note, dur] of track.notes) {
       const f = NOTES[note] || 0;
-      if (f > 0) playNote(f, t, dur * 0.95, track.type, track.vol);
+      if (f > 0) playNote(f, t, dur * 0.95, track.type, track.vol, dest);
       t += dur;
     }
     totalDur = Math.max(totalDur, t - t0);
@@ -240,10 +241,15 @@ function playSongOnce(song, songId) {
 
 function startSong(song, id) {
   stopSong();
+  if (!audioCtx) return;
+  songGain = audioCtx.createGain();
+  songGain.gain.value = 1;
+  songGain.connect(audioCtx.destination);
+  const myGain = songGain;
   currentSong = id;
   function loop() {
     if (currentSong !== id) return;
-    const dur = playSongOnce(song, id);
+    const dur = playSongOnce(song, id, myGain);
     songTimer = setTimeout(loop, dur * 1000);
   }
   loop();
@@ -253,6 +259,17 @@ function stopSong() {
   currentSong = null;
   if (songTimer) clearTimeout(songTimer);
   songTimer = null;
+  if (songGain && audioCtx) {
+    const t = audioCtx.currentTime;
+    const oldGain = songGain;
+    try {
+      oldGain.gain.cancelScheduledValues(t);
+      oldGain.gain.setValueAtTime(oldGain.gain.value, t);
+      oldGain.gain.linearRampToValueAtTime(0, t + 0.05);
+    } catch (e) {}
+    setTimeout(() => { try { oldGain.disconnect(); } catch (e) {} }, 200);
+    songGain = null;
+  }
 }
 
 function sfx(type) {
@@ -411,7 +428,8 @@ const SONGS = {
    PIXEL SPRITES - color-key strings
    . = transparent
    ===================================================== */
-function drawSprite(sprite, palette, dx, dy, flip) {
+function drawSprite(sprite, palette, dx, dy, flip, scale) {
+  const s = scale || 1;
   const rows = sprite;
   for (let y = 0; y < rows.length; y++) {
     const row = rows[y];
@@ -421,8 +439,8 @@ function drawSprite(sprite, palette, dx, dy, flip) {
       const color = palette[c];
       if (!color) continue;
       ctx.fillStyle = color;
-      const px = flip ? (dx + (row.length - 1 - x)) : (dx + x);
-      ctx.fillRect(px, dy + y, 1, 1);
+      const px = flip ? (dx + (row.length - 1 - x) * s) : (dx + x * s);
+      ctx.fillRect(px, dy + y * s, s, s);
     }
   }
 }
@@ -891,6 +909,64 @@ function drawVictoryScene() {
   drawSprite(NAT, NAT_PAL, 72, 75);
 }
 
+function drawBigNatScene(levelIdx) {
+  // pick a celebratory gradient that nods to the culture just bested
+  const palettes = [
+    ['#ffeb3b', '#ff7043'], // italy
+    ['#fce4ec', '#ef9a9a'], // japan
+    ['#fff59d', '#ff8a65'], // mexico
+    ['#ffcc80', '#ce93d8'], // india
+    ['#bbdefb', '#ce93d8']  // france
+  ];
+  const [a, b] = palettes[levelIdx] || ['#ffeb3b', '#fb8c00'];
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, a);
+  g.addColorStop(1, b);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  // rotating starburst rays behind
+  const cx = W / 2, cy = H / 2 + 4;
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  for (let r = 0; r < 16; r++) {
+    const angle = (r / 16) * Math.PI * 2 + state.animTime * 0.015;
+    const x = cx + Math.cos(angle) * 200;
+    const y = cy + Math.sin(angle) * 200;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(x - Math.sin(angle) * 6, y + Math.cos(angle) * 6);
+    ctx.lineTo(x + Math.sin(angle) * 6, y - Math.cos(angle) * 6);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // confetti
+  const colors = ['#d50000', '#1976d2', '#43a047', '#ffeb3b', '#9c27b0', '#fff'];
+  for (let i = 0; i < 50; i++) {
+    ctx.fillStyle = colors[i % colors.length];
+    const x = (i * 17 + state.animTime * 2) % W;
+    const y = (i * 11 + state.animTime) % H;
+    ctx.fillRect(x, y, 2, 2);
+  }
+
+  // BIG NAT - 16x24 sprite at scale 4 = 64x96, slight bob
+  const bob = Math.sin(state.animTime * 0.15) > 0 ? 0 : -2;
+  drawSprite(NAT, NAT_PAL, 48, 12 + bob, false, 4);
+
+  // sparkles around her
+  ctx.fillStyle = '#fff';
+  const sparkOffsets = [[20,30],[140,40],[15,80],[145,75],[28,100],[132,98]];
+  for (const [sx, sy] of sparkOffsets) {
+    if ((state.animTime + sx) % 30 < 15) {
+      ctx.fillRect(sx, sy, 2, 2);
+      ctx.fillRect(sx-1, sy+1, 1, 1);
+      ctx.fillRect(sx+2, sy+1, 1, 1);
+      ctx.fillRect(sx+1, sy-1, 1, 1);
+      ctx.fillRect(sx+1, sy+2, 1, 1);
+    }
+  }
+}
+
 function drawGameOverScene() {
   drawSky('#212121', '#424242');
   ctx.fillStyle = '#000';
@@ -1041,6 +1117,7 @@ function render() {
   if (state.screen === 'title') drawTitleScene();
   else if (state.screen === 'gameover') drawGameOverScene();
   else if (state.screen === 'victory') drawVictoryScene();
+  else if (state.screen === 'celebrate') drawBigNatScene(state.level);
   else PUZZLES[state.level].scene();
 
   // wobble enemy when feedback wrong
@@ -1158,13 +1235,36 @@ function nextStep() {
     state.questionIndex++;
     askQuestion();
   } else {
-    // level cleared
-    if (state.level + 1 < PUZZLES.length) {
-      state.level++;
-      enterLevel();
-    } else {
-      victory();
-    }
+    celebrateLevel();
+  }
+}
+
+const CELEBRATE_MESSAGES = [
+  "NAT, YOU LEGEND. You out-witted a sentient pizza using nothing but cheese-knowledge and pure grace. Naples itself is taking notes.",
+  "NAT THE UNSHAKEABLE. Calm, precise, devastating. The Sushi Samurai bowed. Most travellers don't even survive the seaweed round.",
+  "NAT DE LA MERCADO! You danced through the salsa storm without flinching. The mariachis are literally writing a corrido about you right now.",
+  "NAT THE SPICE QUEEN. You schooled the Curry King in his own kitchen. He's already drafting your honourary Turmeric Medal.",
+  "NAT, OFFICIALLY MAGNIFIQUE. Five cuisines bested. The Comte tipped his beret. You have been promoted to honorary food critic of the multiverse."
+];
+
+function celebrateLevel() {
+  state.screen = 'celebrate';
+  stopSong();
+  sfx('victory');
+  setDialog(CELEBRATE_MESSAGES[state.level] || "Another puzzle bested. Nat is unstoppable.", 'feedback-correct');
+  const isLast = state.level + 1 >= PUZZLES.length;
+  setChoices([
+    { label: isLast ? 'Approach the Perfect Restaurant --->' : 'Onward to the next kingdom --->', action: advanceFromCelebrate }
+  ]);
+  updateHUD();
+}
+
+function advanceFromCelebrate() {
+  if (state.level + 1 < PUZZLES.length) {
+    state.level++;
+    enterLevel();
+  } else {
+    victory();
   }
 }
 
