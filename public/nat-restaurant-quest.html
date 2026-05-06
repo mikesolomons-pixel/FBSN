@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mika's Restaurant Quest</title>
+<title>Nat's Restaurant Quest</title>
 <style>
   * { box-sizing: border-box; }
   html, body {
@@ -145,7 +145,7 @@
 </head>
 <body>
 <div id="wrap">
-  <h1>MIKA'S RESTAURANT QUEST</h1>
+  <h1>NAT'S RESTAURANT QUEST</h1>
   <div id="hud">
     <div class="hud-cell" id="hudLevel">LEVEL --/5</div>
     <div class="hud-cell" id="hudLives">LIVES &lt;3 &lt;3 &lt;3</div>
@@ -154,12 +154,12 @@
   <div id="stage">
     <canvas id="game" width="160" height="120"></canvas>
     <div id="overlay">
-      <div id="dialog">Press START to begin Mika's quest for the Perfect Restaurant.</div>
+      <div id="dialog">Press START to begin Nat's quest for the Perfect Restaurant.</div>
       <div id="choices"></div>
     </div>
     <div id="titleOverlay">
-      <h2>MIKA'S<br>RESTAURANT QUEST</h2>
-      <p>The hour is late. The hunger is real. Mika sets out across five culinary kingdoms in search of the Perfect Restaurant. Stand-up ingredients block her path. Only trivia can defeat them.</p>
+      <h2>NAT'S<br>RESTAURANT QUEST</h2>
+      <p>The hour is late. The hunger is real. Nat sets out across five culinary kingdoms in search of the Perfect Restaurant. Stand-up ingredients block her path. Only trivia can defeat them.</p>
       <button class="center-btn" id="startBtn">&gt; START</button>
       <p style="font-size:11px;color:#bbb;">Audio plays after you click START.</p>
     </div>
@@ -427,8 +427,8 @@ function drawSprite(sprite, palette, dx, dy, flip) {
   }
 }
 
-// MIKA - 16w x 24h, our heroine: black hair, glasses, black blazer, white shirt
-const MIKA = [
+// NAT - 16w x 24h, our heroine: black hair, glasses, black blazer, white shirt
+const NAT = [
   '................',
   '.....HHHHHH.....',
   '....HHHHHHHH....',
@@ -454,7 +454,7 @@ const MIKA = [
   '..NNN......NNN..',
   '..NNN......NNN..'
 ];
-const MIKA_PAL = {
+const NAT_PAL = {
   H: '#1a1a1a',  // hair
   S: '#f5d0a9',  // skin
   G: '#000',     // glasses frame
@@ -670,7 +670,7 @@ function drawTitleScene() {
     ctx.fillRect(bx, by, 2, 2);
   }
   // mika walking down a path
-  drawSprite(MIKA, MIKA_PAL, 72, 80);
+  drawSprite(NAT, NAT_PAL, 72, 80);
 }
 
 function drawItalyScene() {
@@ -710,7 +710,7 @@ function drawItalyScene() {
   ctx.fillStyle = '#388e3c';
   for (let i=0; i<W; i+=3) ctx.fillRect(i, 88 + (i%6===0?-1:0), 1, 2);
   // mika
-  drawSprite(MIKA, MIKA_PAL, 65, 72);
+  drawSprite(NAT, NAT_PAL, 65, 72);
   // pizza enemy
   drawSprite(PIZZA, PIZZA_PAL, 105, 70);
 }
@@ -749,7 +749,7 @@ function drawJapanScene() {
   ctx.fillStyle = '#558b2f';
   for (let y=40; y<88; y+=10) { ctx.fillRect(140, y, 3, 8); ctx.fillRect(150, y+3, 3, 8); }
   // mika
-  drawSprite(MIKA, MIKA_PAL, 60, 72);
+  drawSprite(NAT, NAT_PAL, 60, 72);
   // sushi enemy
   drawSprite(SUSHI, SUSHI_PAL, 100, 75);
 }
@@ -784,7 +784,7 @@ function drawMexicoScene() {
   ctx.fillStyle = '#558b2f';
   ctx.fillRect(96, 60, 1, 28);
   // mika
-  drawSprite(MIKA, MIKA_PAL, 30, 72);
+  drawSprite(NAT, NAT_PAL, 30, 72);
   // taco enemy
   drawSprite(TACO, TACO_PAL, 110, 73);
 }
@@ -817,7 +817,7 @@ function drawIndiaScene() {
   ctx.fillRect(8,48,18,4); ctx.fillRect(10,44,14,4); ctx.fillRect(12,52,14,3);
   ctx.fillRect(133,53,18,4); ctx.fillRect(135,49,14,4);
   // mika
-  drawSprite(MIKA, MIKA_PAL, 25, 72);
+  drawSprite(NAT, NAT_PAL, 25, 72);
   // curry enemy
   drawSprite(CURRY, CURRY_PAL, 110, 73);
 }
@@ -853,7 +853,7 @@ function drawFranceScene() {
   ctx.fillStyle = '#37474f';
   ctx.fillRect(60,82,4,8); ctx.fillRect(58,80,8,2);
   // mika
-  drawSprite(MIKA, MIKA_PAL, 28, 72);
+  drawSprite(NAT, NAT_PAL, 28, 72);
   // croissant enemy
   drawSprite(CROISSANT, CROISSANT_PAL, 110, 75);
 }
@@ -888,7 +888,7 @@ function drawVictoryScene() {
   // ground
   drawGround('#8bc34a', 90);
   // mika happy
-  drawSprite(MIKA, MIKA_PAL, 72, 75);
+  drawSprite(NAT, NAT_PAL, 72, 75);
 }
 
 function drawGameOverScene() {
@@ -896,7 +896,7 @@ function drawGameOverScene() {
   ctx.fillStyle = '#000';
   drawGround('#000', 90);
   // sad mika
-  drawSprite(MIKA, MIKA_PAL, 72, 75);
+  drawSprite(NAT, NAT_PAL, 72, 75);
   ctx.fillStyle = '#bdbdbd';
   ctx.font = '8px monospace';
   ctx.fillText('GAME OVER', 50, 50);
@@ -1172,9 +1172,9 @@ function victory() {
   state.screen = 'victory';
   startSong(SONGS.victory, 'victory');
   sfx('victory');
-  setDialog("Mika rounds the corner and there it stands: THE PERFECT RESTAURANT. The host bows. \"Welcome, traveller. Your table is ready.\" Five cuisines bested. One perfect dinner ahead.", 'feedback-correct');
+  setDialog("Nat rounds the corner and there it stands: THE PERFECT RESTAURANT. The host bows. \"Welcome, traveller. Your table is ready.\" Five cuisines bested. One perfect dinner ahead.", 'feedback-correct');
   setChoices([
-    { label: 'Play again', action: () => { titleOverlay.style.display = 'flex'; stopSong(); state.screen='title'; updateHUD(); setDialog('Press START to begin Mika\'s quest for the Perfect Restaurant.'); choicesEl.innerHTML=''; } }
+    { label: 'Play again', action: () => { titleOverlay.style.display = 'flex'; stopSong(); state.screen='title'; updateHUD(); setDialog('Press START to begin Nat\'s quest for the Perfect Restaurant.'); choicesEl.innerHTML=''; } }
   ]);
   updateHUD();
 }
@@ -1183,7 +1183,7 @@ function gameOver() {
   state.screen = 'gameover';
   stopSong();
   sfx('wrong');
-  setDialog("Mika is too hungry to continue. The ingredients have won. The Perfect Restaurant remains a rumour.", 'feedback-wrong');
+  setDialog("Nat is too hungry to continue. The ingredients have won. The Perfect Restaurant remains a rumour.", 'feedback-wrong');
   setChoices([
     { label: 'Try the quest again', action: startGame }
   ]);
