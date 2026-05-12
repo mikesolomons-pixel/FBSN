@@ -373,7 +373,9 @@ async function joinRoom(opts) {
   allowParticipantPrompts = room.allow_participant_prompts !== false;
   applyLockUI();
 
-  // Resume existing participant if we have a stored id, otherwise insert.
+  // Resume existing participant if we have a stored id; otherwise look for
+  // a row in this room with the same name (handles iOS Safari clearing
+  // localStorage, a different browser, etc.) before inserting fresh.
   let participant = null;
   if (resumePid) {
     const { data: existing } = await supabaseClient.from('participants')
@@ -381,8 +383,21 @@ async function joinRoom(opts) {
     if (existing) {
       participant = existing;
     } else {
-      // The stored participant is gone (room recreated, or row deleted).
       clearSession(code);
+    }
+  }
+
+  if (!participant) {
+    // Name-match fallback: reuse the same name in this room rather than
+    // creating a duplicate. Two real people with identical names are an
+    // accepted edge case — facilitator can ask them to disambiguate.
+    // Use limit(1) rather than maybeSingle so existing duplicates don't
+    // error the query; we pick the oldest row.
+    const { data: byName } = await supabaseClient.from('participants')
+      .select('*').eq('room_id', roomId).eq('name', name)
+      .order('created_at', { ascending: true }).limit(1);
+    if (byName && byName.length) {
+      participant = byName[0];
     }
   }
 
