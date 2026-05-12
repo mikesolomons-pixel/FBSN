@@ -2508,16 +2508,18 @@ const TEMPLATES = {
     title: 'Netflix Strategic Crossroads (Example)',
     context: 'It is the late 2000s. Netflix faces a major inflection point. DVD-by-mail is still profitable but growth is slowing. Consumer behavior is shifting toward on-demand digital content. Broadband is expanding rapidly, and competitors are entering streaming. Your team must decide what to scale, what to explore, and what to leave behind.',
     perspectives: [
+      // Start with a couple of fact/noise + belief/noise so the noise
+      // distinction surfaces early in the exercise.
+      'The DVD business is currently profitable',
+      'Most current customers use mail rentals',
+      'Streaming is a temporary fad',
+      'Older customers will reject digital',
       'Broadband adoption is accelerating',
       'Customers want on-demand access',
       'Streaming is scalable and reduces delivery cost',
       'We can secure long-term studio deals',
       'Users will accept streaming over DVDs',
       'Subscription-based models will be sustainable',
-      'The DVD business is currently profitable',
-      'Most current customers use mail rentals',
-      'Streaming is a temporary fad',
-      'Older customers will reject digital',
       'Competitors won\'t adapt fast enough'
     ],
     answers: {
