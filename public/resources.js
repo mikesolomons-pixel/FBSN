@@ -85,12 +85,19 @@
     }
     .resource-card:hover .resource-thumb img{transform:scale(1.03)}
     .resource-thumb-fallback{
+      width:100%;height:100%;
       display:flex;flex-direction:column;align-items:center;justify-content:center;
-      gap:.4rem;color:rgba(27,42,74,.4);
+      gap:.5rem;color:#fff;position:relative;
     }
-    .resource-thumb-fallback .tf-icon{font-size:2.2rem}
+    .resource-thumb-fallback::before{
+      content:"";position:absolute;inset:0;
+      background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.15) 0%, transparent 55%);
+      pointer-events:none;
+    }
+    .resource-thumb-fallback .tf-icon{font-size:2.6rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,.2));position:relative}
     .resource-thumb-fallback .tf-label{
-      font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;
+      font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;
+      color:rgba(255,255,255,.85);position:relative;
     }
     .resource-type-chip{
       position:absolute;top:.6rem;left:.6rem;
@@ -284,16 +291,24 @@
 
   /* ── Thumbnail helper ───────────────────────────────────── */
   function getThumbnailUrl(resource) {
-    // 1. Explicit thumbnail uploaded
+    // Only use an explicit thumbnail URL. thum.io's free tier now shows
+    // a paywall image for external URLs, so we drop the auto-screenshot
+    // fallback and let renderCard() draw a type-badge placeholder instead.
     if (resource.thumbnail_url) return resource.thumbnail_url;
-    // 2. Auto-screenshot via thum.io for URL-based resources (free, no key)
-    // Skip file uploads from our own Supabase bucket
-    if (resource.url && !resource.url.includes('supabase.co/storage')) {
-      // Strip protocol for thum.io
-      const clean = resource.url.replace(/^https?:\/\//, '');
-      return `https://image.thum.io/get/width/480/noanimate/https://${clean}`;
-    }
     return null;
+  }
+
+  // Shade a hex color by a percentage (-100 darker, +100 lighter)
+  function shadeColor(hex, percent) {
+    const h = hex.replace('#', '');
+    const num = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+    let r = (num >> 16) + Math.round(255 * percent / 100);
+    let g = ((num >> 8) & 0xff) + Math.round(255 * percent / 100);
+    let b = (num & 0xff) + Math.round(255 * percent / 100);
+    r = Math.max(0, Math.min(255, r));
+    g = Math.max(0, Math.min(255, g));
+    b = Math.max(0, Math.min(255, b));
+    return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
   }
 
   /* ── Supabase helper ────────────────────────────────────── */
@@ -361,17 +376,25 @@
     const playBg = PLAY_COLORS[r.play] || '#999';
     const thumb = getThumbnailUrl(r);
 
+    const fallbackBg = `linear-gradient(135deg, ${typeBg} 0%, ${shadeColor(typeBg, -20)} 100%)`;
+    const fallbackHTML = `<div class="resource-thumb-fallback" style="background:${fallbackBg}"><div class="tf-icon">${icon}</div><div class="tf-label">${esc(typeLabel)}</div></div>`;
     const thumbHTML = thumb
-      ? `<img src="${esc(thumb)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='<div class=\\'resource-thumb-fallback\\'><div class=\\'tf-icon\\'>${icon}</div><div class=\\'tf-label\\'>${typeLabel}</div></div>'">`
-      : `<div class="resource-thumb-fallback"><div class="tf-icon">${icon}</div><div class="tf-label">${esc(typeLabel)}</div></div>`;
+      ? `<img src="${esc(thumb)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML=${JSON.stringify(fallbackHTML)}">`
+      : fallbackHTML;
 
     const clickWrap = r.url ? 'a' : 'div';
     const clickAttrs = r.url ? `href="${esc(r.url)}" target="_blank" rel="noopener"` : '';
 
+    // Skip the type chip when we're already showing the type-label placeholder
+    // (it would just duplicate the label). Keep it when there's a real image.
+    const typeChipHTML = thumb
+      ? `<span class="resource-type-chip" style="background:${typeBg}">${esc(typeLabel)}</span>`
+      : '';
+
     return `<${clickWrap} ${clickAttrs} class="resource-card" data-id="${r.id}" data-type="${r.resource_type}" data-play="${r.play}" data-title="${esc(r.title)}" data-author="${esc(r.author || '')}" data-url="${esc(r.url || '')}" data-desc="${esc(r.description || '')}" data-thumbnail="${esc(r.thumbnail_url || '')}">
       <div class="resource-thumb">
         ${thumbHTML}
-        <span class="resource-type-chip" style="background:${typeBg}">${esc(typeLabel)}</span>
+        ${typeChipHTML}
         <span class="resource-play-chip" style="background:${playBg}">${esc(playLabel)}</span>
         <div class="resource-admin-controls">
           <button class="ra-btn" data-edit-id="${r.id}" title="Edit" onclick="event.preventDefault();event.stopPropagation();">&#9998;</button>
