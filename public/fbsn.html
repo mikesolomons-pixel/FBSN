@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FBSN - Facts, Beliefs, Signals, Noise</title>
+<script src="feature-flags.js"></script>
 <script src="auth.js"></script>
 <script type="module" src="supabase-config.js"></script>
 <script src="admin.js"></script>
@@ -1101,7 +1102,7 @@
   <!-- PHASE 1: Setup -->
   <div class="phase active" id="phase-1">
     <!-- Mode selector -->
-    <div class="mode-selector">
+    <div class="mode-selector multiplayer-only">
       <a class="mode-card" href="host.html">
         <div class="mode-icon">&#128187;</div>
         <div class="mode-title">Host Virtual Session</div>
@@ -1127,7 +1128,7 @@
       </div>
       <div style="display:flex;flex-direction:column;gap:0.4rem">
         <button class="btn-example" onclick="loadTemplate('netflix')">Run Solo &#8594;</button>
-        <a class="btn-example" href="host.html?template=netflix" style="text-decoration:none;text-align:center">Host as Virtual Session &#8594;</a>
+        <a class="btn-example multiplayer-only" href="host.html?template=netflix" style="text-decoration:none;text-align:center">Host as Virtual Session &#8594;</a>
       </div>
     </div>
 
