@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FBSN - Facts, Beliefs, Signals, Noise</title>
-<script src="feature-flags.js"></script>
+<script src="local-store.js"></script>
+<script src="supabase-shim.js"></script>
 <script src="auth.js"></script>
-<script type="module" src="supabase-config.js"></script>
 <script src="admin.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -1101,20 +1101,6 @@
 
   <!-- PHASE 1: Setup -->
   <div class="phase active" id="phase-1">
-    <!-- Mode selector -->
-    <div class="mode-selector multiplayer-only">
-      <a class="mode-card" href="host.html">
-        <div class="mode-icon">&#128187;</div>
-        <div class="mode-title">Host Virtual Session</div>
-        <div class="mode-desc">Present on a big screen and let your team vote from their devices.</div>
-      </a>
-      <a class="mode-card" href="join.html">
-        <div class="mode-icon">&#9995;</div>
-        <div class="mode-title">Join Virtual Session</div>
-        <div class="mode-desc">Enter a room code to vote on perspectives from your device.</div>
-      </a>
-    </div>
-
     <!-- Tutorial link -->
     <div style="text-align:center;margin-bottom:1.25rem;">
       <a href="fbsn-tutorial.html" style="color:var(--teal);font-size:0.85rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:0.35rem;padding:0.5rem 1rem;border:1.5px solid var(--teal-pale);border-radius:8px;transition:all 0.15s;">&#128218; New to FBSN? View the Tutorial</a>
@@ -1126,10 +1112,7 @@
         <h3>&#127916; Netflix Case Study</h3>
         <p>Practice the FBSN framework with a real strategic example — 11 perspectives from Netflix's streaming crossroads.</p>
       </div>
-      <div style="display:flex;flex-direction:column;gap:0.4rem">
-        <button class="btn-example" onclick="loadTemplate('netflix')">Run Solo &#8594;</button>
-        <a class="btn-example multiplayer-only" href="host.html?template=netflix" style="text-decoration:none;text-align:center">Host as Virtual Session &#8594;</a>
-      </div>
+      <button class="btn-example" onclick="loadTemplate('netflix')">Run Netflix Example &#8594;</button>
     </div>
 
     <!-- Saved sessions -->

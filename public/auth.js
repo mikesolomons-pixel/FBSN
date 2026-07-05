@@ -1,78 +1,39 @@
-(function() {
-  // Skip auth on public pages (login, email confirmation, and the
-  // QR-code participant join flow — participants don't need accounts).
-  // Match with or without the .html extension (clean URLs).
-  var page = window.location.pathname.split('/').pop().replace(/\.html$/, '');
-  if (page === 'login' || page === 'join' || page === 'confirm') return;
-
-  // Hide page until auth check completes
-  document.documentElement.style.visibility = 'hidden';
-
-  async function checkAuth() {
-    var sb = null;
-    for (var i = 0; i < 30; i++) {
-      if (window.supabaseClient) { sb = window.supabaseClient; break; }
-      await new Promise(function(r) { setTimeout(r, 100); });
-    }
-    if (!sb) {
-      window.location.href = 'login.html';
-      return;
-    }
-
-    var result = await sb.auth.getSession();
-    var session = result.data.session;
-    if (!session) {
-      window.location.href = 'login.html';
-      return;
-    }
-
-    // Build user object locally — do NOT assign to window.VCTUser
-    // until the profile (including role) has been fetched.
-    var user = {
-      id: session.user.id,
-      email: session.user.email,
-      fullName: session.user.user_metadata?.full_name || session.user.email,
-      role: 'practitioner'
-    };
-
-    // Fetch profile to get role
-    var profileResult = await sb.from('fbsn_profiles').select('role, full_name').eq('id', session.user.id).single();
-    if (profileResult.data) {
-      user.role = profileResult.data.role;
-      user.fullName = profileResult.data.full_name || user.fullName;
-    } else if (profileResult.error) {
-      console.warn('Profile fetch failed, defaulting to practitioner:', profileResult.error.message);
-    }
-
-    // NOW expose the fully-populated user object
-    window.VCTUser = user;
-
-    // Show the page
-    document.documentElement.style.visibility = 'visible';
-    if (document.body) document.body.style.visibility = 'visible';
-
-    if (window.VCTUser.role === 'admin') {
-      if (document.body) document.body.classList.add('vct-admin');
-    }
-  }
-
-  // Expose helpers immediately
-  window.VCTAuth = {
-    isLoggedIn: function() { return !!window.VCTUser; },
-    isAdmin: function() { return window.VCTUser?.role === 'admin'; },
-    getUser: function() { return window.VCTUser; },
-    logout: async function() {
-      var sb = window.supabaseClient;
-      if (sb) await sb.auth.signOut();
-      window.VCTUser = null;
-      window.location.href = 'login.html';
-    }
+/**
+ * FBSN local-only auth stub.
+ *
+ * The app used to authenticate via Supabase. In local-only mode there
+ * is no server, no accounts, and no gating — every user is treated as
+ * the single admin/facilitator.
+ *
+ * We keep the same window.VCTAuth / window.VCTUser surface so
+ * downstream code that calls VCTAuth.isAdmin() or reads
+ * window.VCTUser.role keeps working without changes.
+ *
+ * See rebuild-supabase.md at the repo root to bring real auth back.
+ */
+(function () {
+  var user = {
+    id: 'local',
+    email: 'local@local',
+    fullName: 'Facilitator',
+    role: 'admin'
   };
-  window.isVCTAdmin = function() { return window.VCTUser?.role === 'admin'; };
 
+  window.VCTUser = user;
+  window.VCTAuth = {
+    isLoggedIn: function () { return true; },
+    isAdmin:    function () { return true; },
+    getUser:    function () { return user; },
+    logout:     function () { /* nothing to log out of */ }
+  };
+  window.isVCTAdmin = function () { return true; };
+
+  // Mark body so any styles that scope to .vct-admin still apply.
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', checkAuth);
-  } else {
-    checkAuth();
+    document.addEventListener('DOMContentLoaded', function () {
+      if (document.body) document.body.classList.add('vct-admin');
+    });
+  } else if (document.body) {
+    document.body.classList.add('vct-admin');
   }
 })();

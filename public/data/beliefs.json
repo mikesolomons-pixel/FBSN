@@ -1,0 +1,32 @@
+[
+  {
+    "id": "b1",
+    "sort_order": 0,
+    "title": "Leadership is a Team Sport",
+    "description": "The most critical unit of leadership in any organization is the top team, not the individual at the top."
+  },
+  {
+    "id": "b2",
+    "sort_order": 1,
+    "title": "Team Building Happens by Achieving Outcomes in New Ways",
+    "description": "Not just shareholder returns. Teams exist to create value across all stakeholders. If we're honest, most organizations are falling short."
+  },
+  {
+    "id": "b3",
+    "sort_order": 2,
+    "title": "Plays, Not Prescriptions",
+    "description": "Like a sports team, executive teams need a playbook of adaptable moves, not rigid processes."
+  },
+  {
+    "id": "b4",
+    "sort_order": 3,
+    "title": "Practice Makes Permanent",
+    "description": "Real change comes through repeated practice, not one-off events or workshops."
+  },
+  {
+    "id": "b5",
+    "sort_order": 4,
+    "title": "Conflict is Data, Not Dysfunction",
+    "description": "Divergent views tell us where reality is unclear and where assumptions differ. The goal isn't consensus — it's shared clarity."
+  }
+]

@@ -1,7 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/api/extract", "destination": "/api/extract" },
-    { "source": "/api/factcheck", "destination": "/api/factcheck" },
-    { "source": "/api/cynefin", "destination": "/api/cynefin" }
-  ]
-}

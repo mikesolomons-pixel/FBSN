@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Client Engagements - Value Creating Teams</title>
+<script src="local-store.js"></script>
+<script src="supabase-shim.js"></script>
 <script src="auth.js"></script>
-<script type="module" src="supabase-config.js"></script>
 <script src="admin.js"></script>
 <style>
   :root {
@@ -637,12 +638,8 @@
   </div>
 </div>
 
-<!-- Auth gate -->
-<div class="auth-gate" id="authGate">
-  <h2>Sign In Required</h2>
-  <p>You need to be signed in to manage clients.</p>
-  <a href="login.html">Sign in &rarr;</a>
-</div>
+<!-- Auth gate — kept in DOM for CSS but the local-only build always shows the main container. -->
+<div class="auth-gate" id="authGate" style="display:none"></div>
 
 <!-- Main container -->
 <div class="main-container" id="mainContainer">
@@ -1365,12 +1362,20 @@ async function deleteClient() {
 async function loadProjects() {
   const sb = await getClient();
   if (!sb) return;
-  const { data, error } = await sb.from('projects')
-    .select('*, clients(name, organization)')
+  const { data: projects, error } = await sb.from('projects')
+    .select('*')
     .eq('created_by', window.VCTUser.id)
     .order('created_at', { ascending: false });
   if (error) { toast('Failed to load projects', 'error'); return; }
-  allProjects = data || [];
+  // Attach client info (the old code used Supabase's projects.select('*, clients(...)')
+  // relationship syntax; do it in JS now that we're local-only).
+  const { data: clients } = await sb.from('clients').select('*');
+  const clientById = {};
+  (clients || []).forEach(c => { clientById[c.id] = c; });
+  allProjects = (projects || []).map(p => ({
+    ...p,
+    clients: clientById[p.client_id] || null
+  }));
   renderProjects();
 }
 
@@ -1483,12 +1488,16 @@ async function openProjectDetail(projectId) {
   const sb = await getClient();
   if (!sb) return;
 
-  // Load project
+  // Load project (with manual client join)
   const { data: proj, error } = await sb.from('projects')
-    .select('*, clients(name, organization)')
+    .select('*')
     .eq('id', projectId)
     .single();
   if (error || !proj) { toast('Project not found', 'error'); switchTab('projects'); return; }
+  if (proj.client_id) {
+    const { data: client } = await sb.from('clients').select('*').eq('id', proj.client_id).maybeSingle();
+    proj.clients = client || null;
+  }
   currentProjectData = proj;
 
   // Load tasks

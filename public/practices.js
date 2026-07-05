@@ -1,300 +1,191 @@
 /**
- * practices.js — Dynamic practices management for VCT
- * Fetches practices and play_practices from Supabase,
- * exposes helpers for admin-console.html and (future) dynamic play pages.
+ * practices.js — Renders practices + beliefs for the play pages and
+ * homepage. Reads from window.dataStore (bundled JSON in local-only
+ * build). CRUD helpers are kept as no-ops so callers don't crash.
+ *
+ * The old flat "practices" and "play_practices" tables are replaced
+ * by a single practices array where each row carries its own
+ * play_number + sort_order.
  */
 (function () {
-  /* ── Supabase helper ───────────────────────────────────── */
-  async function getClient() {
-    for (let i = 0; i < 30; i++) {
-      if (window.supabaseClient) return window.supabaseClient;
-      await new Promise(r => setTimeout(r, 100));
+  'use strict';
+
+  async function store() {
+    for (var i = 0; i < 30; i++) {
+      if (window.dataStore) return window.dataStore;
+      await new Promise(function (r) { setTimeout(r, 50); });
     }
     return null;
   }
 
-  /* ── CRUD: practices ──────────────────────────────────── */
+  /* ── Practices ─────────────────────────────────────────── */
   async function fetchPractices() {
-    const sb = await getClient();
-    if (!sb) return [];
-    const { data, error } = await sb.from('practices').select('*').order('title');
-    if (error) { console.warn('practices fetch error', error); return []; }
-    return data || [];
+    var ds = await store();
+    if (!ds) return [];
+    return ds.practices.list();
   }
 
-  async function createPractice(practice) {
-    const sb = await getClient();
-    if (!sb) return null;
-    const { data, error } = await sb.from('practices').insert([practice]).select();
-    if (error) { console.error('practice insert error', error); alert('Failed to create practice: ' + error.message); return null; }
-    return data?.[0];
-  }
-
-  async function updatePractice(id, updates) {
-    const sb = await getClient();
-    if (!sb) return null;
-    updates.updated_at = new Date().toISOString();
-    const { data, error } = await sb.from('practices').update(updates).eq('id', id).select();
-    if (error) { console.error('practice update error', error); alert('Failed to update practice: ' + error.message); return null; }
-    return data?.[0];
-  }
-
-  async function deletePractice(id) {
-    const sb = await getClient();
-    if (!sb) return false;
-    const { error } = await sb.from('practices').delete().eq('id', id);
-    if (error) { console.error('practice delete error', error); alert('Failed to delete practice: ' + error.message); return false; }
-    return true;
-  }
-
-  /* ── CRUD: play_practices junction ─────────────────────── */
+  // The old junction table is embedded in each practice row now.
   async function fetchPlayPractices() {
-    const sb = await getClient();
-    if (!sb) return [];
-    const { data, error } = await sb.from('play_practices').select('*').order('sort_order');
-    if (error) { console.warn('play_practices fetch error', error); return []; }
-    return data || [];
+    var rows = await fetchPractices();
+    // Fake the old shape: { id, play_number, practice_id, sort_order }
+    return rows.map(function (p) {
+      return {
+        id: 'j-' + p.id,
+        play_number: p.play_number,
+        practice_id: p.id,
+        sort_order: p.sort_order || 0
+      };
+    });
   }
 
-  async function assignPracticeToPlay(playNumber, practiceId, sortOrder) {
-    const sb = await getClient();
-    if (!sb) return null;
-    const { data, error } = await sb.from('play_practices')
-      .insert([{ play_number: playNumber, practice_id: practiceId, sort_order: sortOrder || 0 }])
-      .select();
-    if (error) { console.error('assign error', error); alert('Failed to assign: ' + error.message); return null; }
-    return data?.[0];
+  function readOnlyWarn() {
+    console.warn('[practices] this build is local-only; edits to bundled practices are not supported.');
+    return null;
   }
+  var createPractice = readOnlyWarn;
+  var updatePractice = readOnlyWarn;
+  var deletePractice = readOnlyWarn;
+  var assignPracticeToPlay = readOnlyWarn;
+  var unassignPracticeFromPlay = readOnlyWarn;
+  var updateSortOrder = readOnlyWarn;
 
-  async function unassignPracticeFromPlay(junctionId) {
-    const sb = await getClient();
-    if (!sb) return false;
-    const { error } = await sb.from('play_practices').delete().eq('id', junctionId);
-    if (error) { console.error('unassign error', error); return false; }
-    return true;
+  /* ── Beliefs ───────────────────────────────────────────── */
+  async function fetchBeliefs() {
+    var ds = await store();
+    if (!ds) return [];
+    return ds.beliefs.list();
   }
+  var createBelief = readOnlyWarn;
+  var updateBelief = readOnlyWarn;
+  var deleteBelief = readOnlyWarn;
 
-  async function updateSortOrder(junctionId, newOrder) {
-    const sb = await getClient();
-    if (!sb) return false;
-    const { error } = await sb.from('play_practices').update({ sort_order: newOrder }).eq('id', junctionId);
-    if (error) { console.error('sort order error', error); return false; }
-    return true;
-  }
+  /* ── Metadata ──────────────────────────────────────────── */
+  var PLAY_NAMES = { 1: 'Sensemaking', 2: 'Imagining', 3: 'Navigating', 4: 'Collaborating', 5: 'Value Creating' };
+  var PLAY_COLORS = { 1: '#00897B', 2: '#7C5CBF', 3: '#E07A5F', 4: '#D4A843', 5: '#1B2A4A' };
 
-  /* ── Play metadata ────────────────────────────────────── */
-  const PLAY_NAMES = {
-    1: 'Sensemaking',
-    2: 'Imagining',
-    3: 'Navigating',
-    4: 'Collaborating',
-    5: 'Value Creating'
-  };
-  const PLAY_COLORS = {
-    1: '#00897B',
-    2: '#7C5CBF',
-    3: '#E07A5F',
-    4: '#D4A843',
-    5: '#1B2A4A'
-  };
-
-  /* ── HTML helpers ───────────────────────────────────────── */
   function esc(s) {
     if (!s) return '';
-    const d = document.createElement('div');
+    var d = document.createElement('div');
     d.textContent = s;
     return d.innerHTML;
   }
 
-  /* ── Dynamic practice card renderer for play pages ─────── */
+  /* ── Play-page practices renderer ──────────────────────── */
   async function renderPlayPage(playNumber, containerId) {
-    const container = document.getElementById(containerId || 'practices-container');
+    var container = document.getElementById(containerId || 'practices-container');
     if (!container) return;
-
     container.innerHTML = '<p style="font-size:.85rem;color:var(--text-secondary,#5A6B8A);padding:1rem 0;">Loading practices...</p>';
 
-    const [allPractices, allJunctions] = await Promise.all([
-      fetchPractices(),
-      fetchPlayPractices()
-    ]);
+    var all = await fetchPractices();
+    var forPlay = all
+      .filter(function (p) { return p.play_number === playNumber; })
+      .sort(function (a, b) { return (a.sort_order || 0) - (b.sort_order || 0); });
 
-    // Get junctions for this play, sorted
-    const junctions = allJunctions
-      .filter(j => j.play_number === playNumber)
-      .sort((a, b) => a.sort_order - b.sort_order);
-
-    if (!junctions.length) {
+    if (!forPlay.length) {
       container.innerHTML = '<p style="font-size:.85rem;color:var(--text-secondary,#5A6B8A);padding:1rem 0;">No practices assigned to this play yet.</p>';
       return;
     }
 
-    let html = '';
-    junctions.forEach((junction, idx) => {
-      const p = allPractices.find(x => x.id === junction.practice_id);
-      if (!p) return;
+    var html = '';
+    forPlay.forEach(function (p, idx) {
+      var num = idx + 1;
+      var modes = Array.isArray(p.modes) ? p.modes : [];
+      var outcomes = Array.isArray(p.outcomes) ? p.outcomes : [];
+      var outputs = Array.isArray(p.outputs) ? p.outputs : [];
+      var actionLinks = Array.isArray(p.action_links) ? p.action_links : [];
+      var resId = p.resource_play_id || ('p-' + p.id);
+      var statusClass = p.status === 'automated' ? 'available' : 'coming-soon';
+      var statusLabel = p.status === 'automated' ? 'Automated' : 'Coming Soon';
 
-      const num = idx + 1;
-      const modes = Array.isArray(p.modes) ? p.modes : [];
-      const outcomes = Array.isArray(p.outcomes) ? p.outcomes : [];
-      const outputs = Array.isArray(p.outputs) ? p.outputs : [];
-      const actionLinks = Array.isArray(p.action_links) ? p.action_links : [];
-      const resId = p.resource_play_id || ('p-' + p.id);
-
-      const statusClass = p.status === 'automated' ? 'available' : 'coming-soon';
-      const statusLabel = p.status === 'automated' ? 'Automated' : 'Coming Soon';
-
-      // Modes section
-      let modesHtml = '';
+      var modesHtml = '';
       if (modes.length) {
-        modesHtml = `<div class="practice-section">
-          <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">How to Run It</h4>
-          <div class="key-points">
-            ${modes.map(m => `<div class="key-point"><div class="dot"></div><span><strong>${esc(m.label)}</strong> &mdash; ${esc(m.description)}</span></div>`).join('')}
-          </div>
-        </div>`;
+        modesHtml = '<div class="practice-section">' +
+          '<h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">How to Run It</h4>' +
+          '<div class="key-points">' +
+          modes.map(function (m) { return '<div class="key-point"><div class="dot"></div><span><strong>' + esc(m.label) + '</strong> &mdash; ' + esc(m.description) + '</span></div>'; }).join('') +
+          '</div></div>';
       }
-
-      // Outcomes section
-      let outcomesHtml = '';
+      var outcomesHtml = '';
       if (outcomes.length) {
-        outcomesHtml = `<div class="practice-section" style="margin-top:1rem;">
-          <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>
-          <div class="key-points">
-            ${outcomes.map(o => `<div class="key-point"><div class="dot"></div><span>${esc(o)}</span></div>`).join('')}
-          </div>
-        </div>`;
+        outcomesHtml = '<div class="practice-section" style="margin-top:1rem;">' +
+          '<h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outcomes</h4>' +
+          '<div class="key-points">' +
+          outcomes.map(function (o) { return '<div class="key-point"><div class="dot"></div><span>' + esc(o) + '</span></div>'; }).join('') +
+          '</div></div>';
       }
-
-      // Outputs section
-      let outputsHtml = '';
+      var outputsHtml = '';
       if (outputs.length) {
-        outputsHtml = `<div class="practice-section" style="margin-top:1rem;">
-          <h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>
-          <div class="key-points">
-            ${outputs.map(o => `<div class="key-point"><div class="dot"></div><span>${esc(o)}</span></div>`).join('')}
-          </div>
-        </div>`;
+        outputsHtml = '<div class="practice-section" style="margin-top:1rem;">' +
+          '<h4 style="font-size:.8rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Outputs</h4>' +
+          '<div class="key-points">' +
+          outputs.map(function (o) { return '<div class="key-point"><div class="dot"></div><span>' + esc(o) + '</span></div>'; }).join('') +
+          '</div></div>';
       }
-
-      // Action links
-      let actionsHtml = '';
+      var actionsHtml = '';
       if (actionLinks.length) {
-        actionsHtml = actionLinks.map(l => {
-          if (l.style === 'disabled' || !l.url) {
-            return `<span class="action-btn disabled">${esc(l.label)}</span>`;
-          }
-          return `<a href="${esc(l.url)}" class="action-btn ${l.style || 'primary'}">${esc(l.label)}</a>`;
+        actionsHtml = actionLinks.map(function (l) {
+          if (l.style === 'disabled' || !l.url) return '<span class="action-btn disabled">' + esc(l.label) + '</span>';
+          return '<a href="' + esc(l.url) + '" class="action-btn ' + (l.style || 'primary') + '">' + esc(l.label) + '</a>';
         }).join('\n          ');
       }
+      var descHtml = p.description ? '<p>' + esc(p.description) + '</p>' : '';
 
-      // Description
-      const descHtml = p.description
-        ? `<p>${esc(p.description)}</p>`
-        : '';
-
-      html += `
-      <div class="practice-card">
-        <div class="practice-header">
-          <div class="practice-number">Practice ${num}</div>
-          <div class="practice-header-top">
-            <h3>${esc(p.title)}</h3>
-            <span class="status-badge ${statusClass}">${statusLabel}</span>
-          </div>
-          ${descHtml}
-        </div>
-        ${(modesHtml || outcomesHtml || outputsHtml) ? `<div class="practice-body">${modesHtml}${outcomesHtml}${outputsHtml}</div>` : ''}
-        ${actionsHtml ? `<div class="practice-actions">${actionsHtml}</div>` : ''}
-        <div class="practice-res-wrap" id="res-list-${resId}" style="margin:0 1.75rem 1.5rem;border-top:1px solid var(--border,#E2E8F0);padding-top:.75rem;"></div>
-      </div>`;
+      html += '<div class="practice-card">' +
+        '<div class="practice-header">' +
+          '<div class="practice-number">Practice ' + num + '</div>' +
+          '<div class="practice-header-top">' +
+            '<h3>' + esc(p.title) + '</h3>' +
+            '<span class="status-badge ' + statusClass + '">' + statusLabel + '</span>' +
+          '</div>' + descHtml +
+        '</div>' +
+        ((modesHtml || outcomesHtml || outputsHtml) ? '<div class="practice-body">' + modesHtml + outcomesHtml + outputsHtml + '</div>' : '') +
+        (actionsHtml ? '<div class="practice-actions">' + actionsHtml + '</div>' : '') +
+        '<div class="practice-res-wrap" id="res-list-' + resId + '" style="margin:0 1.75rem 1.5rem;border-top:1px solid var(--border,#E2E8F0);padding-top:.75rem;"></div>' +
+        '</div>';
     });
 
     container.innerHTML = html;
 
     // Init resources for each practice card
     if (window.VCTResources) {
-      junctions.forEach(junction => {
-        const p = allPractices.find(x => x.id === junction.practice_id);
-        if (!p) return;
-        const resId = p.resource_play_id || ('p-' + p.id);
-        VCTResources.init(p.resource_play_id || 0, { listId: 'res-list-' + resId, compact: true });
+      forPlay.forEach(function (p) {
+        var resId = p.resource_play_id || ('p-' + p.id);
+        window.VCTResources.init(p.resource_play_id || 0, { listId: 'res-list-' + resId, compact: true });
       });
     }
   }
 
-  /* ── CRUD: beliefs ─────────────────────────────────────── */
-  async function fetchBeliefs() {
-    const sb = await getClient();
-    if (!sb) return [];
-    const { data, error } = await sb.from('beliefs').select('*').order('sort_order');
-    if (error) { console.warn('beliefs fetch error', error); return []; }
-    return data || [];
-  }
-
-  async function createBelief(belief) {
-    const sb = await getClient();
-    if (!sb) return null;
-    const { data, error } = await sb.from('beliefs').insert([belief]).select();
-    if (error) { console.error('belief insert error', error); alert('Failed to create belief: ' + error.message); return null; }
-    return data?.[0];
-  }
-
-  async function updateBelief(id, updates) {
-    const sb = await getClient();
-    if (!sb) return null;
-    updates.updated_at = new Date().toISOString();
-    const { data, error } = await sb.from('beliefs').update(updates).eq('id', id).select();
-    if (error) { console.error('belief update error', error); alert('Failed to update belief: ' + error.message); return null; }
-    return data?.[0];
-  }
-
-  async function deleteBelief(id) {
-    const sb = await getClient();
-    if (!sb) return false;
-    const { error } = await sb.from('beliefs').delete().eq('id', id);
-    if (error) { console.error('belief delete error', error); alert('Failed to delete belief: ' + error.message); return false; }
-    return true;
-  }
-
-  /* ── Dynamic beliefs renderer for homepage ──────────────── */
+  /* ── Beliefs renderer ──────────────────────────────────── */
   async function renderBeliefs(containerId) {
-    const container = document.getElementById(containerId || 'beliefs-container');
+    var container = document.getElementById(containerId || 'beliefs-container');
     if (!container) return;
-
-    const beliefs = await fetchBeliefs();
-
+    var beliefs = await fetchBeliefs();
     if (!beliefs.length) {
       container.innerHTML = '<p style="font-size:.85rem;color:var(--text-secondary,#5A6B8A);padding:1rem 0;">No principles added yet.</p>';
       return;
     }
-
-    container.innerHTML = beliefs.map((b, idx) => `
-      <div class="big-idea-card">
-        <div class="bi-num">${idx + 1}</div>
-        <div>
-          <h4>${esc(b.title)}</h4>
-          <p>${esc(b.description)}</p>
-        </div>
-      </div>
-    `).join('');
+    container.innerHTML = beliefs.map(function (b, idx) {
+      return '<div class="big-idea-card"><div class="bi-num">' + (idx + 1) + '</div><div><h4>' + esc(b.title) + '</h4><p>' + esc(b.description) + '</p></div></div>';
+    }).join('');
   }
 
-  /* ── Expose ────────────────────────────────────────────── */
   window.VCTPractices = {
-    fetchPractices,
-    createPractice,
-    updatePractice,
-    deletePractice,
-    fetchPlayPractices,
-    assignPracticeToPlay,
-    unassignPracticeFromPlay,
-    updateSortOrder,
-    renderPlayPage,
-    fetchBeliefs,
-    createBelief,
-    updateBelief,
-    deleteBelief,
-    renderBeliefs,
-    PLAY_NAMES,
-    PLAY_COLORS
+    fetchPractices: fetchPractices,
+    createPractice: createPractice,
+    updatePractice: updatePractice,
+    deletePractice: deletePractice,
+    fetchPlayPractices: fetchPlayPractices,
+    assignPracticeToPlay: assignPracticeToPlay,
+    unassignPracticeFromPlay: unassignPracticeFromPlay,
+    updateSortOrder: updateSortOrder,
+    renderPlayPage: renderPlayPage,
+    fetchBeliefs: fetchBeliefs,
+    createBelief: createBelief,
+    updateBelief: updateBelief,
+    deleteBelief: deleteBelief,
+    renderBeliefs: renderBeliefs,
+    PLAY_NAMES: PLAY_NAMES,
+    PLAY_COLORS: PLAY_COLORS
   };
 })();

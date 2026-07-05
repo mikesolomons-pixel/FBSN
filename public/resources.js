@@ -1,6 +1,9 @@
 /**
- * resources.js — Dynamic resource management for VCT
- * Requires supabase-config.js to be loaded (sets window.supabaseClient)
+ * resources.js — Resource management for VCT (local-only build).
+ *
+ * Backed by window.dataStore (see local-store.js). Bundled resources
+ * come from /data/resources.json and are read-only. User-added
+ * resources live in browser localStorage and are editable/deletable.
  *
  * Usage on play pages:
  *   VCTResources.init(playNumber)
@@ -311,61 +314,71 @@
     return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
   }
 
-  /* ── Supabase helper ────────────────────────────────────── */
-  async function getClient() {
+  /* ── Data-store helpers ─────────────────────────────────── */
+  async function getStore() {
     for (let i = 0; i < 30; i++) {
-      if (window.supabaseClient) return window.supabaseClient;
-      await new Promise(r => setTimeout(r, 100));
+      if (window.dataStore) return window.dataStore;
+      await new Promise(r => setTimeout(r, 50));
     }
     return null;
   }
 
   async function fetchResources(play) {
-    const sb = await getClient();
-    if (!sb) return [];
-    let q = sb.from('resources').select('*').order('created_at', { ascending: true });
-    if (play) {
-      if (play >= 100) q = q.eq('play', play);
-      else q = q.in('play', [play, 0]);
-    }
-    const { data, error } = await q;
-    if (error) { console.warn('resources fetch error', error); return []; }
-    return data || [];
+    const ds = await getStore();
+    if (!ds) return [];
+    const all = await ds.resources.list();
+    if (!play) return all;
+    if (play >= 100) return all.filter(r => r.play === play);
+    return all.filter(r => r.play === play || r.play === 0);
   }
 
   async function addResource(resource) {
-    const sb = await getClient();
-    if (!sb) return null;
-    const { data, error } = await sb.from('resources').insert([resource]).select();
-    if (error) { console.error('resource insert error', error); alert('Failed to save resource: ' + error.message); return null; }
-    return data?.[0];
-  }
-
-  async function uploadFile(file, bucket) {
-    const sb = await getClient();
-    if (!sb) return null;
-    const ext = file.name.split('.').pop();
-    const path = `${bucket || 'resources'}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
-    const { data, error } = await sb.storage.from('resources').upload(path, file, { upsert: false });
-    if (error) { console.error('file upload error', error); return null; }
-    const { data: urlData } = sb.storage.from('resources').getPublicUrl(path);
-    return urlData?.publicUrl || null;
+    const ds = await getStore();
+    if (!ds) return null;
+    try {
+      return await ds.resources.add(resource);
+    } catch (e) {
+      console.error('resource add error', e);
+      alert('Failed to save resource: ' + e.message);
+      return null;
+    }
   }
 
   async function updateResource(id, updates) {
-    const sb = await getClient();
-    if (!sb) return null;
-    const { data, error } = await sb.from('resources').update(updates).eq('id', id).select();
-    if (error) { console.error('resource update error', error); alert('Failed to update: ' + error.message); return null; }
-    return data?.[0];
+    const ds = await getStore();
+    if (!ds) return null;
+    // Bundled resources can't be edited (they live in a read-only JSON file).
+    const isBundled = await ds.resources.isBundled(id);
+    if (isBundled) {
+      alert('This is a built-in resource and cannot be edited. You can add your own via the Add form.');
+      return null;
+    }
+    return ds.resources.update(id, updates);
   }
 
   async function deleteResource(id) {
-    const sb = await getClient();
-    if (!sb) return false;
-    const { error } = await sb.from('resources').delete().eq('id', id);
-    return !error;
+    const ds = await getStore();
+    if (!ds) return false;
+    const isBundled = await ds.resources.isBundled(id);
+    if (isBundled) {
+      alert('This is a built-in resource and cannot be removed.');
+      return false;
+    }
+    return ds.resources.remove(id);
   }
+
+  // File-upload used to go through Supabase Storage. In local-only mode
+  // we don't have a shared bucket, so the caller falls back to the URL
+  // field. Keep the function so existing UI wiring doesn't crash.
+  async function uploadFile() {
+    alert('File upload isn\'t supported in local-only mode. Paste a URL instead.');
+    return null;
+  }
+
+  // Bundled resources have string IDs starting with "r-" (see data/resources.json).
+  // User-added ones get uuid-style IDs from local-store. Cheap synchronous check
+  // avoids awaiting isBundled() in the render loop.
+  function isBundledId(id) { return typeof id === 'string' && /^r-\d/.test(id); }
 
   /* ── Card renderer ──────────────────────────────────────── */
   function renderCard(r) {
@@ -396,10 +409,10 @@
         ${thumbHTML}
         ${typeChipHTML}
         <span class="resource-play-chip" style="background:${playBg}">${esc(playLabel)}</span>
-        <div class="resource-admin-controls">
+        ${isBundledId(r.id) ? '' : `<div class="resource-admin-controls">
           <button class="ra-btn" data-edit-id="${r.id}" title="Edit" onclick="event.preventDefault();event.stopPropagation();">&#9998;</button>
           <button class="ra-btn danger" data-delete-id="${r.id}" title="Delete" onclick="event.preventDefault();event.stopPropagation();">&times;</button>
-        </div>
+        </div>`}
       </div>
       <div class="resource-body">
         <div class="resource-card-title">${esc(r.title)}</div>
